@@ -25,4 +25,5 @@ func main() {
 	}
 
 	fmt.Println(response.Choices[0].Message.Content)
+
 }

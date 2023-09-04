@@ -25,9 +25,14 @@ KEY2=VALUE2
 		t.Fatal(err)
 	}
 
-	originalWd, _ := os.Getwd()
-	os.Chdir(tempDir)
-	defer os.Chdir(originalWd)
+	// Mock the projectRoot function to return our temp directory
+	originalGetProjectRoot := getProjectRoot
+	getProjectRoot = func() string {
+		return tempDir
+	}
+	defer func() {
+		getProjectRoot = originalGetProjectRoot
+	}()
 
 	if err := LoadDotEnv(); err != nil {
 		t.Fatalf("LoadDotEnv() failed: %s", err)

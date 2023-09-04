@@ -4,11 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 )
 
+var getProjectRoot = func() string {
+	_, currentFilePath, _, _ := runtime.Caller(0)
+	return filepath.Join(filepath.Dir(currentFilePath), "../")
+}
+
 func LoadDotEnv() error {
-	file, err := os.Open(".env")
+	projectRoot := getProjectRoot()
+
+	// Create the path to the .env file in the root directory.
+	envPath := filepath.Join(projectRoot, ".env")
+
+	file, err := os.Open(envPath)
 	if err != nil {
 		return err
 	}

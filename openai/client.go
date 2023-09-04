@@ -4,6 +4,16 @@ import (
 	"net/http"
 )
 
+type requestConstructor struct {
+	APIKey string
+}
+
+type responseParser struct{}
+
+type executor struct {
+	client *http.Client
+}
+
 type Client struct {
 	requestConstructor *requestConstructor
 	executor           *executor

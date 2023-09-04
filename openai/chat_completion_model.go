@@ -10,6 +10,20 @@ import (
 
 const baseURL = "https://api.openai.com/v1"
 
+func (c *Client) ChatCompletion(prompt string) (*CompletionResponse, error) {
+	req, err := c.requestConstructor.construct(prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := c.executor.execute(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.responseParser.parse(respBody)
+}
+
 type chatCompletionPayload struct {
 	Model       string        `json:"model"`
 	Messages    []chatMessage `json:"messages"`
@@ -19,16 +33,6 @@ type chatCompletionPayload struct {
 type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
-}
-
-type requestConstructor struct {
-	APIKey string
-}
-
-type responseParser struct{}
-
-type executor struct {
-	client *http.Client
 }
 
 type CompletionResponse struct {
@@ -57,20 +61,6 @@ type Usage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func (c *Client) ChatCompletion(prompt string) (*CompletionResponse, error) {
-	req, err := c.requestConstructor.construct(prompt)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := c.executor.execute(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.responseParser.parse(respBody)
-}
-
 func (rc *requestConstructor) construct(prompt string) (*http.Request, error) {
 	url := fmt.Sprintf("%s/chat/completions", baseURL)
 
@@ -88,6 +78,11 @@ func (rc *requestConstructor) construct(prompt string) (*http.Request, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling payload: %w", err)
+	}
+	const maxPayloadSize = 2e6 // For instance, 2MB
+
+	if len(data) > maxPayloadSize {
+		return nil, fmt.Errorf("payload too large")
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
