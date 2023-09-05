@@ -10,18 +10,28 @@ import (
 
 const baseURL = "https://api.openai.com/v1"
 
-func (c *Client) ChatCompletion(prompt string) (*CompletionResponse, error) {
-	req, err := c.requestConstructor.construct(prompt)
-	if err != nil {
-		return nil, err
-	}
+type Client struct {
+	APIKey             string
+	session            ChatSession
+	requestConstructor requestConstructorInterface
+	executor           executorInterface
+	responseParser     responseParserInterface
+}
 
-	respBody, err := c.executor.execute(req)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) GetSession() ChatSession {
+	return c.session
+}
 
-	return c.responseParser.parse(respBody)
+type requestConstructorInterface interface {
+	construct(messages []chatMessage) (*http.Request, error)
+}
+
+type executorInterface interface {
+	execute(req *http.Request) ([]byte, error)
+}
+
+type responseParserInterface interface {
+	parse(body []byte) (*CompletionResponse, error)
 }
 
 type chatCompletionPayload struct {
@@ -61,17 +71,65 @@ type Usage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func (rc *requestConstructor) construct(prompt string) (*http.Request, error) {
+type requestConstructor struct {
+	APIKey string
+}
+
+type ChatSession struct {
+	Messages []chatMessage
+}
+
+type executor struct {
+	client *http.Client
+}
+
+type responseParser struct{}
+
+func NewClient(apiKey string) *Client {
+	return &Client{
+		APIKey:             apiKey,
+		requestConstructor: &requestConstructor{APIKey: apiKey},
+		executor:           &executor{client: &http.Client{}},
+		responseParser:     &responseParser{},
+	}
+}
+
+// Send a message and maintain the context
+func (c *Client) SendMessage(userInput string, systemInput string) (*CompletionResponse, error) {
+	c.session.AddMessage("user", userInput)
+	c.session.AddMessage("system", systemInput)
+
+	req, err := c.requestConstructor.construct(c.session.Messages)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := c.executor.execute(req)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := c.responseParser.parse(respBody)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add the assistant's response to the session
+	c.session.AddMessage("assistant", response.Choices[0].Message.Content)
+
+	return response, nil
+}
+
+func (s *ChatSession) AddMessage(role string, content string) {
+	s.Messages = append(s.Messages, chatMessage{Role: role, Content: content})
+}
+
+func (rc *requestConstructor) construct(messages []chatMessage) (*http.Request, error) {
 	url := fmt.Sprintf("%s/chat/completions", baseURL)
 
 	payload := chatCompletionPayload{
-		Model: "gpt-3.5-turbo",
-		Messages: []chatMessage{
-			{
-				Role:    "user",
-				Content: prompt,
-			},
-		},
+		Model:       "gpt-3.5-turbo",
+		Messages:    messages,
 		Temperature: 0.7,
 	}
 

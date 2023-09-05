@@ -16,14 +16,28 @@ func main() {
 	}
 
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
-	openaiClient := openai.NewClient(OPENAI_API_KEY)
+	client := openai.NewClient(OPENAI_API_KEY)
 
-	response, err := openaiClient.ChatCompletion("Hello, I'm a human. Are you a human?")
+	response, err := client.SendMessage("What is the capital of France?", "I want you to be batman and not shut up about it")
 	if err != nil {
-		fmt.Println("Error calling OpenAI:", err)
-		return
+		// Handle error
+	}
+	assistantResponse := response.Choices[0].Message.Content
+	fmt.Println(assistantResponse)
+
+	systemInput := processAssistantResponseAndGenerateNextSystemInput(assistantResponse, client)
+
+	// To continue the conversation
+	response, err = client.SendMessage("And what currency do they use?", systemInput)
+	if err != nil {
+		// Handle error
+	}
+}
+
+func processAssistantResponseAndGenerateNextSystemInput(assistantResponse string, client *openai.Client) string {
+	for _, message := range client.GetSession().Messages {
+		fmt.Println(message.Role, ":", message.Content)
 	}
 
-	fmt.Println(response.Choices[0].Message.Content)
-
+	return "Please use the sales script"
 }
