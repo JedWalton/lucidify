@@ -14,6 +14,7 @@ import (
 )
 
 const prompt = "Hello, I'm a human. Are you a human?"
+const system = "Hello, you are talking to a human. act nice?"
 
 func TestChatCompletionIntegration(t *testing.T) {
 	// Load API key from environment variables, similar to your main function.
@@ -29,7 +30,7 @@ func TestChatCompletionIntegration(t *testing.T) {
 	}
 
 	client := NewClient(apiKey)
-	response, err := client.ChatCompletion(prompt)
+	response, err := client.SendMessage(prompt, system)
 	if err != nil {
 		t.Fatalf("Unexpected error during ChatCompletion: %v", err)
 	}

@@ -44,7 +44,7 @@ func TestClient_SendMessage(t *testing.T) {
 		session:            ChatSession{},
 	}
 
-	resp, err := client.SendMessage("Hello, OpenAI!")
+	resp, err := client.SendMessage("Hello, OpenAI!", "System Command")
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -53,8 +53,8 @@ func TestClient_SendMessage(t *testing.T) {
 		t.Errorf("Unexpected response content: %s", resp.Choices[0].Message.Content)
 	}
 
-	if len(client.session.Messages) != 2 {
-		t.Errorf("Expected 2 messages in session, but got %d", len(client.session.Messages))
+	if len(client.session.Messages) != 3 {
+		t.Errorf("Expected 3 messages in session, but got %d", len(client.session.Messages))
 	}
 
 	userMessage := client.session.Messages[0]
@@ -62,7 +62,12 @@ func TestClient_SendMessage(t *testing.T) {
 		t.Errorf("Unexpected user message content or role")
 	}
 
-	assistantMessage := client.session.Messages[1]
+	systemMessage := client.session.Messages[1]
+	if systemMessage.Role != "system" || systemMessage.Content != "System Command" {
+		t.Errorf("Unexpected system message content or role")
+	}
+
+	assistantMessage := client.session.Messages[2]
 	if assistantMessage.Role != "assistant" || assistantMessage.Content != "Hello, World!" {
 		t.Errorf("Unexpected assistant message content or role")
 	}

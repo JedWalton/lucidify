@@ -17,27 +17,30 @@ func main() {
 
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	client := openai.NewClient(OPENAI_API_KEY)
+	client2 := openai.NewClient(OPENAI_API_KEY)
 
-	response, err := client.SendMessage("What is the capital of France?", "I want you to be batman and not shut up about it")
-	if err != nil {
-		// Handle error
+	var userPrompt string
+	var user2Prompt string
+
+	var i int = 0
+	for {
+		println("Iteration: ", i)
+		println("")
+		response_client, err := client.SendMessage(userPrompt, "Talk about microsaas opportunities with large language models. Ideally keep responses to a just a couple of lines. discuss propositions and constructing offers")
+		if err != nil {
+			println("Error: ", err)
+		}
+		println("Client 1: " + response_client.Choices[0].Message.Content)
+		println("")
+		user2Prompt = response_client.Choices[0].Message.Content
+		response_client2, err := client2.SendMessage(user2Prompt, "Ask questions about the microsaas opportunites and offers")
+		if err != nil {
+			println("Error: ", err)
+		}
+		println("Client 2: " + response_client2.Choices[0].Message.Content)
+		userPrompt = response_client2.Choices[0].Message.Content
+		println("")
+
+		i++
 	}
-	assistantResponse := response.Choices[0].Message.Content
-	fmt.Println(assistantResponse)
-
-	systemInput := processAssistantResponseAndGenerateNextSystemInput(assistantResponse, client)
-
-	// To continue the conversation
-	response, err = client.SendMessage("And what currency do they use?", systemInput)
-	if err != nil {
-		// Handle error
-	}
-}
-
-func processAssistantResponseAndGenerateNextSystemInput(assistantResponse string, client *openai.Client) string {
-	for _, message := range client.GetSession().Messages {
-		fmt.Println(message.Role, ":", message.Content)
-	}
-
-	return "Please use the sales script"
 }

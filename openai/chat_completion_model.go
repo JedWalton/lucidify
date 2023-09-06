@@ -18,10 +18,6 @@ type Client struct {
 	responseParser     responseParserInterface
 }
 
-func (c *Client) GetSession() ChatSession {
-	return c.session
-}
-
 type requestConstructorInterface interface {
 	construct(messages []chatMessage) (*http.Request, error)
 }
