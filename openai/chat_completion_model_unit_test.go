@@ -210,6 +210,3 @@ func TestParseError(t *testing.T) {
 		t.Error("Expected error for invalid JSON, but got nil")
 	}
 }
-
-// We will not be able to test ChatCompletion without mocking. Since it's an integration-heavy function,
-// testing it fully requires either an end-to-end test or mocks to simulate OpenAI API responses.
