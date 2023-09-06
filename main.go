@@ -33,7 +33,7 @@ func main() {
 		println("Client 1: \n" + response_client.Choices[0].Message.Content)
 		println("")
 		user2Prompt = response_client.Choices[0].Message.Content
-		response_client2, err := client2.SendMessage(user2Prompt, "Ask a question about how this can provide value? Follow the conversation thread to uncover value.")
+		response_client2, err := client2.SendMessage(user2Prompt, "Ask a question about how this can provide value? Follow the conversation thread to uncover value. Lead them to articulate why they want to buy my microsaas product. Close the sale.")
 		if err != nil {
 			println("Error: ", err)
 		}
