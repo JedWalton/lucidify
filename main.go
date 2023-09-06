@@ -30,14 +30,14 @@ func main() {
 		if err != nil {
 			println("Error: ", err)
 		}
-		println("Client 1: " + response_client.Choices[0].Message.Content)
+		println("Client 1: \n" + response_client.Choices[0].Message.Content)
 		println("")
 		user2Prompt = response_client.Choices[0].Message.Content
-		response_client2, err := client2.SendMessage(user2Prompt, "Ask questions about the microsaas opportunites and offers")
+		response_client2, err := client2.SendMessage(user2Prompt, "Ask a question about how this can provide value? Follow the conversation thread to uncover value.")
 		if err != nil {
 			println("Error: ", err)
 		}
-		println("Client 2: " + response_client2.Choices[0].Message.Content)
+		println("Client 2: \n" + response_client2.Choices[0].Message.Content)
 		userPrompt = response_client2.Choices[0].Message.Content
 		println("")
 
