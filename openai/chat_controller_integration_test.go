@@ -37,7 +37,7 @@ func TestChatControllerIntegration(t *testing.T) {
 	os.Stdout = w
 
 	// 3. Use context to limit runtime for safety
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
 	defer cancel()
 
 	controller.Start(ctx)
