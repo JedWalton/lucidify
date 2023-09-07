@@ -17,9 +17,6 @@ const prompt = "Hello, I'm a human. Are you a human?"
 const system = "Hello, you are talking to a human. act nice?"
 
 func TestChatCompletionIntegration(t *testing.T) {
-	// Load API key from environment variables, similar to your main function.
-	// This assumes you have set OPENAI_API_KEY in your environment or in a .env file.
-
 	if err := utils.LoadDotEnv(); err != nil {
 		fmt.Println("Error loading .env:", err)
 		return

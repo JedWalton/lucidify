@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/tiktoken-go/tokenizer"
 )
 
 const baseURL = "https://api.openai.com/v1"
@@ -19,7 +21,7 @@ type Client struct {
 }
 
 type requestConstructorInterface interface {
-	construct(messages []chatMessage) (*http.Request, error)
+	construct(messages []Message) (*http.Request, error)
 }
 
 type executorInterface interface {
@@ -31,12 +33,12 @@ type responseParserInterface interface {
 }
 
 type chatCompletionPayload struct {
-	Model       string        `json:"model"`
-	Messages    []chatMessage `json:"messages"`
-	Temperature float64       `json:"temperature"`
+	Model       string    `json:"model"`
+	Messages    []Message `json:"messages"`
+	Temperature float64   `json:"temperature"`
 }
 
-type chatMessage struct {
+type Message struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
@@ -56,11 +58,6 @@ type Choice struct {
 	FinishReason string  `json:"finish_reason"`
 }
 
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
 type Usage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
@@ -72,7 +69,7 @@ type requestConstructor struct {
 }
 
 type ChatSession struct {
-	Messages []chatMessage
+	Messages []Message
 }
 
 type executor struct {
@@ -117,10 +114,35 @@ func (c *Client) SendMessage(userInput string, systemInput string) (*CompletionR
 }
 
 func (s *ChatSession) AddMessage(role string, content string) {
-	s.Messages = append(s.Messages, chatMessage{Role: role, Content: content})
+	s.Messages = append(s.Messages, Message{Role: role, Content: content})
 }
 
-func (rc *requestConstructor) construct(messages []chatMessage) (*http.Request, error) {
+func EstimateTokenCount(text string) int {
+	enc, err := tokenizer.Get(tokenizer.Cl100kBase)
+	if err != nil {
+		panic("Failed to get tokenizer: " + err.Error())
+	}
+
+	// Encode the input string to get a list of token ids
+	ids, _, err := enc.Encode(text)
+	if err != nil {
+		panic("Failed to encode string: " + err.Error())
+	}
+	// Count and print the number of tokens
+	tokenCount := len(ids)
+
+	return tokenCount
+}
+
+func EstimateTokenCountOfCurrentChatSession(chatSession ChatSession) int {
+	var tokenCount int
+	for _, message := range chatSession.Messages {
+		tokenCount += EstimateTokenCount(message.Content)
+	}
+	return tokenCount
+}
+
+func (rc *requestConstructor) construct(messages []Message) (*http.Request, error) {
 	url := fmt.Sprintf("%s/chat/completions", baseURL)
 
 	payload := chatCompletionPayload{

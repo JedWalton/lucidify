@@ -28,7 +28,7 @@ func TestChatControllerIntegration(t *testing.T) {
 	if apiKey == "" {
 		t.Skip("OPENAI_API_KEY not set, skipping integration test")
 	}
-	controller := NewChatController(apiKey)
+	controller := NewChatThread(apiKey)
 	controller.Input = buffer // Set the simulated input
 
 	// 2. Capture the standard output

@@ -17,7 +17,7 @@ func main() {
 	}
 
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
-	controller := openai.NewChatController(OPENAI_API_KEY)
+	thread := openai.NewChatThread(OPENAI_API_KEY)
 
-	controller.Start(context.Background())
+	thread.Start(context.Background())
 }

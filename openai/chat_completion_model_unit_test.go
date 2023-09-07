@@ -88,12 +88,23 @@ func TestChatSession_AddMessage(t *testing.T) {
 	}
 }
 
+func TestEstimateTokenCount(t *testing.T) {
+	testString1 := "Hello, World!"
+	if EstimateTokenCount(testString1) != 4 {
+		t.Errorf("Expected 4 tokens, got %d", EstimateTokenCount(testString1))
+	}
+	testString2 := "What is the length of the tokens of this string?"
+	if EstimateTokenCount(testString2) != 11 {
+		t.Errorf("Expected 11 tokens, got %d", EstimateTokenCount(testString1))
+	}
+}
+
 // TestRequestConstructor_Construct tests the construction of a request.
 func TestRequestConstructor_Construct(t *testing.T) {
 	rc := &requestConstructor{APIKey: "testAPIKey"}
 
 	// Create a slice of chatMessage for the test
-	messages := []chatMessage{
+	messages := []Message{
 		{
 			Role:    "user",
 			Content: "test prompt",
@@ -146,7 +157,7 @@ type fakeExecutor struct{}
 type fakeResponseParser struct{}
 
 // Stub the methods of our fake structs
-func (f *fakeRequestConstructor) construct(messages []chatMessage) (*http.Request, error) {
+func (f *fakeRequestConstructor) construct(messages []Message) (*http.Request, error) {
 	// Create a stubbed http.Request
 	req, _ := http.NewRequest(http.MethodGet, "http://fakeurl.com", nil)
 	return req, nil
@@ -188,7 +199,7 @@ func TestConstructError(t *testing.T) {
 
 	// Creating a very large message to generate a too large payload error
 	messageContent := string(bytes.Repeat([]byte("a"), 10e6))
-	messages := []chatMessage{
+	messages := []Message{
 		{
 			Role:    "user",
 			Content: messageContent,

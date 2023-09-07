@@ -20,7 +20,7 @@ type ChatController struct {
 	Input   io.Reader
 }
 
-func NewChatController(apiKey string) *ChatController {
+func NewChatThread(apiKey string) *ChatController {
 	return &ChatController{
 		Client:  NewClient(apiKey),
 		Scanner: bufio.NewScanner(nil),
@@ -55,6 +55,8 @@ func (c *ChatController) Start(ctx context.Context) {
 }
 
 func (c *ChatController) processUserPrompt(userPrompt string) {
+	println(EstimateTokenCount(userPrompt))
+
 	response, err := c.Client.SendMessage(userPrompt, "Ask a question about how we can provide value? Follow the conversation thread to uncover value. if you ask a question, only ask one question at a time. Lead them to articulate why I solve their problem. Close the sale.")
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -66,12 +68,4 @@ func (c *ChatController) processUserPrompt(userPrompt string) {
 		fmt.Println("Optimal moment to schedule a sales call...")
 		scheduleSalesCall()
 	}
-}
-
-func scheduleSalesCall() {
-	panic("unimplemented")
-}
-
-func isOptimalMomentToScheduleSalesCall() bool {
-	return false
 }
