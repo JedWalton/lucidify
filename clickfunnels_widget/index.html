@@ -206,7 +206,7 @@
         messages.innerHTML += `<div class="user-message">${userInput}</div>`;
 
         // Fetch response from backend
-        const response = await fetch('http://127.0.0.1:8080/chat', {
+        const response = await fetch('http://localhost:8080/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
