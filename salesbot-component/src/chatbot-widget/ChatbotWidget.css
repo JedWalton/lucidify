@@ -204,6 +204,15 @@ button:hover {
     border-radius: 18px 18px 18px 0; /* Rounded corners, but flat top-right for bot */
 }
 
+#chatHeader a {
+    color: inherit; /* Use the same color as the surrounding text */
+    text-decoration: none; /* Remove the underline */
+}
+
+#chatHeader a:hover {
+    text-decoration: underline; /* Add underline on hover for better UX */
+}
+
 #chatHeader {
     display: flex;
     justify-content: space-between;
