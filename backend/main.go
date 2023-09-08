@@ -1,5 +1,3 @@
-// main.go
-
 package main
 
 import (
@@ -37,7 +35,7 @@ func NewServerConfig() *ServerConfig {
 	}
 
 	allowedOrigins := []string{
-		"http://localhost:3000", // add production/staging frontend urls here
+		"http://localhost:3000",
 	}
 
 	dbStore := store.ConnectToPostgres()
@@ -51,14 +49,16 @@ func NewServerConfig() *ServerConfig {
 }
 
 func main() {
-
 	config := NewServerConfig()
 	defer config.DBStore.Close()
 
 	mux := http.NewServeMux()
 	mux = SetupRoutes(config, mux)
 
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Printf("Server starting on :%s", config.Port)
+	if err := http.ListenAndServe(":"+config.Port, mux); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
 
 func SetupRoutes(config *ServerConfig, mux *http.ServeMux) *http.ServeMux {
@@ -85,9 +85,7 @@ func chatHandler() http.HandlerFunc {
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
-
 		userPrompt := reqBody["message"]
-
 		// Assuming you have a global ChatController instance named 'thread'
 		responseMessage := thread.ProcessUserPrompt(userPrompt)
 

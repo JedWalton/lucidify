@@ -34,8 +34,10 @@ function ChatbotWidget() {
     return (
         <div id="chatbox" className={isMaximized ? 'maximized' : ''}>
             <div id="chatHeader">
-                <span>Powered by MindFunnel</span>
-                <span id="minimizeButton" onClick={toggleChat}>−</span>
+                <span>Powered by Lucidify.xyz</span>
+                <span id="minimizeButton" onClick={toggleChat}>
+                    {isMaximized ? '−' : '+'}
+                </span>
             </div>
             <div id="messages">
                 {messages.map((message, index) => (

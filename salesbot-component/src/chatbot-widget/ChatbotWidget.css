@@ -20,6 +20,8 @@ body {
     display: flex;
     flex-direction: column;
     transition: height 0.3s ease-out;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
 }
 
 #chatbox.maximized {
@@ -28,6 +30,10 @@ body {
 
 #chatbox.maximized #messages {
     display: block; /* show when chatbox is maximized */
+}
+
+#chatbox:not(.maximized) {
+    scrollbar-width: none; /* For Firefox */
 }
 
 #inputArea {
@@ -51,67 +57,6 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-button {
-    padding: 10px 20px;
-    border: none;
-    background-color: #007BFF;
-    color: #fff;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    outline: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-#messages {
-    flex: 1;
-    padding: 10px;
-    overflow-y: scroll;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* By default, align messages to the start (left) */
-}
-
-.message-container {
-    width: 100%; /* Take up the full width of the parent */
-    display: flex;
-    justify-content: flex-start; /* By default, align containers to the start (left) */
-}
-
-.message-container.user {
-    justify-content: flex-end; /* Align user message containers to the end (right) */
-}
-
-
-.user-message, .bot-message {
-    margin: 5px 0;
-    padding: 8px 12px;
-    word-wrap: break-word; /* Ensure long words don't overflow */
-    position: relative; /* For potential future positioning needs */
-    display: inline-flex; /* Make the bubbles wrap around the content */
-    border-radius: 18px; /* Consistent rounded corners */
-}
-
-.user-message {
-    align-self: flex-end; /* Align user messages to the end (right) */
-    background-color: #007BFF;
-    color: #fff;
-    margin-left: auto; /* Push the message to the right */
-    border-radius: 18px 18px 18px 18px; /* Rounded corners, but flat top-left for user */
-    text-align: right; /* Align the text to the right inside the user's bubble */
-}
-
-.bot-message {
-    background-color: #e1e1e1;
-    color: #333;
-    text-align: left; /* Align the text to the left inside the bot's bubble */
-    border-radius: 18px 18px 18px 0; /* Rounded corners, but flat top-right for bot */
-}
-
 /* Custom Scrollbar Styles */
 #chatbox::-webkit-scrollbar {
     width: 10px;
@@ -131,30 +76,8 @@ button:hover {
     background: #555;
 }
 
-#chatbox {
-    scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
-}
-
-#chatHeader {
-    display: flex;
-    justify-content: space-between;
-    background-color: #f1f1f1;
-    padding: 5px;
-    border-bottom: 1px solid #ccc;
-}
-
-#minimizeButton {
-    cursor: pointer;
-    background-color: #ddd;
-    padding: 5px 10px;
-    border-radius: 3px;
-    font-size: 18px;
-    transition: background-color 0.3s;
-}
-
-#minimizeButton:hover {
-    background-color: #ccc;
+#chatbox:not(.maximized)::-webkit-scrollbar {
+    display: none;
 }
 
 #chatHeader {
@@ -202,6 +125,105 @@ button:hover {
     border-radius: 3px;
     font-size: 18px;
     transition: background-color 0.3s;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007BFF;
+    color: #fff;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    outline: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#chatbox:not(.maximized) {
+    overflow: hidden; /* Ensure no child elements spill out */
+    border: none; /* Remove any borders */
+    box-shadow: none; /* Remove any shadows */
+}
+
+#chatbox:not(.maximized) #messages,
+#chatbox:not(.maximized) #inputArea {
+    display: none;
+    margin: 0; /* Remove any margins */
+    padding: 0; /* Remove any paddings */
+    border: none; /* Remove any borders */
+    box-shadow: none; /* Remove any shadows */
+}
+
+
+#messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* By default, align messages to the start (left) */
+}
+
+.message-container {
+    width: 100%; /* Take up the full width of the parent */
+    display: flex;
+    justify-content: flex-start; /* By default, align containers to the start (left) */
+}
+
+.message-container.user {
+    justify-content: flex-end; /* Align user message containers to the end (right) */
+}
+
+
+.user-message, .bot-message {
+    margin: 5px 0;
+    padding: 8px 12px;
+    word-wrap: break-word; /* Ensure long words don't overflow */
+    position: relative; /* For potential future positioning needs */
+    display: inline-flex; /* Make the bubbles wrap around the content */
+    border-radius: 18px; /* Consistent rounded corners */
+}
+
+.user-message {
+    align-self: flex-end; /* Align user messages to the end (right) */
+    background-color: #007BFF;
+    color: #fff;
+    margin-left: auto; /* Push the message to the right */
+    border-radius: 18px 18px 18px 18px; /* Rounded corners, but flat top-left for user */
+    text-align: right; /* Align the text to the right inside the user's bubble */
+}
+
+.bot-message {
+    background-color: #e1e1e1;
+    color: #333;
+    text-align: left; /* Align the text to the left inside the bot's bubble */
+    border-radius: 18px 18px 18px 0; /* Rounded corners, but flat top-right for bot */
+}
+
+#chatHeader {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f1f1f1;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+#minimizeButton {
+    cursor: pointer;
+    background-color: #ddd;
+    vertical-align: middle;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 18px;
+    transition: background-color 0.3s;
+}
+
+#minimizeButton:hover {
+    background-color: #ccc;
 }
 
 #minimizeButton:hover {
