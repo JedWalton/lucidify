@@ -3,7 +3,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -24,9 +23,9 @@ func main() {
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	thread = openai.NewChatThread(OPENAI_API_KEY)
 
-	thread.Start(context.Background())
-
-	http.HandleFunc("/chat", chatHandler)
+	allowedOrigins := []string{"http://127.0.0.1:8000"}
+	http.Handle("/chat", loggingMiddleware(CORSMiddleware(allowedOrigins)(chatHandler)))
+	// http.Handle("/chat", loggingMiddleware(http.HandlerFunc(chatHandler)))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -55,4 +54,38 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseBody)
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Log the request
+		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
+
+		// Continue to the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
+func CORSMiddleware(allowedOrigins []string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			for _, allowed := range allowedOrigins {
+				if origin == allowed || allowed == "*" {
+					w.Header().Set("Access-Control-Allow-Origin", allowed)
+					w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+					w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+					break
+				}
+			}
+
+			// If preflight request, respond appropriately
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next(w, r)
+		}
+	}
 }

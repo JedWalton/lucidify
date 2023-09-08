@@ -4,8 +4,6 @@ package openai
 
 import (
 	"bufio"
-	"context"
-	"fmt"
 	"io"
 	"os"
 )
@@ -25,32 +23,6 @@ func NewChatThread(apiKey string) *ChatController {
 		Client:  NewClient(apiKey),
 		Scanner: bufio.NewScanner(nil),
 		Input:   os.Stdin,
-	}
-}
-
-func (c *ChatController) Start(ctx context.Context) {
-	i := 0
-	c.Scanner = bufio.NewScanner(c.Input)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			fmt.Println("Iteration: ", i)
-			fmt.Println()
-
-			fmt.Print("Please enter your prompt: ")
-
-			if c.Scanner.Scan() {
-				userPrompt := c.Scanner.Text()
-				c.ProcessUserPrompt(userPrompt)
-			} else if err := c.Scanner.Err(); err != nil {
-				fmt.Println("Error reading input:", err)
-				continue
-			}
-			i++
-		}
 	}
 }
 
