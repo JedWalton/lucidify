@@ -20,7 +20,10 @@ func main() {
 	}
 	thread = openai.NewChatThread(OPENAI_API_KEY)
 
-	allowedOrigins := []string{"http://127.0.0.1:8000"}
+	allowedOrigins := []string{
+		"http://127.0.0.1:8000",
+		"http://localhost:3000",
+	}
 	http.Handle("/chat", loggingMiddleware(CORSMiddleware(allowedOrigins)(chatHandler)))
 	// http.Handle("/chat", loggingMiddleware(http.HandlerFunc(chatHandler)))
 	log.Fatal(http.ListenAndServe(":8080", nil))
