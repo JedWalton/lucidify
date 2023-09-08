@@ -32,19 +32,15 @@ type responseParserInterface interface {
 	parse(body []byte) (*CompletionResponse, error)
 }
 
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
 type chatCompletionPayload struct {
 	Model       string    `json:"model"`
 	Messages    []Message `json:"messages"`
 	Temperature float64   `json:"temperature"`
 }
 
-type ChatSession struct {
-	Messages []Message
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type CompletionResponse struct {
@@ -70,6 +66,10 @@ type Usage struct {
 
 type requestConstructor struct {
 	APIKey string
+}
+
+type ChatSession struct {
+	Messages []Message
 }
 
 type executor struct {

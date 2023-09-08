@@ -2,9 +2,6 @@ package openai
 
 import (
 	"bufio"
-	"bytes"
-	"io"
-	"os"
 	"strings"
 	"testing"
 )
@@ -21,36 +18,16 @@ func (f *FakeClient) SendMessage(userInput string, systemInput string) (*Complet
 	}, nil
 }
 
-// A helper to capture printed output
-func captureOutput(f func()) string {
-	r, w, _ := os.Pipe()
-	old := os.Stdout
-	os.Stdout = w
-
-	f()
-
-	w.Close()
-	os.Stdout = old
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-	return buf.String()
-}
-
 func TestProcessUserPrompt(t *testing.T) {
 	controller := &ChatController{
 		Client:  &FakeClient{},
 		Scanner: bufio.NewScanner(strings.NewReader("Test prompt")),
 	}
 
-	// Capturing output
-	output := captureOutput(func() {
-		controller.processUserPrompt("Test prompt")
-	})
+	response := controller.ProcessUserPrompt("Test prompt")
+	expectedResponse := "Fake Response"
 
-	expectedOutput := "Assistant:\nFake Response\n"
-
-	if output != expectedOutput {
-		t.Fatalf("expected %q, got %q", expectedOutput, output)
+	if response != expectedResponse {
+		t.Fatalf("expected %q, got %q", expectedResponse, response)
 	}
 }

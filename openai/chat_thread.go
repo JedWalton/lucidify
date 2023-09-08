@@ -44,7 +44,7 @@ func (c *ChatController) Start(ctx context.Context) {
 
 			if c.Scanner.Scan() {
 				userPrompt := c.Scanner.Text()
-				c.processUserPrompt(userPrompt)
+				c.ProcessUserPrompt(userPrompt)
 			} else if err := c.Scanner.Err(); err != nil {
 				fmt.Println("Error reading input:", err)
 				continue
@@ -54,18 +54,16 @@ func (c *ChatController) Start(ctx context.Context) {
 	}
 }
 
-func (c *ChatController) processUserPrompt(userPrompt string) {
-	println(EstimateTokenCount(userPrompt))
+func (c *ChatController) ProcessUserPrompt(userPrompt string) string {
 
 	response, err := c.Client.SendMessage(userPrompt, "Ask a question about how we can provide value? Follow the conversation thread to uncover value. if you ask a question, only ask one question at a time. Lead them to articulate why I solve their problem. Close the sale.")
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		return "Error: " + err.Error()
 	}
-	fmt.Println("Assistant:\n" + response.Choices[0].Message.Content)
 
 	if isOptimalMomentToScheduleSalesCall() {
-		fmt.Println("Optimal moment to schedule a sales call...")
-		scheduleSalesCall()
+		return "Optimal moment to schedule a sales call..."
 	}
+
+	return response.Choices[0].Message.Content
 }
