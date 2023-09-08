@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI Chatbot Widget</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #chatbox {
+            width: 320px;
+            height: 60px; /* initial minimized height */
+            position: fixed;
+            bottom: 10px;
+            right: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow-y: hidden;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: height 0.3s ease-out;
+        }
+        #chatbox.maximized {
+            height: 480px; /* maximized height */
+        }
+        #messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: scroll;
+            display: none; /* initially hidden */
+        }
+        #chatbox.maximized #messages {
+            display: block; /* show when chatbox is maximized */
+        }
+        #inputArea {
+            display: none; /* initially hidden */
+            border-top: 1px solid #e1e1e1;
+            padding: 10px;
+            background-color: #fff;
+        }
+        #chatbox.maximized #inputArea {
+            display: flex; /* show when chatbox is maximized */
+        }
+        #userInput {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: #fff;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .user-message, .bot-message {
+            margin: 5px;
+            padding: 10px;
+            border-radius: 20px;
+            max-width: 80%;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #007BFF;
+            color: #fff;
+        }
+        .bot-message {
+            background-color: #e1e1e1;
+        }
+        /* Custom Scrollbar Styles */
+        #chatbox::-webkit-scrollbar {
+            width: 10px;
+        }
+        #chatbox::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #chatbox::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        #chatbox::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        #chatbox {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+        }
+        #chatHeader {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f1f1f1;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        #minimizeButton {
+            cursor: pointer;
+            background-color: #ddd;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        #minimizeButton:hover {
+            background-color: #ccc;
+        }
+        #chatHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f1f1;
+            padding: 5px 15px;
+            border-bottom: 1px solid #ccc;
+            position: relative;
+        }
+
+        #chatHeader span:first-child {
+            font-weight: 500;
+            letter-spacing: 1.5px; /* Increased letter spacing */
+            text-transform: uppercase; /* Convert text to uppercase */
+            font-size: 14px; /* Adjusted font size for uppercase text */
+            background: linear-gradient(45deg, #007BFF, #00FFA3); /* Gradient background */
+            -webkit-background-clip: text; /* Clip background to text */
+            color: transparent; /* Make the text color transparent to show the background */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s; /* Transition for hover effect */
+            display: flex; /* To align text and potential icon */
+            align-items: center; /* Vertically center text and icon */
+        }
+
+        #chatHeader span:first-child:hover {
+            transform: scale(1.05); /* Slight scale effect on hover */
+        }
+
+        #chatHeader span:first-child::before {
+            content: ''; /* Placeholder for an icon. You can use an actual icon here */
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: #007BFF; /* Placeholder color for the icon */
+            margin-right: 8px; /* Spacing between icon and text */
+            border-radius: 50%; /* Makes the placeholder icon circular */
+        }
+
+        #minimizeButton {
+            cursor: pointer;
+            background-color: #ddd;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        #minimizeButton:hover {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatbox" class="maximized">
+    <div id="chatHeader">
+        <span>Powered by MindFunnel</span>
+        <span id="minimizeButton" onclick="toggleChat()">−</span>
+    </div>
+    <div id="messages"></div>
+    <div id="inputArea">
+        <input type="text" id="userInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    function toggleChat() {
+        const chatbox = document.getElementById('chatbox');
+        if (chatbox.classList.contains('maximized')) {
+            chatbox.classList.remove('maximized');
+        } else {
+            chatbox.classList.add('maximized');
+        }
+    }
+    async function sendMessage() {
+        const userInput = document.getElementById('userInput').value;
+        const messages = document.getElementById('messages');
+
+        // Append user's message
+        messages.innerHTML += `<div class="user-message">${userInput}</div>`;
+
+        // Fetch response from backend
+        const response = await fetch('YOUR_BACKEND_ENDPOINT', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: userInput })
+        });
+
+        const data = await response.json();
+
+        // Append bot's response
+        messages.innerHTML += `<div class="bot-message">${data.response}</div>`;
+        
+        // Clear the input
+        document.getElementById('userInput').value = '';
+    }
+</script>
+
+</body>
+</html>
+
