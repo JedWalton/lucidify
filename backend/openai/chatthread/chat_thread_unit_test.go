@@ -1,18 +1,17 @@
-package openai
+package chatthread
 
 import (
-	"bufio"
-	"strings"
+	"openai-integrations/openai/chatmodel"
 	"testing"
 )
 
 type FakeClient struct{}
 
-func (f *FakeClient) SendMessage(userInput string, systemInput string) (*CompletionResponse, error) {
-	return &CompletionResponse{
-		Choices: []Choice{
+func (f *FakeClient) SendMessage(userInput string, systemInput string) (*chatmodel.CompletionResponse, error) {
+	return &chatmodel.CompletionResponse{
+		Choices: []chatmodel.Choice{
 			{
-				Message: Message{Content: "Fake Response"},
+				Message: chatmodel.Message{Content: "Fake Response"},
 			},
 		},
 	}, nil
@@ -20,8 +19,7 @@ func (f *FakeClient) SendMessage(userInput string, systemInput string) (*Complet
 
 func TestProcessUserPrompt(t *testing.T) {
 	controller := &ChatController{
-		Client:  &FakeClient{},
-		Scanner: bufio.NewScanner(strings.NewReader("Test prompt")),
+		Client: &FakeClient{},
 	}
 
 	response := controller.ProcessUserPrompt("Test prompt")

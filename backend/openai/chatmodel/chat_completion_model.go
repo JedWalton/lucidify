@@ -1,4 +1,4 @@
-package openai
+package chatmodel
 
 import (
 	"bytes"

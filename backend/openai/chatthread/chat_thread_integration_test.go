@@ -1,22 +1,23 @@
 //go:build integration
 // +build integration
 
-package openai
+package chatthread
 
 import (
 	"context"
-	"fmt"
-	"openai-integrations/utils"
+	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 func TestChatControllerIntegration(t *testing.T) {
-	if err := utils.LoadDotEnv(); err != nil {
-		fmt.Println("Error loading .env:", err)
-		return
+	if err := godotenv.Load("../../../.env"); err != nil {
+		log.Println("No .env file found")
 	}
+
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
 		t.Skip("OPENAI_API_KEY not set, skipping integration test")

@@ -1,32 +1,32 @@
 //go:build integration
 // +build integration
 
-package openai
+package chatmodel
 
 // client_integration_test.go
 
 import (
-	"fmt"
-	"openai-integrations/utils"
+	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 const prompt = "Hello, I'm a human. Are you a human?"
 const system = "Hello, you are talking to a human. act nice?"
 
 func TestChatCompletionIntegration(t *testing.T) {
-	if err := utils.LoadDotEnv(); err != nil {
-		fmt.Println("Error loading .env:", err)
-		return
+	if err := godotenv.Load("../../../.env"); err != nil {
+		log.Println("No .env file found")
 	}
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		t.Skip("OPENAI_API_KEY not set, skipping integration test")
+	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
+	if OPENAI_API_KEY == "" {
+		log.Fatal("OPENAI_API_KEY environment variable is not set")
 	}
+	client := NewClient(OPENAI_API_KEY)
 
-	client := NewClient(apiKey)
 	response, err := client.SendMessage(prompt, system)
 	if err != nil {
 		t.Fatalf("Unexpected error during ChatCompletion: %v", err)

@@ -5,14 +5,15 @@ import (
 	"log"
 	"net/http"
 	"openai-integrations/middleware"
-	"openai-integrations/openai"
+	"openai-integrations/openai/chatthread"
 	"openai-integrations/store"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
-var thread *openai.ChatController
+var thread *chatthread.ChatController
 
 type ServerConfig struct {
 	OPENAI_API_KEY string
@@ -22,11 +23,14 @@ type ServerConfig struct {
 }
 
 func NewServerConfig() *ServerConfig {
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Println("No .env file found")
+	}
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	if OPENAI_API_KEY == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
 	}
-	thread = openai.NewChatThread(OPENAI_API_KEY)
+	thread = chatthread.NewChatThread(OPENAI_API_KEY)
 
 	port := os.Getenv("PORT")
 	if port == "" {

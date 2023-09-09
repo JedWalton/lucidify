@@ -1,28 +1,26 @@
 // chat_completion_controller.go
 
-package openai
+package chatthread
 
 import (
-	"bufio"
 	"io"
+	"openai-integrations/openai/chatmodel"
 	"os"
 )
 
 type ChatClient interface {
-	SendMessage(userInput string, systemInput string) (*CompletionResponse, error)
+	SendMessage(userInput string, systemInput string) (*chatmodel.CompletionResponse, error)
 }
 
 type ChatController struct {
-	Client  ChatClient
-	Scanner *bufio.Scanner
-	Input   io.Reader
+	Client ChatClient
+	Input  io.Reader
 }
 
 func NewChatThread(apiKey string) *ChatController {
 	return &ChatController{
-		Client:  NewClient(apiKey),
-		Scanner: bufio.NewScanner(nil),
-		Input:   os.Stdin,
+		Client: chatmodel.NewClient(apiKey),
+		Input:  os.Stdin,
 	}
 }
 
@@ -33,9 +31,9 @@ func (c *ChatController) ProcessUserPrompt(userPrompt string) string {
 		return "Error: " + err.Error()
 	}
 
-	if isOptimalMomentToScheduleSalesCall() {
-		return "Optimal moment to schedule a sales call..."
-	}
+	// if isOptimalMomentToScheduleSalesCall() {
+	// 	return "Optimal moment to schedule a sales call..."
+	// }
 
 	return response.Choices[0].Message.Content
 }
