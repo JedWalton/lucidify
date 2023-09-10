@@ -1,0 +1,23 @@
+# Use a base node image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Set environment variable for chokidar (used by CRA for watching files)
+ENV CHOKIDAR_USEPOLLING=true
+
+# Install pnpm globally in the container
+RUN npm install -g pnpm
+
+# Copy package.json and pnpm-lock.yaml to utilize Docker cache
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies using pnpm
+RUN pnpm install
+
+# Copy the rest of the application files
+COPY . .
+
+# This command will be used to start the React dev server
+CMD ["pnpm", "start"]
+
