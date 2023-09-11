@@ -53,7 +53,7 @@ services:
     volumes:
       - ../backend/openai-cookbook-q-and-a:/app
     ports:
-      - "8081:8081"
+      - "8081:8080"
     env_file:
       - ../.env
 

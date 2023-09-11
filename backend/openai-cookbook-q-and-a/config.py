@@ -5,6 +5,7 @@ from pprint import pformat
 import yaml
 import os
 
+logging.basicConfig(level=logging.INFO)
 # Load config items from config.yaml.
 # Use Path.resolve() to get the absolute path of the parent directory
 yaml_dir = Path(__file__).resolve().parent
