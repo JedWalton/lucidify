@@ -23,14 +23,14 @@ services:
       - ../.env
 
   backend:
-    image: backend 
+    image: backend/go-api 
     build:
-      context: ../backend
+      context: ../backend/go-api
       dockerfile:  Dockerfile.dev
     ports:
       - '8080:8080'
     volumes:
-      - ../backend:/app
+      - ../backend/go-api:/app
     env_file:
       - ../.env
 
