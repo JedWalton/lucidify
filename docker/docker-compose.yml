@@ -10,7 +10,7 @@ services:
     env_file:
       - ../.env
 
-  frontend:
+  salesbot-component:
     image: salesbot-component 
     build:
       context: ../salesbot-component
@@ -22,7 +22,19 @@ services:
     env_file:
       - ../.env
 
-  backend:
+  lucidify:
+    image: lucidify
+    build:
+      context: ../lucidify
+      dockerfile:  Dockerfile.dev
+    ports:
+      - '3001:3000'
+    volumes:
+      - ../lucidify:/app
+    env_file:
+      - ../.env
+
+  go-api:
     image: backend/go-api 
     build:
       context: ../backend/go-api
@@ -31,6 +43,17 @@ services:
       - '8080:8080'
     volumes:
       - ../backend/go-api:/app
+    env_file:
+      - ../.env
+
+  openai-cookbook-q-and-a:
+    build:
+      context: ../backend/openai-cookbook-q-and-a
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ../backend/openai-cookbook-q-and-a:/app
+    ports:
+      - "8081:8081"
     env_file:
       - ../.env
 
