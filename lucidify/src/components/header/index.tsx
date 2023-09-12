@@ -6,6 +6,7 @@ import Netlify from '@/constants/svg/netlify.svg';
 import Nike from '@/constants/svg/nike.svg';
 import Figma from '@/constants/svg/figma.svg';
 import Aws from '@/constants/svg/aws.svg';
+import ChatbotWidget from '@/modules/chatbot-widget/ChatbotWidget';
 
 const headerStyle = css`
   background-color: #ffffff;

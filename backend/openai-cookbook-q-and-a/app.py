@@ -23,15 +23,6 @@ logging.basicConfig(
     ]
 )
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("debug.log"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
 def load_pinecone_index() -> pinecone.Index:
     """
     Load index from Pinecone, raise error if the index can't be found.
