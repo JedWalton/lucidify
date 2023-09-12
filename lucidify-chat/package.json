@@ -1,5 +1,5 @@
 {
-  "name": "lucidify-chat",
+  "name": "lucidify-chat-dev2",
   "version": "0.0.1",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
