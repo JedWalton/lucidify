@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import FileUploadArea from '@/modules/openai-cookbook/components/FileUploadArea';
 import { FileLite } from '@/modules/openai-cookbook/types/file';
 import FileQandAArea from '@/modules/openai-cookbook/components/FileQandAArea';
+import { MyButton } from 'lucidify-chat';
 // import VideoSection from '@/components/video-section';
 // import ListSection from '@/components/list-section';
 // import FeatureSection from '@/components/feature-section';
@@ -25,6 +26,7 @@ export default function Home() {
     <Page>
       <NextSeo title="Lucidify" description="Lucidify sales with AI" />
       <Header />
+      <MyButton />
       <main>
       <div className="max-w-3xl mx-auto m-8 space-y-8 text-gray-800">
         <h1 className="text-4xl">File Q&A</h1>
