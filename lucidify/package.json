@@ -48,7 +48,8 @@
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.5",
     "react-tsparticles": "2.12.2",
-    "twind": "0.16.19"
+    "twind": "0.16.19",
+    "lucidify-chat": "^0.0.0"
   },
   "devDependencies": {
     "@types/formidable": "^2.0.5",
