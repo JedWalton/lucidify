@@ -31,7 +31,6 @@ services:
       - '3001:3000'
     volumes:
       - ../lucidify:/app
-      - ../lucidify-chat:/lucidify-chat
     env_file:
       - ../.env
 
