@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import FileUploadArea from '@/modules/openai-cookbook/components/FileUploadArea';
 import { FileLite } from '@/modules/openai-cookbook/types/file';
 import FileQandAArea from '@/modules/openai-cookbook/components/FileQandAArea';
-import ChatbotWidget from '@/modules/chatbot-widget/ChatbotWidget';
 // import VideoSection from '@/components/video-section';
 // import ListSection from '@/components/list-section';
 // import FeatureSection from '@/components/feature-section';
@@ -45,8 +44,6 @@ export default function Home() {
         <FileQandAArea files={files} />
       </div>
       </main>
-      <ChatbotWidget />
-
       {/*<Footer />*/}
     </Page>
   );
