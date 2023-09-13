@@ -9,28 +9,24 @@ import (
 	"openai-integrations/store"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
-
-var thread *chatthread.ChatController
 
 type ServerConfig struct {
 	OPENAI_API_KEY string
 	AllowedOrigins []string
 	Port           string
 	DBStore        *store.DBStore
+	ChatController *chatthread.ChatController
 }
 
 func NewServerConfig() *ServerConfig {
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Println("No .env file found")
-	}
+
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	if OPENAI_API_KEY == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
 	}
-	thread = chatthread.NewChatThread(OPENAI_API_KEY)
+	thread := chatthread.NewChatThread(OPENAI_API_KEY)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -49,6 +45,7 @@ func NewServerConfig() *ServerConfig {
 		AllowedOrigins: allowedOrigins,
 		Port:           port,
 		DBStore:        dbStore,
+		ChatController: thread,
 	}
 }
 
@@ -67,7 +64,7 @@ func main() {
 
 func SetupRoutes(config *ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	mux.HandleFunc("/chat", middleware.Chain(
-		chatHandler(),
+		chatHandler(config.ChatController),
 		middleware.CORSMiddleware(config.AllowedOrigins),
 		middleware.Logging,
 	))
@@ -75,7 +72,7 @@ func SetupRoutes(config *ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	return mux
 }
 
-func chatHandler() http.HandlerFunc {
+func chatHandler(thread *chatthread.ChatController) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

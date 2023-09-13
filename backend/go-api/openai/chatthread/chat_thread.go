@@ -3,7 +3,9 @@
 package chatthread
 
 import (
+	"encoding/json"
 	"io"
+	"net/http"
 	"openai-integrations/openai/chatmodel"
 	"os"
 )
@@ -36,4 +38,31 @@ func (c *ChatController) ProcessUserPrompt(userPrompt string) string {
 	// }
 
 	return response.Choices[0].Message.Content
+}
+
+func (c *ChatController) chatHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var reqBody map[string]string
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		userPrompt := reqBody["message"]
+		// Assuming you have a global ChatController instance named 'thread'
+		responseMessage := c.Client.ProcessUserPrompt(userPrompt)
+
+		responseBody := map[string]string{
+			"response": responseMessage,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(responseBody)
+	}
 }
