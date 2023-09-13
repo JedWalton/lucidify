@@ -14,7 +14,7 @@ import (
 )
 
 func TestChatControllerIntegration(t *testing.T) {
-	if err := godotenv.Load("../../../.env"); err != nil {
+	if err := godotenv.Load("../../../../.env"); err != nil {
 		log.Println("No .env file found")
 	}
 

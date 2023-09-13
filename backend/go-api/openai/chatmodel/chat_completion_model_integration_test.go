@@ -18,7 +18,7 @@ const prompt = "Hello, I'm a human. Are you a human?"
 const system = "Hello, you are talking to a human. act nice?"
 
 func TestChatCompletionIntegration(t *testing.T) {
-	if err := godotenv.Load("../../../.env"); err != nil {
+	if err := godotenv.Load("../../../../.env"); err != nil {
 		log.Println("No .env file found")
 	}
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
