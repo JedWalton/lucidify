@@ -19,8 +19,10 @@ services:
       - '3000:3000'
     volumes:
       - ../salesbot-component:/app
+      - /app/node_modules
     env_file:
       - ../.env
+    command: /bin/sh -c "npm install && npm start"
 
   lucidify:
     image: lucidify

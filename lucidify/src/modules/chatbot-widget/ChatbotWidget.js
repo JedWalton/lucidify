@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-import './ChatbotWidget.css';
+import './ChatbotWidget.module.css';
 
 function ChatbotWidget() {
     const [isMaximized, setIsMaximized] = useState(true);
@@ -69,11 +69,11 @@ function ChatbotWidget() {
                 ))}
             </div>
             <form id="inputArea" onSubmit={sendMessage}>
-            <input 
-                type="text" 
-                id="userInput" 
-                placeholder="Type a message..." 
-                value={userInput} 
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Type a message..."
+                value={userInput}
                 onChange={e => setUserInput(e.target.value)}
             />
             <button type="submit" disabled={isSending}>

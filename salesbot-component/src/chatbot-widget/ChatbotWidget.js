@@ -41,7 +41,7 @@ function ChatbotWidget() {
 
             const data = await response.json();
 
-            // Add the bot's response to the state
+            // Add the bot's response to the stat
             setMessages(prevMessages => [...prevMessages, { type: 'bot', text: data.response }]);
             setUserInput('');
         } catch (error) {
