@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"openai-integrations/middleware"
 	"openai-integrations/openai/chatthread"
+	openai "openai-integrations/openai/handlers"
 	"openai-integrations/store"
 	"os"
 
@@ -26,6 +26,7 @@ func NewServerConfig() *ServerConfig {
 	if OPENAI_API_KEY == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
 	}
+
 	thread := chatthread.NewChatThread(OPENAI_API_KEY)
 
 	port := os.Getenv("PORT")
@@ -64,37 +65,10 @@ func main() {
 
 func SetupRoutes(config *ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	mux.HandleFunc("/chat", middleware.Chain(
-		chatHandler(config.ChatController),
+		openai.ChatHandler(config.ChatController),
 		middleware.CORSMiddleware(config.AllowedOrigins),
 		middleware.Logging,
 	))
 
 	return mux
-}
-
-func chatHandler(thread *chatthread.ChatController) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		var reqBody map[string]string
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&reqBody)
-		if err != nil {
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
-		userPrompt := reqBody["message"]
-		// Assuming you have a global ChatController instance named 'thread'
-		responseMessage := thread.ProcessUserPrompt(userPrompt)
-
-		responseBody := map[string]string{
-			"response": responseMessage,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(responseBody)
-	}
 }

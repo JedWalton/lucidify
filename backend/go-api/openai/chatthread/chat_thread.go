@@ -26,14 +26,11 @@ func NewChatThread(apiKey string) *ChatController {
 
 func (c *ChatController) ProcessUserPrompt(userPrompt string) string {
 
+	// Here is where the logic to generate a nice pinecone context would come from.
 	response, err := c.Client.SendMessage(userPrompt, "Ask a question about how we can provide value? Follow the conversation thread to uncover value. if you ask a question, only ask one question at a time. Lead them to articulate why I solve their problem. Close the sale.")
 	if err != nil {
 		return "Error: " + err.Error()
 	}
-
-	// if isOptimalMomentToScheduleSalesCall() {
-	// 	return "Optimal moment to schedule a sales call..."
-	// }
 
 	return response.Choices[0].Message.Content
 }
