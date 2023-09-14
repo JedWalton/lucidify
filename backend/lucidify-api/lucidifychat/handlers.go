@@ -1,15 +1,12 @@
-package openaiwrapper
+package lucidifychat
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-type ChatController interface {
-	ProcessUserPrompt(userPrompt string) string
-}
-
-func ChatHandler(thread ChatController) http.HandlerFunc {
+func LucidifyChatHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -24,8 +21,11 @@ func ChatHandler(thread ChatController) http.HandlerFunc {
 			return
 		}
 		userPrompt := reqBody["message"]
-		// Assuming you have a global ChatController instance named 'thread'
-		responseMessage := thread.ProcessUserPrompt(userPrompt)
+		fmt.Printf("User prompt: %s\n", userPrompt)
+
+		// Do something with the user prompt here
+
+		responseMessage := "PLACEHOLDER RESPONSE"
 
 		responseBody := map[string]string{
 			"response": responseMessage,

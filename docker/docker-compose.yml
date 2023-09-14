@@ -38,15 +38,15 @@ services:
       - ../.env
     command: /bin/sh -c "npm install && npm run dev"
 
-  go-api:
-    image: backend/go-api 
+  lucidify-api:
+    image: backend/lucidify-api 
     build:
-      context: ../backend/go-api
+      context: ../backend/lucidify-api
       dockerfile:  Dockerfile.dev
     ports:
       - '8080:8080'
     volumes:
-      - ../backend/go-api:/app
+      - ../backend/lucidify-api:/app
     env_file:
       - ../.env
 
