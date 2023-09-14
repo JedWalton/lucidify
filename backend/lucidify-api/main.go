@@ -44,7 +44,10 @@ func main() {
 	mux := http.NewServeMux()
 	lucidifychat.SetupRoutes(config, mux)
 
-	lucidifychat.CreateWeaviateClass()
+	// lucidifychat.CreateWeaviateClass()
+	// lucidifychat.ListObjectsInWeaviateClass()
+	// lucidifychat.CreateDataObjects()
+	lucidifychat.GenerativeSearch()
 
 	log.Printf("Server starting on :%s", config.Port)
 	if err := http.ListenAndServe(":"+config.Port, mux); err != nil {
