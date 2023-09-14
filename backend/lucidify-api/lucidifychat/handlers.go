@@ -24,6 +24,7 @@ func LucidifyChatHandler() http.HandlerFunc {
 		fmt.Printf("User prompt: %s\n", userPrompt)
 
 		// Do something with the user prompt here
+		// CreateWeaviateClass()
 
 		responseMessage := "PLACEHOLDER RESPONSE"
 

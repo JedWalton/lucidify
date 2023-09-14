@@ -2,14 +2,14 @@ package lucidifychat
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
+	"github.com/weaviate/weaviate/entities/models"
 )
 
-func GetSchema() {
+func CreateWeaviateClass() {
 	cfg := weaviate.Config{
-		Host:   "localhost:8090",
+		Host:   "docker-weaviate-1:8080",
 		Scheme: "http",
 	}
 	client, err := weaviate.NewClient(cfg)
@@ -17,9 +17,32 @@ func GetSchema() {
 		panic(err)
 	}
 
-	schema, err := client.Schema().Getter().Do(context.Background())
+	classObj := &models.Class{
+		Class:       "Documents",
+		Description: "A written text document",
+		Properties: []*models.Property{
+			{
+				DataType:    []string{"string"},
+				Description: "Title of the document",
+				Name:        "title",
+			},
+			{
+				DataType:    []string{"text"},
+				Description: "The content of the document",
+				Name:        "content",
+			},
+		},
+	}
+
+	err = client.Schema().ClassCreator().WithClass(classObj).Do(context.Background())
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%v", schema)
+
+	// schema, err := client.Schema().ClassGetter().WithClassName("Article").Do(context.Background())
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// log.Printf("Schema:  %#v", schema)
 }

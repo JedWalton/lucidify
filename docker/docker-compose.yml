@@ -51,25 +51,15 @@ services:
       - ../.env
 
   weaviate:
-    command:
-    - --host
-    - 0.0.0.0
-    - --port
-    - '8090'
-    - --scheme
-    - http
-    image: semitechnologies/weaviate:1.21.2
+    image: semitechnologies/weaviate:1.21.3
     ports:
-    - 8090:8090
-    volumes:
-    - weaviate_data:/var/lib/weaviate
+      - 8090:8080
     restart: on-failure:0
     environment:
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       DEFAULT_VECTORIZER_MODULE: 'none'
-      ENABLE_MODULES: 'text2vec-openai'
       CLUSTER_HOSTNAME: 'node1'
 
   # openai-cookbook-q-and-a:
