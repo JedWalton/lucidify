@@ -6,6 +6,7 @@ WORKDIR /app
 # Set environment variable for chokidar (used by CRA for watching files)
 ENV CHOKIDAR_USEPOLLING=true
 
+
 # Copy package.json and package-lock.json to utilize Docker cache
 COPY package.json package-lock.json ./
 
@@ -16,5 +17,5 @@ RUN npm install
 COPY . .
 
 # This command will be used to start the React dev server
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]
 

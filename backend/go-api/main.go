@@ -1,36 +1,33 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"openai-integrations/middleware"
 	"openai-integrations/openai/chatthread"
+	openai "openai-integrations/openai/handlers"
 	"openai-integrations/store"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
-
-var thread *chatthread.ChatController
 
 type ServerConfig struct {
 	OPENAI_API_KEY string
 	AllowedOrigins []string
 	Port           string
 	DBStore        *store.DBStore
+	ChatController *chatthread.ChatController
 }
 
 func NewServerConfig() *ServerConfig {
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Println("No .env file found")
-	}
+
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	if OPENAI_API_KEY == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
 	}
-	thread = chatthread.NewChatThread(OPENAI_API_KEY)
+
+	thread := chatthread.NewChatThread(OPENAI_API_KEY)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -49,6 +46,7 @@ func NewServerConfig() *ServerConfig {
 		AllowedOrigins: allowedOrigins,
 		Port:           port,
 		DBStore:        dbStore,
+		ChatController: thread,
 	}
 }
 
@@ -67,37 +65,10 @@ func main() {
 
 func SetupRoutes(config *ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	mux.HandleFunc("/chat", middleware.Chain(
-		chatHandler(),
+		openai.ChatHandler(config.ChatController),
 		middleware.CORSMiddleware(config.AllowedOrigins),
 		middleware.Logging,
 	))
 
 	return mux
-}
-
-func chatHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		var reqBody map[string]string
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&reqBody)
-		if err != nil {
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
-		userPrompt := reqBody["message"]
-		// Assuming you have a global ChatController instance named 'thread'
-		responseMessage := thread.ProcessUserPrompt(userPrompt)
-
-		responseBody := map[string]string{
-			"response": responseMessage,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(responseBody)
-	}
 }

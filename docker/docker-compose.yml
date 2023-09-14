@@ -50,16 +50,16 @@ services:
     env_file:
       - ../.env
 
-  openai-cookbook-q-and-a:
-    build:
-      context: ../backend/openai-cookbook-q-and-a
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ../backend/openai-cookbook-q-and-a:/app
-    ports:
-      - "8081:8080"
-    env_file:
-      - ../.env
+  # openai-cookbook-q-and-a:
+  #   build:
+  #     context: ../backend/openai-cookbook-q-and-a
+  #     dockerfile: Dockerfile.dev
+  #   volumes:
+  #     - ../backend/openai-cookbook-q-and-a:/app
+  #   ports:
+  #     - "8081:8080"
+  #   env_file:
+  #     - ../.env
 
 volumes:
   db:
