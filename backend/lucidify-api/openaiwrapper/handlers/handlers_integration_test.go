@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"lucidify-api/openaiwrapper/chatthread"
 	"net/http"
 	"net/http/httptest"
-	"openaiwrapper-integrations/openaiwrapper/chatthread"
 	"os"
 	"testing"
 

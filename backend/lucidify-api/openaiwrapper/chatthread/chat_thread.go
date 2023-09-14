@@ -4,7 +4,7 @@ package chatthread
 
 import (
 	"io"
-	"openaiwrapper-integrations/openaiwrapper/chatmodel"
+	"lucidify-api/openaiwrapper/chatmodel"
 	"os"
 )
 

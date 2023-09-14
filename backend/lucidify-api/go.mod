@@ -1,4 +1,4 @@
-module openaiwrapper-integrations
+module lucidify-api
 
 go 1.21.0
 

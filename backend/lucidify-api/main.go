@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
+	"lucidify-api/middleware"
+	"lucidify-api/openaiwrapper/chatthread"
+	openaiwrapper "lucidify-api/openaiwrapper/handlers"
+	"lucidify-api/store"
 	"net/http"
-	"openaiwrapper-integrations/middleware"
-	"openaiwrapper-integrations/openaiwrapper/chatthread"
-	openaiwrapper "openaiwrapper-integrations/openaiwrapper/handlers"
-	"openaiwrapper-integrations/store"
 	"os"
 
 	_ "github.com/lib/pq"

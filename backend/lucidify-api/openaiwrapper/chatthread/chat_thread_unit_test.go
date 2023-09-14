@@ -1,7 +1,7 @@
 package chatthread
 
 import (
-	"openaiwrapper-integrations/openaiwrapper/chatmodel"
+	"lucidify-api/openaiwrapper/chatmodel"
 	"testing"
 )
 
