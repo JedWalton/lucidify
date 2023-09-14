@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package openai
+package openaiwrapper
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"openai-integrations/openai/chatthread"
+	"openaiwrapper-integrations/openaiwrapper/chatthread"
 	"os"
 	"testing"
 

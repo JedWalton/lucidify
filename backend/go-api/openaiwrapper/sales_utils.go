@@ -1,4 +1,4 @@
-package openai
+package openaiwrapper
 
 func scheduleSalesCall() {
 	panic("unimplemented")

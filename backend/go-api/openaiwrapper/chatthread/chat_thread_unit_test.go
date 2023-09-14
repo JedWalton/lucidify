@@ -1,7 +1,7 @@
 package chatthread
 
 import (
-	"openai-integrations/openai/chatmodel"
+	"openaiwrapper-integrations/openaiwrapper/chatmodel"
 	"testing"
 )
 

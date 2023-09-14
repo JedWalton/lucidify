@@ -1,4 +1,4 @@
-module openai-integrations
+module openaiwrapper-integrations
 
 go 1.21.0
 

@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	"openai-integrations/middleware"
-	"openai-integrations/openai/chatthread"
-	openai "openai-integrations/openai/handlers"
-	"openai-integrations/store"
+	"openaiwrapper-integrations/middleware"
+	"openaiwrapper-integrations/openaiwrapper/chatthread"
+	openaiwrapper "openaiwrapper-integrations/openaiwrapper/handlers"
+	"openaiwrapper-integrations/store"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -65,7 +65,7 @@ func main() {
 
 func SetupRoutes(config *ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	mux.HandleFunc("/chat", middleware.Chain(
-		openai.ChatHandler(config.ChatController),
+		openaiwrapper.ChatHandler(config.ChatController),
 		middleware.CORSMiddleware(config.AllowedOrigins),
 		middleware.Logging,
 	))

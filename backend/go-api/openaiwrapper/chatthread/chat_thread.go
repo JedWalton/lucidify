@@ -4,7 +4,7 @@ package chatthread
 
 import (
 	"io"
-	"openai-integrations/openai/chatmodel"
+	"openaiwrapper-integrations/openaiwrapper/chatmodel"
 	"os"
 )
 
