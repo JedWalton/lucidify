@@ -6,12 +6,5 @@ WORKDIR /app
 # Set environment variable for chokidar (used by Next.js for watching files)
 ENV CHOKIDAR_USEPOLLING=true
 
-# Copy both lucidify and lucidify-chat into the image
-COPY lucidify /app
-
-# Install dependencies
-RUN npm install
-
-# This command will be used to start the Next.js dev server
-CMD ["npm", "run", "dev"]
-
+# Copy package.json and package-lock.json to utilize Docker cache
+COPY package.json package-lock.json ./
