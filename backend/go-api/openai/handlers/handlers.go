@@ -3,10 +3,13 @@ package openai
 import (
 	"encoding/json"
 	"net/http"
-	"openai-integrations/openai/chatthread"
 )
 
-func ChatHandler(thread *chatthread.ChatController) http.HandlerFunc {
+type ChatController interface {
+	ProcessUserPrompt(userPrompt string) string
+}
+
+func ChatHandler(thread ChatController) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
