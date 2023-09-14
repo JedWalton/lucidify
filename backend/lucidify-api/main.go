@@ -26,7 +26,6 @@ func NewServerConfig() *config.ServerConfig {
 
 	allowedOrigins := []string{
 		"http://localhost:3000",
-		"http://localhost",
 	}
 
 	Store := store.NewStore()
