@@ -13,15 +13,23 @@ import (
 	"github.com/weaviate/weaviate/entities/models"
 )
 
-func CreateWeaviateClass() {
+func getWeaviateClient() *weaviate.Client {
 	cfg := weaviate.Config{
 		Host:   "docker-weaviate-1:8080",
 		Scheme: "http",
+		Headers: map[string]string{
+			"X-OpenAI-Api-Key": os.Getenv("OPENAI_API_KEY"),
+		},
 	}
 	client, err := weaviate.NewClient(cfg)
 	if err != nil {
-		log.Println(err)
+		log.Fatalf("Failed to create Weaviate client: %v", err)
 	}
+	return client
+}
+
+func CreateWeaviateClass() {
+	client := getWeaviateClient()
 
 	classObj := &models.Class{
 		Class:       "Documents",
@@ -40,7 +48,7 @@ func CreateWeaviateClass() {
 		},
 	}
 
-	err = client.Schema().ClassCreator().WithClass(classObj).Do(context.Background())
+	err := client.Schema().ClassCreator().WithClass(classObj).Do(context.Background())
 	if err != nil {
 		log.Printf("Documents Class already exists, not updating schema: %#v", err)
 	}
@@ -54,14 +62,7 @@ func CreateWeaviateClass() {
 }
 
 func CreateDataObjects() {
-	cfg := weaviate.Config{
-		Host:   "docker-weaviate-1:8080",
-		Scheme: "http",
-	}
-	client, err := weaviate.NewClient(cfg)
-	if err != nil {
-		panic(err)
-	}
+	client := getWeaviateClient()
 
 	dataSchema := map[string]interface{}{
 		"name":    "Jodi Kantor",
@@ -82,14 +83,7 @@ func CreateDataObjects() {
 }
 
 func ListObjectsInWeaviateClass() {
-	cfg := weaviate.Config{
-		Host:   "docker-weaviate-1:8080",
-		Scheme: "http",
-	}
-	client, err := weaviate.NewClient(cfg)
-	if err != nil {
-		panic(err)
-	}
+	client := getWeaviateClient()
 
 	meta := graphql.Field{
 		Name: "meta", Fields: []graphql.Field{
@@ -108,25 +102,15 @@ func ListObjectsInWeaviateClass() {
 }
 
 func GenerativeSearch() {
-	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
-	cfg := weaviate.Config{
-		Host:   "docker-weaviate-1:8080",
-		Scheme: "http",
-		Headers: map[string]string{
-			"X-OpenAI-Api-Key": OPENAI_API_KEY, // Replace with your API key
-		},
-	}
-	client, err := weaviate.NewClient(cfg)
-	if err != nil {
-		panic(err)
-	}
+	client := getWeaviateClient()
+
 	ctx := context.Background()
 
 	name := graphql.Field{Name: "name"}
 
-	// concepts := []string{"magazine or newspaper about finance"}
-	// nearText := client.GraphQL().NearTextArgBuilder().
-	// 	WithConcepts(concepts)
+	concepts := []string{"magazine or newspaper about finance"}
+	nearText := client.GraphQL().NearTextArgBuilder().
+		WithConcepts(concepts)
 
 	gs := graphql.NewGenerativeSearch().GroupedResult("Explain why these magazines or newspapers are about finance")
 
@@ -134,7 +118,7 @@ func GenerativeSearch() {
 		WithClassName("Documents").
 		WithFields(name).
 		WithGenerativeSearch(gs).
-		// WithNearText(nearText).
+		WithNearText(nearText).
 		WithLimit(5).
 		Do(ctx)
 
