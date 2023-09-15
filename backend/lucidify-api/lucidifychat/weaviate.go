@@ -65,7 +65,7 @@ func CreateDataObjects() {
 
 	dataSchema := map[string]interface{}{
 		"name":    "Jodi Kantor",
-		"content": "Hello, world!",
+		"content": "Hello, world! I am a big fat hoe who trades ass for big muney",
 	}
 
 	created, err := client.Data().Creator().
@@ -124,9 +124,9 @@ func GenerativeSearch() {
 
 	name := graphql.Field{Name: "name"}
 
-	concepts := []string{"magazine or newspaper about finance"}
-	nearText := client.GraphQL().NearTextArgBuilder().
-		WithConcepts(concepts)
+	// concepts := []string{"magazine or newspaper about finance"}
+	// nearText := client.GraphQL().NearTextArgBuilder().
+	// 	WithConcepts(concepts)
 
 	gs := graphql.NewGenerativeSearch().GroupedResult("Explain why these magazines or newspapers are about finance")
 
@@ -134,7 +134,7 @@ func GenerativeSearch() {
 		WithClassName("Documents").
 		WithFields(name).
 		WithGenerativeSearch(gs).
-		WithNearText(nearText).
+		// WithNearText(nearText).
 		WithLimit(5).
 		Do(ctx)
 
