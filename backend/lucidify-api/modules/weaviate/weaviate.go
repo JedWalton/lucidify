@@ -1,4 +1,4 @@
-package lucidifychat
+package weaviate
 
 import (
 	"context"
@@ -65,7 +65,7 @@ func CreateDataObjects() {
 
 	dataSchema := map[string]interface{}{
 		"name":    "Jodi Kantor",
-		"content": "Hello, world! I am a big fat hoe who trades ass for big muney",
+		"content": "Hello, world! I am a big fat hoe who trades ass for muney",
 	}
 
 	created, err := client.Data().Creator().

@@ -13,5 +13,5 @@
     - https://github.com/golang-migrate/migrate/blob/master/database/postgres/TUTORIAL.md
     - `$ sudo apt-get update & sudo apt-get install postgresql-client`
     - `$ migrate -database ${POSTGRESQL_URL} -path db/migrations up`
-    - `$ psql -h localhost -U postgres -d devdb -p 5432 -c "\d confessions"`
+    - `$ psql -h localhost -U postgres -d devdb -p 5432 -c "\d <table-name>"`
 

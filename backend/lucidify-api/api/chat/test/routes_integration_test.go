@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package lucidifychat
+package chat
 
 import (
 	"io/ioutil"
@@ -21,17 +21,17 @@ func ReadFromFile(filename string) (string, error) {
 	return string(content), nil
 }
 
-func MakeCurlRequest() (string, error) {
-	cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/lucidifychat", "-H", "Content-Type: application/json", "-d", `{"message": "hello"}`)
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
+func TestIntegration_chat(t *testing.T) {
+	MakeCurlRequest := func() (string, error) {
+		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/chat", "-H", "Content-Type: application/json", "-d", `{"message": "hello"}`)
+		out, err := cmd.Output()
+		if err != nil {
+			return "", err
+		}
+		return string(out), nil
 	}
-	return string(out), nil
-}
 
-func TestIntegration_lucidifychat(t *testing.T) {
-	fileContent, err := ReadFromFile("lucidifychat.txt")
+	fileContent, err := ReadFromFile("chat.txt")
 	if err != nil {
 		t.Fatalf("Failed to read from file: %v", err)
 	}
