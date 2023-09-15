@@ -12,9 +12,8 @@ CREATE TABLE users (
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    file_name VARCHAR(255) NOT NULL,
-    file_path TEXT NOT NULL,
-    file_size BIGINT NOT NULL,
+    document_name VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
