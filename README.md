@@ -7,6 +7,7 @@
     - `$ cd docker && docker compose up`
     - if live reloading go doesn't work try:
         - `$ docker compose build --no-cache`
+
 - Migrations
     - `$ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
     - `$ export POSTGRESQL_URL=postgres://postgres:mysecretpassword@localhost:5432/devdb?sslmode=disable`

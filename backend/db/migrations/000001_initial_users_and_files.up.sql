@@ -9,7 +9,7 @@ CREATE TABLE users (
 );
 
 -- Create the files table
-CREATE TABLE files (
+CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     file_name VARCHAR(255) NOT NULL,
