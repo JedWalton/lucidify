@@ -10,12 +10,12 @@ import React, { useState } from 'react';
 // import PricingTable from '@/components/pricing-table';
 // import Footer from '@/components/footer';
 
-        // <VideoSection />
-        // <ListSection />
-        // <FeatureSection />
-        // <CasesSection />
-        // <SocialProof />
-        // <PricingTable />
+// <VideoSection />
+// <ListSection />
+// <FeatureSection />
+// <CasesSection />
+// <SocialProof />
+// <PricingTable />
 export default function Home() {
   return (
     <Page>
@@ -23,7 +23,6 @@ export default function Home() {
       <Header />
       <main>
       </main>
-      {/*<Footer />*/}
     </Page>
   );
 }

@@ -21,7 +21,7 @@ services:
       - ../frontend/lucidify:/app
     env_file:
       - ../.env
-
+  
   lucidify-api:
     image: backend/lucidify-api 
     build:

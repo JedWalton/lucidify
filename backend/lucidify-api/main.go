@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"lucidify-api/api/chat"
+	"lucidify-api/api/clerk"
 	"lucidify-api/api/documents"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store"
@@ -29,4 +30,5 @@ func main() {
 func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, store *store.Store) {
 	chat.SetupRoutes(config, mux, store)
 	documents.SetupRoutes(config, mux, store)
+	clerk.SetupRoutes(config, mux, store)
 }

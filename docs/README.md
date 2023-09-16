@@ -2,9 +2,7 @@
     - `$ gh act -v`
 
 - Start dev environment.
-    - `$ cd docker && docker compose up`
-    - if live reloading go doesn't work try:
-        - `$ docker compose build --no-cache`
+    - `$ cd docker && chmod +x start.sh && ./start.sh`
 
 - Migrations
     - `$ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
@@ -15,3 +13,8 @@
     - `$ psql -h localhost -U postgres -d devdb -p 5432 -c "\d <table-name>"`
 
 
+- Clerk auth -> to expose localhost with ngrok use:
+    - 2. Expose Your Local Server:
+    If your local server is running on localhost:8080, you can expose it using:
+    ngrok http 8080
+    This will give you a public URL (e.g., https://abcdef1234.ngrok.io) that forwards to your local server.

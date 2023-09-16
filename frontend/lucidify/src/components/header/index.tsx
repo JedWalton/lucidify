@@ -6,7 +6,7 @@ import Netlify from '@/constants/svg/netlify.svg';
 import Nike from '@/constants/svg/nike.svg';
 import Figma from '@/constants/svg/figma.svg';
 import Aws from '@/constants/svg/aws.svg';
-import ChatbotWidget from '@/modules/chatbot-widget/ChatbotWidget';
+import Link from 'next/link';
 
 const headerStyle = css`
   background-color: #ffffff;
@@ -64,21 +64,11 @@ const Header = () => {
         </div>
 
         <div className={tw(`mt-10 flex justify-center items-center w-full mx-auto`)}>
-          <form
-            onSubmit={handleSubmit}
-            className={tw(`w-full max-w-md mx-auto flex flex-col justify-center items-center`)}
-          >
-            <input
-              type="email"
-              value={email}
-              onChange={handleChange}
-              placeholder="Email"
-              className={tw(`border p-2 rounded-l-md focus:outline-none focus:border-blue-500 mb-4 w-full`)}
-            />
+          <Link href="/example">
             <Button primary type="submit">
-              Integrate into your React app.
+              Get Started.
             </Button>
-          </form>
+          </Link>
         </div>
       </div>
       <div className={tw(`flex justify-center w-full`)}>

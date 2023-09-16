@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package documents
+package clerk
 
 import (
 	"io/ioutil"
@@ -21,10 +21,9 @@ func ReadFromFile(filename string) (string, error) {
 	return string(content), nil
 }
 
-func TestIntegration_documentsupload(t *testing.T) {
+func TestIntegration_chat(t *testing.T) {
 	MakeCurlRequest := func() (string, error) {
-		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/documents/upload", "-H", "Content-Type: application/json", "-d", `{"title": "hello", "content": "world"}`)
-		// cmd := exec.Command("curl", "-s", "-X", "POST", "http://lucidify.serveo.net/documents/upload", "-H", "Content-Type: application/json", "-d", `{"title": "hello", "content": "world"}`)
+		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/clerk/webhook", "-H", "Content-Type: application/json", "-d", `{"message": "hello"}`)
 		out, err := cmd.Output()
 		if err != nil {
 			return "", err
@@ -32,7 +31,7 @@ func TestIntegration_documentsupload(t *testing.T) {
 		return string(out), nil
 	}
 
-	fileContent, err := ReadFromFile("uploaddocument.txt")
+	fileContent, err := ReadFromFile("response.txt")
 	if err != nil {
 		t.Fatalf("Failed to read from file: %v", err)
 	}
