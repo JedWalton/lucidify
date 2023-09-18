@@ -11,16 +11,16 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func createTestUser(db *sql.DB) (int, error) {
-	const query = `INSERT INTO users (username, password, email) VALUES ('testuser', 'testpassword', 'test@example.com') RETURNING user_id`
-	var userID int
-	if err := db.QueryRow(query).Scan(&userID); err != nil {
-		return 0, err
+func createTestUser(db *sql.DB) (string, error) {
+	userID := "testuuid1237fyuiaroi"
+	const query = `INSERT INTO users (user_id, username, email) VALUES ($1, 'testuser', 'test@example.com') RETURNING user_id`
+	if err := db.QueryRow(query, userID).Scan(&userID); err != nil {
+		return "", err
 	}
 	return userID, nil
 }
 
-func deleteTestUser(db *sql.DB, userID int) error {
+func deleteTestUser(db *sql.DB, userID string) error { // Changed parameter type
 	_, err := db.Exec(`DELETE FROM users WHERE user_id = $1`, userID)
 	return err
 }
