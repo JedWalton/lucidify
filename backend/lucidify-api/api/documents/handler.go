@@ -27,7 +27,8 @@ func DocumentsUploadHandler(store *store.Store) http.HandlerFunc {
 		log.Printf("Title: %s\n", document_name)
 		log.Printf("Content: %s\n", content)
 
-		store.UploadDocument(document_name, content)
+		placeholderUserID := 1
+		store.UploadDocument(placeholderUserID, document_name, content)
 
 		responseMessage := "PLACEHOLDER RESPONSE"
 
