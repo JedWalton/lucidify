@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func DocumentsUploadHandler(store *store.Store) http.HandlerFunc {
+func DocumentsUploadHandler(db *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -28,7 +28,7 @@ func DocumentsUploadHandler(store *store.Store) http.HandlerFunc {
 		log.Printf("Content: %s\n", content)
 
 		placeholderUserID := "PLACEHOLDER USER ID"
-		store.UploadDocument(placeholderUserID, document_name, content)
+		db.UploadDocument(placeholderUserID, document_name, content)
 
 		responseMessage := "PLACEHOLDER RESPONSE"
 
