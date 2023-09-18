@@ -21,13 +21,13 @@ func DocumentsUploadHandler(store *store.Store) http.HandlerFunc {
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
-		title := reqBody["title"]
+		document_name := reqBody["document_name"]
 		content := reqBody["content"]
 
-		log.Printf("Title: %s\n", title)
+		log.Printf("Title: %s\n", document_name)
 		log.Printf("Content: %s\n", content)
-		// Do something with the user prompt here
-		// CreateWeaviateClass()
+
+		store.UploadDocument(document_name, content)
 
 		responseMessage := "PLACEHOLDER RESPONSE"
 

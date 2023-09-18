@@ -2,8 +2,7 @@ package store
 
 import (
 	"database/sql"
-	"log"
-	"os"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
@@ -12,20 +11,19 @@ type Store struct {
 	db *sql.DB
 }
 
-func NewStore() *Store {
-	connectionString := os.Getenv("POSTGRESQL_URL")
-	if connectionString == "" {
-		log.Fatal("POSTGRESQL_URL environment variable is not set")
+func NewStore(postgresqlURL string) (*Store, error) {
+	if postgresqlURL == "" {
+		return nil, fmt.Errorf("POSTGRESQL_URL environment variable is not set")
 	}
 
-	db, err := sql.Open("postgres", connectionString)
+	db, err := sql.Open("postgres", postgresqlURL)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if err := db.Ping(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return &Store{db: db}
+	return &Store{db: db}, nil
 }

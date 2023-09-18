@@ -30,7 +30,10 @@ func NewServerConfig() *ServerConfig {
 		"http://localhost:3000",
 	}
 
-	Store := store.NewStore()
+	Store, err := store.NewStore(os.Getenv("POSTGRESQL_URL"))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return &ServerConfig{
 		OPENAI_API_KEY: OPENAI_API_KEY,

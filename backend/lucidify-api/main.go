@@ -8,6 +8,7 @@ import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store"
 	"net/http"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -17,7 +18,10 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	store := store.NewStore()
+	store, err := store.NewStore(os.Getenv("POSTGRESQL_URL"))
+	if err != nil {
+		log.Fatalf("Failed to initialize store: %v", err)
+	}
 
 	SetupRoutes(config, mux, store)
 
