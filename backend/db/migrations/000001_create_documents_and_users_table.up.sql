@@ -1,18 +1,18 @@
 -- Users table
 CREATE TABLE users (
-    user_id VARCHAR(255) PRIMARY KEY, -- Changed from SERIAL to VARCHAR to store the provided ID
-    external_id VARCHAR(255), -- New column
-    username VARCHAR(255) UNIQUE, -- Kept as is, but might be nullable since the webhook has null values
-    password_enabled BOOLEAN, -- New column to store if password is enabled
-    email VARCHAR(255) UNIQUE NOT NULL, -- Kept as is
-    first_name VARCHAR(255), -- New column
-    last_name VARCHAR(255), -- New column
-    image_url TEXT, -- New column
-    profile_image_url TEXT, -- New column
-    two_factor_enabled BOOLEAN, -- New column
-    created_at TIMESTAMP, -- Adjusted to not have default value
-    updated_at TIMESTAMP, -- Adjusted to not have default value
-    deleted BOOLEAN DEFAULT FALSE -- New column to track if a user is deleted
+    user_id VARCHAR(255) PRIMARY KEY,
+    external_id VARCHAR(255),
+    username VARCHAR(255) UNIQUE,
+    password_enabled BOOLEAN,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    image_url TEXT,
+    profile_image_url TEXT,
+    two_factor_enabled BOOLEAN,
+    created_at BIGINT, -- Changed to BIGINT
+    updated_at BIGINT, -- Changed to BIGINT
+    deleted BOOLEAN DEFAULT FALSE
 );
 
 -- Documents table

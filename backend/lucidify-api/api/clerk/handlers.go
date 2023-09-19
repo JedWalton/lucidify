@@ -70,7 +70,7 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 				log.Printf("Error updating user: %v", err)
 			}
 		case "user.deleted":
-			err := db.DeleteUser(event.Data["id"].(string))
+			err := db.SetUserDeleted(event.Data["id"].(string))
 			if err != nil {
 				log.Printf("Error deleting user: %v", err)
 			}

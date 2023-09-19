@@ -4,22 +4,10 @@
 package documents
 
 import (
-	"io/ioutil"
+	"lucidify-api/modules/testutils"
 	"os/exec"
 	"testing"
 )
-
-func WriteToFile(filename, content string) error {
-	return ioutil.WriteFile(filename, []byte(content), 0644)
-}
-
-func ReadFromFile(filename string) (string, error) {
-	content, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(content), nil
-}
 
 func TestIntegration_documentsupload(t *testing.T) {
 	MakeCurlRequest := func() (string, error) {
@@ -32,7 +20,7 @@ func TestIntegration_documentsupload(t *testing.T) {
 		return string(out), nil
 	}
 
-	fileContent, err := ReadFromFile("uploaddocument.txt")
+	fileContent, err := testutils.ReadFromFile("uploaddocument.txt")
 	if err != nil {
 		t.Fatalf("Failed to read from file: %v", err)
 	}

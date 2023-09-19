@@ -30,8 +30,28 @@ func (s *Store) UpdateUser(user User) error {
 	return err
 }
 
-func (s *Store) DeleteUser(userID string) error {
+func (s *Store) SetUserDeleted(userID string) error {
 	query := `UPDATE users SET deleted = TRUE WHERE user_id = $1`
+	_, err := s.db.Exec(query, userID)
+	return err
+}
+
+func (s *Store) GetUser(userID string) (*User, error) {
+	query := `SELECT user_id, external_id, username, password_enabled, email, first_name, last_name, image_url, profile_image_url, two_factor_enabled, created_at, updated_at, deleted FROM users WHERE user_id = $1`
+
+	row := s.db.QueryRow(query, userID)
+
+	var user User
+	err := row.Scan(&user.UserID, &user.ExternalID, &user.Username, &user.PasswordEnabled, &user.Email, &user.FirstName, &user.LastName, &user.ImageURL, &user.ProfileImageURL, &user.TwoFactorEnabled, &user.CreatedAt, &user.UpdatedAt, &user.Deleted)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (s *Store) DeleteUserFromUsersTable(userID string) error {
+	query := `DELETE FROM users WHERE user_id = $1`
 	_, err := s.db.Exec(query, userID)
 	return err
 }
