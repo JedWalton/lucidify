@@ -9,6 +9,8 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
@@ -34,7 +36,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/weaviate/weaviate-go-client/v4 v4.10.0
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
