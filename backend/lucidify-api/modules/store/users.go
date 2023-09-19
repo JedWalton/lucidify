@@ -15,12 +15,11 @@ type User struct {
 	TwoFactorEnabled bool
 	CreatedAt        int64
 	UpdatedAt        int64
-	Deleted          bool
 }
 
 func (s *Store) CreateUser(user User) error {
-	query := `INSERT INTO users (user_id, external_id, username, password_enabled, email, first_name, last_name, image_url, profile_image_url, two_factor_enabled, created_at, updated_at, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
-	_, err := s.db.Exec(query, user.UserID, user.ExternalID, user.Username, user.PasswordEnabled, user.Email, user.FirstName, user.LastName, user.ImageURL, user.ProfileImageURL, user.TwoFactorEnabled, user.CreatedAt, user.UpdatedAt, user.Deleted)
+	query := `INSERT INTO users (user_id, external_id, username, password_enabled, email, first_name, last_name, image_url, profile_image_url, two_factor_enabled, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+	_, err := s.db.Exec(query, user.UserID, user.ExternalID, user.Username, user.PasswordEnabled, user.Email, user.FirstName, user.LastName, user.ImageURL, user.ProfileImageURL, user.TwoFactorEnabled, user.CreatedAt, user.UpdatedAt)
 	return err
 }
 
@@ -30,19 +29,13 @@ func (s *Store) UpdateUser(user User) error {
 	return err
 }
 
-func (s *Store) SetUserDeleted(userID string) error {
-	query := `UPDATE users SET deleted = TRUE WHERE user_id = $1`
-	_, err := s.db.Exec(query, userID)
-	return err
-}
-
 func (s *Store) GetUser(userID string) (*User, error) {
-	query := `SELECT user_id, external_id, username, password_enabled, email, first_name, last_name, image_url, profile_image_url, two_factor_enabled, created_at, updated_at, deleted FROM users WHERE user_id = $1`
+	query := `SELECT user_id, external_id, username, password_enabled, email, first_name, last_name, image_url, profile_image_url, two_factor_enabled, created_at, updated_at FROM users WHERE user_id = $1`
 
 	row := s.db.QueryRow(query, userID)
 
 	var user User
-	err := row.Scan(&user.UserID, &user.ExternalID, &user.Username, &user.PasswordEnabled, &user.Email, &user.FirstName, &user.LastName, &user.ImageURL, &user.ProfileImageURL, &user.TwoFactorEnabled, &user.CreatedAt, &user.UpdatedAt, &user.Deleted)
+	err := row.Scan(&user.UserID, &user.ExternalID, &user.Username, &user.PasswordEnabled, &user.Email, &user.FirstName, &user.LastName, &user.ImageURL, &user.ProfileImageURL, &user.TwoFactorEnabled, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +43,7 @@ func (s *Store) GetUser(userID string) (*User, error) {
 	return &user, nil
 }
 
-func (s *Store) DeleteUserFromUsersTable(userID string) error {
+func (s *Store) DeleteUser(userID string) error {
 	query := `DELETE FROM users WHERE user_id = $1`
 	_, err := s.db.Exec(query, userID)
 	return err

@@ -27,7 +27,6 @@ func TestCreateUser(t *testing.T) {
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
-		Deleted:          false,
 	}
 
 	err := store.CreateUser(user)
@@ -36,7 +35,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	// Cleanup
-	err = store.DeleteUserFromUsersTable(user.UserID)
+	err = store.DeleteUser(user.UserID)
 	if err != nil {
 		t.Fatalf("Failed to clean up test user: %v", err)
 	}
@@ -62,7 +61,6 @@ func TestUpdateUser(t *testing.T) {
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
-		Deleted:          false,
 	}
 
 	err := store.CreateUser(user)
@@ -89,7 +87,7 @@ func TestUpdateUser(t *testing.T) {
 	}
 
 	// Cleanup
-	err = store.DeleteUserFromUsersTable(user.UserID)
+	err = store.DeleteUser(user.UserID)
 	if err != nil {
 		t.Fatalf("Failed to clean up test user: %v", err)
 	}
@@ -115,7 +113,6 @@ func TestGetUser(t *testing.T) {
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
-		Deleted:          false,
 	}
 
 	err := store.CreateUser(user)
@@ -134,13 +131,13 @@ func TestGetUser(t *testing.T) {
 	}
 
 	// Cleanup
-	err = store.DeleteUserFromUsersTable(user.UserID)
+	err = store.DeleteUser(user.UserID)
 	if err != nil {
 		t.Fatalf("Failed to clean up test user: %v", err)
 	}
 }
 
-func TestSetUserDeleted(t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 	db := testutils.SetupDB()
 	defer db.Close()
 
@@ -160,7 +157,6 @@ func TestSetUserDeleted(t *testing.T) {
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
-		Deleted:          false,
 	}
 
 	err := store.CreateUser(user)
@@ -169,18 +165,14 @@ func TestSetUserDeleted(t *testing.T) {
 	}
 
 	// Delete the user
-	err = store.SetUserDeleted(user.UserID)
+	err = store.DeleteUser(user.UserID)
 	if err != nil {
 		t.Fatalf("Failed to delete user: %v", err)
 	}
 
-	// Fetch the user and check if it's marked as deleted
-	deletedUser, err := store.GetUser(user.UserID)
-	if err != nil {
-		t.Fatalf("Failed to fetch user after deletion: %v", err)
-	}
-
-	if !deletedUser.Deleted {
-		t.Fatalf("User was not marked as deleted in the database")
+	// Fetch the user and check if it exists
+	_, err = store.GetUser(user.UserID)
+	if err == nil {
+		t.Fatalf("User deletion failed. User still exists")
 	}
 }

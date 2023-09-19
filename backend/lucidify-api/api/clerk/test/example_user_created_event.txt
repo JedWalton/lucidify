@@ -34,7 +34,7 @@
     "two_factor_enabled": false,
     "unsafe_metadata": {},
     "updated_at": 1654012591835,
-    "username": null,
+    "username": "example_username",
     "web3_wallets": []
   },
   "object": "event",

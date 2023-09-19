@@ -13,6 +13,33 @@ type ClerkEvent struct {
 	Type   string                 `json:"type"`
 }
 
+func getStringFromMap(m map[string]interface{}, key string) string {
+	if val, ok := m[key]; ok {
+		if strVal, ok := val.(string); ok {
+			return strVal
+		}
+	}
+	return ""
+}
+
+func getBoolFromMap(m map[string]interface{}, key string) bool {
+	if val, ok := m[key]; ok {
+		if boolVal, ok := val.(bool); ok {
+			return boolVal
+		}
+	}
+	return false
+}
+
+func getInt64FromMap(m map[string]interface{}, key string) int64 {
+	if val, ok := m[key]; ok {
+		if int64Val, ok := val.(int64); ok {
+			return int64Val
+		}
+	}
+	return 0
+}
+
 func ClerkHandler(db *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -31,19 +58,18 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 		switch event.Type {
 		case "user.created":
 			user := store.User{
-				UserID:           event.Data["id"].(string),
-				ExternalID:       event.Data["external_id"].(string),
-				Username:         event.Data["username"].(string),
-				PasswordEnabled:  event.Data["password_enabled"].(bool),
+				UserID:           getStringFromMap(event.Data, "id"),
+				ExternalID:       getStringFromMap(event.Data, "external_id"),
+				Username:         getStringFromMap(event.Data, "username"),
+				PasswordEnabled:  getBoolFromMap(event.Data, "password_enabled"),
 				Email:            event.Data["email_addresses"].([]interface{})[0].(map[string]interface{})["email_address"].(string),
-				FirstName:        event.Data["first_name"].(string),
-				LastName:         event.Data["last_name"].(string),
-				ImageURL:         event.Data["image_url"].(string),
-				ProfileImageURL:  event.Data["profile_image_url"].(string),
+				FirstName:        getStringFromMap(event.Data, "first_name"),
+				LastName:         getStringFromMap(event.Data, "last_name"),
+				ImageURL:         getStringFromMap(event.Data, "image_url"),
+				ProfileImageURL:  getStringFromMap(event.Data, "profile_image_url"),
 				TwoFactorEnabled: event.Data["two_factor_enabled"].(bool),
-				CreatedAt:        event.Data["created_at"].(int64),
-				UpdatedAt:        event.Data["updated_at"].(int64),
-				Deleted:          false,
+				CreatedAt:        getInt64FromMap(event.Data, "created_at"),
+				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
 
 			err := db.CreateUser(user)
@@ -52,25 +78,25 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 			}
 		case "user.updated":
 			user := store.User{
-				UserID:           event.Data["id"].(string),
-				ExternalID:       event.Data["external_id"].(string),
-				Username:         event.Data["username"].(string),
-				PasswordEnabled:  event.Data["password_enabled"].(bool),
+				UserID:           getStringFromMap(event.Data, "id"),
+				ExternalID:       getStringFromMap(event.Data, "external_id"),
+				Username:         getStringFromMap(event.Data, "username"),
+				PasswordEnabled:  getBoolFromMap(event.Data, "password_enabled"),
 				Email:            event.Data["email_addresses"].([]interface{})[0].(map[string]interface{})["email_address"].(string),
-				FirstName:        event.Data["first_name"].(string),
-				LastName:         event.Data["last_name"].(string),
-				ImageURL:         event.Data["image_url"].(string),
-				ProfileImageURL:  event.Data["profile_image_url"].(string),
+				FirstName:        getStringFromMap(event.Data, "first_name"),
+				LastName:         getStringFromMap(event.Data, "last_name"),
+				ImageURL:         getStringFromMap(event.Data, "image_url"),
+				ProfileImageURL:  getStringFromMap(event.Data, "profile_image_url"),
 				TwoFactorEnabled: event.Data["two_factor_enabled"].(bool),
-				UpdatedAt:        event.Data["updated_at"].(int64),
+				CreatedAt:        getInt64FromMap(event.Data, "created_at"),
+				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
-
 			err := db.UpdateUser(user)
 			if err != nil {
 				log.Printf("Error updating user: %v", err)
 			}
 		case "user.deleted":
-			err := db.SetUserDeleted(event.Data["id"].(string))
+			err := db.DeleteUser(event.Data["id"].(string))
 			if err != nil {
 				log.Printf("Error deleting user: %v", err)
 			}
