@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"lucidify-api/modules/config"
 	"lucidify-api/modules/store"
 	"os/exec"
 	"testing"
@@ -26,10 +27,8 @@ func checkUserInDB(db *store.Store, userID string, retries int) error {
 }
 
 func TestIntegration_usercreatedevent(t *testing.T) {
-	db, err := store.SetupTestStore()
-	if err != nil {
-		t.Fatalf("Failed to setup test store: %v", err)
-	}
+	testconfig := config.NewTestServerConfig()
+	db := testconfig.TestStore
 
 	MakeCurlRequest := func() (string, error) {
 		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/clerk/webhook", "-H", "Content-Type: application/json", "-d", "@test/example_user_created_event.txt")
@@ -72,10 +71,8 @@ func TestIntegration_usercreatedevent(t *testing.T) {
 }
 
 func TestIntegration_userupdatedevent(t *testing.T) {
-	db, err := store.SetupTestStore()
-	if err != nil {
-		t.Fatalf("Failed to setup test store: %v", err)
-	}
+	testconfig := config.NewTestServerConfig()
+	db := testconfig.TestStore
 
 	MakeCurlRequest := func() (string, error) {
 		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/clerk/webhook", "-H", "Content-Type: application/json", "-d", "@test/example_user_created_event.txt")
@@ -86,7 +83,7 @@ func TestIntegration_userupdatedevent(t *testing.T) {
 		return string(out), nil
 	}
 
-	_, err = MakeCurlRequest()
+	_, err := MakeCurlRequest()
 	if err != nil {
 		t.Fatalf("Failed to make curl request: %v", err)
 	}
@@ -149,10 +146,8 @@ func checkUserDeletedFromDB(db *store.Store, userID string, retries int) error {
 }
 
 func TestIntegration_userdeletedevent(t *testing.T) {
-	db, err := store.SetupTestStore()
-	if err != nil {
-		t.Fatalf("Failed to setup test store: %v", err)
-	}
+	testconfig := config.NewTestServerConfig()
+	db := testconfig.TestStore
 
 	MakeCurlRequest := func() (string, error) {
 		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/clerk/webhook", "-H", "Content-Type: application/json", "-d", "@test/example_user_created_event.txt")
