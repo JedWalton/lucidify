@@ -9,11 +9,12 @@ import (
 )
 
 type ServerConfig struct {
-	OPENAI_API_KEY string
-	AllowedOrigins []string
-	Port           string
-	Store          *store.Store
-	ClerkClient    clerk.Client
+	OPENAI_API_KEY     string
+	AllowedOrigins     []string
+	Port               string
+	Store              *store.Store
+	ClerkClient        clerk.Client
+	ClerkSigningSecret string
 }
 
 func NewServerConfig() *ServerConfig {
@@ -42,11 +43,17 @@ func NewServerConfig() *ServerConfig {
 		log.Fatalf("Failed to create Clerk client: %v", err)
 	}
 
+	clerkSigningSecret := os.Getenv("CLERK_SIGNING_SECRET")
+	if clerkSigningSecret == "" {
+		log.Fatal("CLERK_SIGNING_SECRET environment variable is not set")
+	}
+
 	return &ServerConfig{
-		OPENAI_API_KEY: OPENAI_API_KEY,
-		AllowedOrigins: allowedOrigins,
-		Port:           port,
-		Store:          store,
-		ClerkClient:    clerkClient,
+		OPENAI_API_KEY:     OPENAI_API_KEY,
+		AllowedOrigins:     allowedOrigins,
+		Port:               port,
+		Store:              store,
+		ClerkClient:        clerkClient,
+		ClerkSigningSecret: clerkSigningSecret,
 	}
 }

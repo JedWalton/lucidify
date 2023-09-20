@@ -51,6 +51,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/svix/svix-webhooks v1.12.0
 	github.com/weaviate/weaviate-go-client/v4 v4.10.0
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	golang.org/x/net v0.12.0 // indirect

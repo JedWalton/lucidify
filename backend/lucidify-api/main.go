@@ -24,6 +24,6 @@ func main() {
 
 func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux) {
 	chat.SetupRoutes(config, mux)
-	documents.SetupRoutes(config, mux, config.Store)
+	documents.SetupRoutes(config, mux)
 	clerk.SetupRoutes(config, mux)
 }

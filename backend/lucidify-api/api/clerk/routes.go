@@ -7,11 +7,13 @@ import (
 )
 
 func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
-	mux.HandleFunc("/clerk/webhook", middleware.Chain(
-		ClerkHandler(config.Store),
-		middleware.CORSMiddleware(config.AllowedOrigins),
-		middleware.Logging,
-	))
+	handler := ClerkHandler(config.Store)
+
+	handler = middleware.ClerkWebhooksAuthenticationMiddleware(config)(handler)
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
+
+	mux.HandleFunc("/clerk/webhook", handler)
 
 	return mux
 }

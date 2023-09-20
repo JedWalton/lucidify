@@ -10,11 +10,13 @@ import (
 )
 
 type TestServerConfig struct {
-	OPENAI_API_KEY string
-	AllowedOrigins []string
-	Port           string
-	TestStore      *store.Store
-	ClerkClient    clerk.Client
+	OPENAI_API_KEY     string
+	AllowedOrigins     []string
+	Port               string
+	TestStore          *store.Store
+	ClerkClient        clerk.Client
+	ClerkSigningSecret string
+	ClerkSecretKey     string
 }
 
 func NewTestServerConfig() *TestServerConfig {
@@ -52,12 +54,23 @@ func NewTestServerConfig() *TestServerConfig {
 	if err != nil {
 		log.Fatalf("Failed to create Clerk client: %v", err)
 	}
+	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
+	if clerkSecretKey == "" {
+		log.Fatalf("CLERK_SECRET_KEY environment variable is not set: %v", err)
+	}
+
+	clerkSigningSecret := os.Getenv("CLERK_SIGNING_SECRET")
+	if clerkSigningSecret == "" {
+		log.Fatal("CLERK_SIGNING_SECRET environment variable is not set")
+	}
 
 	return &TestServerConfig{
-		OPENAI_API_KEY: OPENAI_API_KEY,
-		AllowedOrigins: allowedOrigins,
-		Port:           port,
-		TestStore:      testStore,
-		ClerkClient:    clerkClient,
+		OPENAI_API_KEY:     OPENAI_API_KEY,
+		AllowedOrigins:     allowedOrigins,
+		Port:               port,
+		TestStore:          testStore,
+		ClerkClient:        clerkClient,
+		ClerkSigningSecret: clerkSigningSecret,
+		ClerkSecretKey:     clerkSecretKey,
 	}
 }

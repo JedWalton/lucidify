@@ -151,6 +151,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+github.com/svix/svix-webhooks v1.12.0 h1:Xis5d8w95VxcIoU/37b6iBwdFnL7Wgsc6HycXXBl4Ak=
+github.com/svix/svix-webhooks v1.12.0/go.mod h1:q3Z9c8NXqDRPZviI+zLMToAja+bjhTw929cMVhJirOI=
 github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/weaviate/weaviate v1.21.3 h1:c7iXoExpeQSBDBKzhYXOrkmUAvJgeTrMySpSVfAGF6I=
