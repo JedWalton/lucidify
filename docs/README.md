@@ -18,3 +18,8 @@
     If your local server is running on localhost:8080, you can expose it using:
     ngrok http 8080
     This will give you a public URL (e.g., https://abcdef1234.ngrok.io) that forwards to your local server.
+
+
+It is helpful to set these in your ~/.profile for development
+export POSTGRESQL_URL=postgres://postgres:mysecretpassword@localhost:5432/devdb?sslmode=disable
+export GOPROXY=https://proxy.golang.org

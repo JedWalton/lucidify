@@ -6,11 +6,7 @@ import (
 	"lucidify-api/api/clerk"
 	"lucidify-api/api/documents"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/store"
 	"net/http"
-	"os"
-
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -18,12 +14,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	store, err := store.NewStore(os.Getenv("POSTGRESQL_URL"))
-	if err != nil {
-		log.Fatalf("Failed to initialize store: %v", err)
-	}
-
-	SetupRoutes(config, mux, store)
+	SetupRoutes(config, mux)
 
 	log.Printf("Server starting on :%s", config.Port)
 	if err := http.ListenAndServe(":"+config.Port, mux); err != nil {
@@ -31,8 +22,8 @@ func main() {
 	}
 }
 
-func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, store *store.Store) {
-	chat.SetupRoutes(config, mux, store)
-	documents.SetupRoutes(config, mux, store)
-	clerk.SetupRoutes(config, mux, store)
+func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux) {
+	chat.SetupRoutes(config, mux)
+	documents.SetupRoutes(config, mux, config.Store)
+	clerk.SetupRoutes(config, mux)
 }

@@ -4,6 +4,8 @@ import (
 	"log"
 	"lucidify-api/modules/store"
 	"os"
+
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
 type ServerConfig struct {
@@ -11,10 +13,10 @@ type ServerConfig struct {
 	AllowedOrigins []string
 	Port           string
 	Store          *store.Store
+	ClerkClient    clerk.Client
 }
 
 func NewServerConfig() *ServerConfig {
-
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	if OPENAI_API_KEY == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
@@ -30,15 +32,21 @@ func NewServerConfig() *ServerConfig {
 		"http://localhost:3000",
 	}
 
-	Store, err := store.NewStore(os.Getenv("POSTGRESQL_URL"))
+	store, err := store.NewStore(os.Getenv("POSTGRESQL_URL"))
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	clerkClient, err := clerk.NewClient(os.Getenv("CLERK_SECRET_KEY"))
+	if err != nil {
+		log.Fatalf("Failed to create Clerk client: %v", err)
 	}
 
 	return &ServerConfig{
 		OPENAI_API_KEY: OPENAI_API_KEY,
 		AllowedOrigins: allowedOrigins,
 		Port:           port,
-		Store:          Store,
+		Store:          store,
+		ClerkClient:    clerkClient,
 	}
 }
