@@ -203,6 +203,8 @@ func TestIntegration_UpdateUser(t *testing.T) {
 		t.Fatalf("Failed to update user in Clerk: %v", err)
 	}
 
+	time.Sleep(time.Second * 5) // Wait for 5 seconds for the webhook to be processed
+
 	// Check if the user was updated in the local database
 	updatedUser, err := db.GetUser(userID)
 	if err != nil {
