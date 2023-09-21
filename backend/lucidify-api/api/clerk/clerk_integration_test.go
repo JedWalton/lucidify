@@ -203,12 +203,6 @@ func TestIntegration_UpdateUser(t *testing.T) {
 		t.Fatalf("Failed to update user in Clerk: %v", err)
 	}
 
-	time.Sleep(time.Second) // Wait for 1 second before retrying
-	time.Sleep(time.Second) // Wait for 1 second before retrying
-	time.Sleep(time.Second) // Wait for 1 second before retrying
-	time.Sleep(time.Second) // Wait for 1 second before retrying
-	time.Sleep(time.Second) // Wait for 1 second before retrying
-
 	// Check if the user was updated in the local database
 	updatedUser, err := db.GetUser(userID)
 	if err != nil {
