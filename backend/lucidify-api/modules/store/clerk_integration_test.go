@@ -21,10 +21,12 @@ func TestIntegration_CreateUserInClerk(t *testing.T) {
 	}
 
 	// Cleanup
-	err = DeleteUserInClerk(clerkSecretKey, userID)
-	if err != nil {
-		t.Fatalf("Failed to delete test user: %v", err)
-	}
+	t.Cleanup(func() {
+		err = DeleteUserInClerk(clerkSecretKey, userID)
+		if err != nil {
+			t.Fatalf("Failed to delete test user: %v", err)
+		}
+	})
 }
 
 func TestIntegration_DeleteUserInClerk(t *testing.T) {
@@ -40,10 +42,12 @@ func TestIntegration_DeleteUserInClerk(t *testing.T) {
 		t.Fatalf("Failed to create user in Clerk: %v", err)
 	}
 
-	err = DeleteUserInClerk(clerkSecretKey, userID)
-	if err != nil {
-		t.Fatalf("Failed to delete user in Clerk: %v", err)
-	}
+	t.Cleanup(func() {
+		err = DeleteUserInClerk(clerkSecretKey, userID)
+		if err != nil {
+			t.Fatalf("Failed to delete test user: %v", err)
+		}
+	})
 }
 
 func TestIntegration_UpdateUserInClerk(t *testing.T) {
@@ -66,9 +70,10 @@ func TestIntegration_UpdateUserInClerk(t *testing.T) {
 		t.Fatalf("Failed to update user in Clerk: %v", err)
 	}
 
-	// Cleanup
-	err = DeleteUserInClerk(clerkSecretKey, userID)
-	if err != nil {
-		t.Fatalf("Failed to delete test user: %v", err)
-	}
+	t.Cleanup(func() {
+		err = DeleteUserInClerk(clerkSecretKey, userID)
+		if err != nil {
+			t.Fatalf("Failed to delete test user: %v", err)
+		}
+	})
 }

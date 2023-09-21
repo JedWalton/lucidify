@@ -3,7 +3,7 @@ package store
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -27,7 +27,7 @@ func CreateUserInClerk(apiKey string, firstName string, lastName string, email s
 	}
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
 
@@ -51,7 +51,7 @@ func DeleteUserInClerk(apiKey string, userID string) error {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		body, _ := ioutil.ReadAll(res.Body)
+		body, _ := io.ReadAll(res.Body)
 		return fmt.Errorf("Failed to update user in Clerk. Status code: %d. Response: %s", res.StatusCode, string(body))
 	}
 
@@ -76,7 +76,7 @@ func UpdateUserInClerk(apiKey string, userID string, firstName string, lastName 
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		body, _ := ioutil.ReadAll(res.Body)
+		body, _ := io.ReadAll(res.Body)
 		return fmt.Errorf("Failed to update user in Clerk. Response: %s", string(body))
 	}
 
