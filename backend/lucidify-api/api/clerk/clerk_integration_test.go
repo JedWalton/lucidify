@@ -1,6 +1,5 @@
-//go:build integration
-// +build integration
-
+// // go:build integration
+// // +build integration
 package clerk
 
 import (
@@ -63,7 +62,32 @@ func deleteUserInClerk(apiKey string, userID string) error {
 
 	if res.StatusCode != 200 {
 		body, _ := ioutil.ReadAll(res.Body)
-		return fmt.Errorf("Failed to delete user in Clerk. Response: %s", string(body))
+		return fmt.Errorf("Failed to update user in Clerk. Status code: %d. Response: %s", res.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func updateUserInClerk(apiKey string, userID string, firstName string, lastName string) error {
+	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
+	payload := strings.NewReader(fmt.Sprintf(`{
+        "first_name": "%s",
+        "last_name": "%s"
+    }`, firstName, lastName))
+
+	req, err := http.NewRequest("PATCH", url, payload)
+	req.Header.Add("Authorization", "Bearer "+apiKey)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, _ := ioutil.ReadAll(res.Body)
+		return fmt.Errorf("Failed to update user in Clerk. Response: %s", string(body))
 	}
 
 	return nil
@@ -157,67 +181,49 @@ func TestIntegration_usercreatedevent_unauthenticated(t *testing.T) {
 	db.DeleteUser(UserID)
 }
 
-func TestIntegration_userupdatedevent(t *testing.T) {
+func TestIntegration_UpdateUser(t *testing.T) {
 	testconfig := config.NewTestServerConfig()
 	db := testconfig.TestStore
 
-	MakeCurlRequest := func() (string, error) {
-		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/clerk/webhook", "-H", "Content-Type: application/json", "-d", "@test/example_user_created_event.txt")
-		out, err := cmd.Output()
-		if err != nil {
-			return "", err
-		}
-		return string(out), nil
-	}
-
-	_, err := MakeCurlRequest()
+	clerkSecretKey := testconfig.ClerkSecretKey
+	userID, err := createUserInClerk(clerkSecretKey)
 	if err != nil {
-		t.Fatalf("Failed to make curl request: %v", err)
+		t.Fatalf("Failed to create user in Clerk: %v", err)
 	}
+	log.Printf("Created user in Clerk with userID: %s\n", userID)
 
-	MakeCurlRequest = func() (string, error) {
-		cmd := exec.Command("curl", "-s", "-X", "POST", "http://localhost:8080/clerk/webhook", "-H", "Content-Type: application/json", "-d", "@test/example_user_updated_event.txt")
-		out, err := cmd.Output()
-		if err != nil {
-			return "", err
-		}
-		return string(out), nil
-	}
-
-	_, err = MakeCurlRequest()
+	err = checkUserInDB(db, userID, 5) // Try 5 times
 	if err != nil {
-		t.Fatalf("Failed to make curl request: %v", err)
+		t.Fatalf("Should have fetched user, user with ID, userID: %v", err)
 	}
 
-	content, err := ioutil.ReadFile("test/example_user_updated_event.txt")
+	// Update the user in Clerk
+	err = updateUserInClerk(clerkSecretKey, userID, "UpdatedFirstName", "UpdatedLastName")
 	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return
-	}
-	// Parse the content
-	var event ClerkEvent
-	err = json.Unmarshal(content, &event)
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return
+		t.Fatalf("Failed to update user in Clerk: %v", err)
 	}
 
-	UserID := event.Data["id"].(string)
-	err = checkUserInDB(db, UserID, 5) // Try 5 times
+	time.Sleep(time.Second) // Wait for 1 second before retrying
+	time.Sleep(time.Second) // Wait for 1 second before retrying
+	time.Sleep(time.Second) // Wait for 1 second before retrying
+	time.Sleep(time.Second) // Wait for 1 second before retrying
+	time.Sleep(time.Second) // Wait for 1 second before retrying
+
+	// Check if the user was updated in the local database
+	updatedUser, err := db.GetUser(userID)
 	if err != nil {
-		t.Fatalf("Failed to fetch user, user not in db with UserID: %v", err)
+		t.Fatalf("Failed to fetch updated user from local database: %v", err)
 	}
 
-	User, err := db.GetUser(UserID)
-	if err != nil {
-		t.Fatalf("Failed to fetch user: %v", err)
-	}
-	username := User.Username
-	if username != "example_username_updated" {
-		t.Fatalf("Expected username to be testuser, got: %s", username)
+	if updatedUser.FirstName != "UpdatedFirstName" || updatedUser.LastName != "UpdatedLastName" {
+		t.Fatalf("User update in local database failed. Expected first name: UpdatedFirstName, got: %v. Expected last name: UpdatedLastName, got: %v", updatedUser.FirstName, updatedUser.LastName)
 	}
 
-	db.DeleteUser(UserID)
+	// Cleanup: Delete the user from Clerk
+	err = deleteUserInClerk(clerkSecretKey, userID)
+	if err != nil {
+		t.Fatalf("Failed to delete user from Clerk: %v", err)
+	}
 }
 
 func checkUserDeletedFromDB(db *store.Store, userID string, retries int) error {
