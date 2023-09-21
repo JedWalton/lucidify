@@ -104,6 +104,17 @@ func checkUserInDB(db *store.Store, userID string, retries int) error {
 	return fmt.Errorf("User not found after %d retries", retries)
 }
 
+func checkUpdatedUserInDB(db *store.Store, userID string, retries int, expectedFirstName string, expectedLastName string) error {
+	for i := 0; i < retries; i++ {
+		user, err := db.GetUser(userID)
+		if err == nil && user.FirstName == expectedFirstName && user.LastName == expectedLastName {
+			return nil
+		}
+		time.Sleep(time.Second) // Wait for 1 second before retrying
+	}
+	return fmt.Errorf("User not updated correctly after %d retries", retries)
+}
+
 func TestIntegration_usercreatedevent(t *testing.T) {
 	testconfig := config.NewTestServerConfig()
 	db := testconfig.TestStore
@@ -203,7 +214,10 @@ func TestIntegration_UpdateUser(t *testing.T) {
 		t.Fatalf("Failed to update user in Clerk: %v", err)
 	}
 
-	time.Sleep(time.Second * 5) // Wait for 5 seconds for the webhook to be processed
+	err = checkUpdatedUserInDB(db, userID, 5, "UpdatedFirstName", "UpdatedLastName")
+	if err != nil {
+		t.Fatalf("Failed to fetch updated user from local database: %v", err)
+	}
 
 	// Check if the user was updated in the local database
 	updatedUser, err := db.GetUser(userID)
