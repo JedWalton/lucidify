@@ -14,6 +14,7 @@ type ServerConfig struct {
 	PostgresqlURL      string
 	ClerkClient        clerk.Client
 	ClerkSigningSecret string
+	ClerkSecretKey     string
 }
 
 func NewServerConfig() *ServerConfig {
@@ -47,6 +48,11 @@ func NewServerConfig() *ServerConfig {
 		log.Fatal("CLERK_SIGNING_SECRET environment variable is not set")
 	}
 
+	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
+	if clerkSecretKey == "" {
+		log.Fatalf("CLERK_SECRET_KEY environment variable is not set: %v", err)
+	}
+
 	return &ServerConfig{
 		OPENAI_API_KEY:     OPENAI_API_KEY,
 		AllowedOrigins:     allowedOrigins,
@@ -54,5 +60,6 @@ func NewServerConfig() *ServerConfig {
 		PostgresqlURL:      postgresqlURL,
 		ClerkClient:        clerkClient,
 		ClerkSigningSecret: clerkSigningSecret,
+		ClerkSecretKey:     clerkSecretKey,
 	}
 }

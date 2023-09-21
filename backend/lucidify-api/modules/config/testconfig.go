@@ -8,17 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type TestServerConfig struct {
-	OPENAI_API_KEY     string
-	AllowedOrigins     []string
-	Port               string
-	PostgresqlURL      string
-	ClerkClient        clerk.Client
-	ClerkSigningSecret string
-	ClerkSecretKey     string
-}
-
-func NewTestServerConfig() *TestServerConfig {
+func NewTestServerConfig() *ServerConfig {
 	// Load environment variables from the .env file
 	if err := godotenv.Load("../../../../.env"); err != nil {
 		log.Fatalf("Failed to load .env file: %v", err)
@@ -48,17 +38,18 @@ func NewTestServerConfig() *TestServerConfig {
 	if err != nil {
 		log.Fatalf("Failed to create Clerk client: %v", err)
 	}
-	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
-	if clerkSecretKey == "" {
-		log.Fatalf("CLERK_SECRET_KEY environment variable is not set: %v", err)
-	}
 
 	clerkSigningSecret := os.Getenv("CLERK_SIGNING_SECRET")
 	if clerkSigningSecret == "" {
 		log.Fatal("CLERK_SIGNING_SECRET environment variable is not set")
 	}
 
-	return &TestServerConfig{
+	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
+	if clerkSecretKey == "" {
+		log.Fatalf("CLERK_SECRET_KEY environment variable is not set: %v", err)
+	}
+
+	return &ServerConfig{
 		OPENAI_API_KEY:     OPENAI_API_KEY,
 		AllowedOrigins:     allowedOrigins,
 		Port:               port,
