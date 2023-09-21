@@ -1,9 +1,13 @@
 package store
 
+import "time"
+
 type Document struct {
-	user_id       string
-	document_name string
-	content       string
+	UserID       string
+	DocumentName string
+	Content      string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func (s *Store) UploadDocument(userID string, name, content string) error {
@@ -12,19 +16,19 @@ func (s *Store) UploadDocument(userID string, name, content string) error {
 	return err
 }
 
-func (s *Store) GetDocument(userID string, name string) (string, error) {
-	var content string
-	query := `SELECT content FROM documents WHERE user_id = $1 AND document_name = $2`
-	err := s.db.QueryRow(query, userID, name).Scan(&content)
+func (s *Store) GetDocument(userID string, name string) (*Document, error) {
+	doc := &Document{}
+	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1 AND document_name = $2`
+	err := s.db.QueryRow(query, userID, name).Scan(&doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return content, nil
+	return doc, nil
 }
 
 func (s *Store) GetAllDocuments(userID string) ([]Document, error) {
 	var documents []Document
-	query := `SELECT user_id, document_name, content FROM documents WHERE user_id = $1`
+	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1`
 	rows, err := s.db.Query(query, userID)
 	if err != nil {
 		return nil, err
@@ -32,7 +36,7 @@ func (s *Store) GetAllDocuments(userID string) ([]Document, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var doc Document
-		err := rows.Scan(&doc.user_id, &doc.document_name, &doc.content)
+		err := rows.Scan(&doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +52,7 @@ func (s *Store) DeleteDocument(userID string, name string) error {
 }
 
 func (s *Store) UpdateDocument(userID string, name, content string) error {
-	query := `UPDATE documents SET content = $1 WHERE user_id = $2 AND document_name = $3`
+	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND document_name = $3`
 	_, err := s.db.Exec(query, content, userID, name)
 	return err
 }
