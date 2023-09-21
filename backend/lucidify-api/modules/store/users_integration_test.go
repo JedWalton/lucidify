@@ -1,60 +1,70 @@
-//go:build integration
-// +build integration
-
+// //go:build integration
+// // +build integration
 package store
 
 import (
-	"lucidify-api/modules/testutils"
+	"lucidify-api/modules/config"
 	"testing"
 )
 
-func TestCreateUser(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+func TestCreateUserInUsersTable(t *testing.T) {
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	user := User{
-		UserID:           "createTestUserID",
-		ExternalID:       "createTestExternalID",
-		Username:         "createTestUsername",
+		UserID:           "TestCreateUserInUsersTableUserID",
+		ExternalID:       "TestCreateUserInUsersTableExternalID",
+		Username:         "TestCreateUserInUsersTableUsername",
 		PasswordEnabled:  true,
-		Email:            "createTest@example.com",
-		FirstName:        "CreateTest",
-		LastName:         "User",
-		ImageURL:         "https://createTest.com/image.jpg",
-		ProfileImageURL:  "https://createTest.com/profile.jpg",
+		Email:            "TestCreateUserInUsersTable@example.com",
+		FirstName:        "TestCreateUserInUsersTableCreateTest",
+		LastName:         "TestCreateUserInUsersTableUser",
+		ImageURL:         "https://TestCreateUserInUsersTable.com/image.jpg",
+		ProfileImageURL:  "https://TestCreateUserInUsersTable.com/profile.jpg",
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
 	}
 
-	err := store.CreateUser(user)
+	err = store.CreateUserInUsersTable(user)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
 
-	// Cleanup
-	err = store.DeleteUser(user.UserID)
+	// Check if the user exists
+	err = store.checkIfUserInUsersTable(user.UserID, 3)
 	if err != nil {
-		t.Fatalf("Failed to clean up test user: %v", err)
+		t.Fatalf("User not found after creation: %v", err)
 	}
+
+	// Register cleanup function
+	t.Cleanup(func() {
+		store.DeleteUserInUsersTable(user.UserID)
+	})
 }
 
-func TestUpdateUser(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+func TestUpdateUserInUsersTable(t *testing.T) {
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create a user first
 	user := User{
-		UserID:           "updateTestUserID",
-		ExternalID:       "updateTestExternalID",
-		Username:         "updateTestUsername",
+		UserID:           "TestUpdateUserInUsersTableUserID",
+		ExternalID:       "TestUpdateUserInUsersTableUserIDExternalID",
+		Username:         "TestUpdateUserInUsersTableUserIDUsername",
 		PasswordEnabled:  true,
-		Email:            "updateTest@example.com",
-		FirstName:        "UpdateTest",
+		Email:            "TestUpdateUserInUsersTableUserID@example.com",
+		FirstName:        "TestUpdateUserInUsersTableUserID",
 		LastName:         "User",
 		ImageURL:         "https://updateTest.com/image.jpg",
 		ProfileImageURL:  "https://updateTest.com/profile.jpg",
@@ -63,7 +73,7 @@ func TestUpdateUser(t *testing.T) {
 		UpdatedAt:        1654012591514,
 	}
 
-	err := store.CreateUser(user)
+	err = store.CreateUserInUsersTable(user)
 	if err != nil {
 		t.Fatalf("Failed to create user for update test: %v", err)
 	}
@@ -71,57 +81,56 @@ func TestUpdateUser(t *testing.T) {
 	// Update the user
 	user.FirstName = "UpdatedFirstName"
 	user.LastName = "UpdatedLastName"
-	err = store.UpdateUser(user)
+	err = store.UpdateUserInUsersTable(user)
 	if err != nil {
 		t.Fatalf("Failed to update user: %v", err)
 	}
 
-	// Fetch the user and check if the updates are reflected
-	updatedUser, err := store.GetUser(user.UserID)
+	// Check if the user has the expected first name and last name
+	err = store.checkUserHasExpectedFirstNameAndLastNameInUsersTable(user.UserID, 3, "UpdatedFirstName", "UpdatedLastName")
 	if err != nil {
-		t.Fatalf("Failed to fetch user: %v", err)
+		t.Fatalf("User not updated correctly: %v", err)
 	}
 
-	if updatedUser.FirstName != "UpdatedFirstName" || updatedUser.LastName != "UpdatedLastName" {
-		t.Fatalf("User update failed. Expected first name: UpdatedFirstName, got: %v. Expected last name: UpdatedLastName, got: %v", updatedUser.FirstName, updatedUser.LastName)
-	}
+	// Register cleanup function
+	t.Cleanup(func() {
+		store.DeleteUserInUsersTable(user.UserID)
+	})
 
-	// Cleanup
-	err = store.DeleteUser(user.UserID)
-	if err != nil {
-		t.Fatalf("Failed to clean up test user: %v", err)
-	}
 }
 
-func TestGetUser(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+func TestGetUserInUsersTable(t *testing.T) {
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create a user first
 	user := User{
-		UserID:           "getTestUserID",
-		ExternalID:       "getTestExternalID",
-		Username:         "getTestUsername",
+		UserID:           "TestGetUserInUsersTableUserID",
+		ExternalID:       "TestGetUserInUsersTableExternalID",
+		Username:         "TestGetUserInUsersTableUsername",
 		PasswordEnabled:  true,
-		Email:            "getTest@example.com",
+		Email:            "TestGetUserInUsersTable@example.com",
 		FirstName:        "GetTest",
 		LastName:         "User",
-		ImageURL:         "https://getTest.com/image.jpg",
+		ImageURL:         "https://TestGetUserInUsersTable.com/image.jpg",
 		ProfileImageURL:  "https://getTest.com/profile.jpg",
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
 	}
 
-	err := store.CreateUser(user)
+	err = store.CreateUserInUsersTable(user)
 	if err != nil {
 		t.Fatalf("Failed to create user for get test: %v", err)
 	}
 
 	// Fetch the user
-	fetchedUser, err := store.GetUser(user.UserID)
+	fetchedUser, err := store.GetUserInUsersTable(user.UserID)
 	if err != nil {
 		t.Fatalf("Failed to fetch user: %v", err)
 	}
@@ -131,48 +140,54 @@ func TestGetUser(t *testing.T) {
 	}
 
 	// Cleanup
-	err = store.DeleteUser(user.UserID)
-	if err != nil {
-		t.Fatalf("Failed to clean up test user: %v", err)
-	}
+	t.Cleanup(func() {
+		store.DeleteUserInUsersTable(user.UserID)
+	})
 }
 
-func TestDeleteUser(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+func TestDeleteUserInUsersTable(t *testing.T) {
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create a user first
 	user := User{
-		UserID:           "deleteTestUserID",
-		ExternalID:       "deleteTestExternalID",
-		Username:         "deleteTestUsername",
+		UserID:           "TestDeleteUserInUsersTableUserID",
+		ExternalID:       "TestDeleteUserInUsersTableExternalID",
+		Username:         "TestDeleteUserInUsersTableUsername",
 		PasswordEnabled:  true,
-		Email:            "deleteTest@example.com",
-		FirstName:        "DeleteTest",
-		LastName:         "User",
-		ImageURL:         "https://deleteTest.com/image.jpg",
-		ProfileImageURL:  "https://deleteTest.com/profile.jpg",
+		Email:            "TestDeleteUserInUsersTable@example.com",
+		FirstName:        "TestDeleteUserInUsersTable",
+		LastName:         "TestDeleteUserInUsersTableUser",
+		ImageURL:         "https://TestDeleteUserInUsersTable.com/image.jpg",
+		ProfileImageURL:  "https://TestDeleteUserInUsersTable.com/profile.jpg",
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
 	}
 
-	err := store.CreateUser(user)
+	err = store.CreateUserInUsersTable(user)
 	if err != nil {
 		t.Fatalf("Failed to create user for delete test: %v", err)
 	}
 
 	// Delete the user
-	err = store.DeleteUser(user.UserID)
+	err = store.DeleteUserInUsersTable(user.UserID)
 	if err != nil {
 		t.Fatalf("Failed to delete user: %v", err)
 	}
 
-	// Fetch the user and check if it exists
-	_, err = store.GetUser(user.UserID)
-	if err == nil {
-		t.Fatalf("User deletion failed. User still exists")
+	// Check if the user has been deleted
+	err = store.checkUserDeletedInUsersTable(user.UserID, 3)
+	if err != nil {
+		t.Fatalf("User still exists after deletion: %v", err)
 	}
+
+	t.Cleanup(func() {
+		store.DeleteUserInUsersTable(user.UserID)
+	})
 }

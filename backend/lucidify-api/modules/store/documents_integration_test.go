@@ -1,38 +1,39 @@
-//go:build integration
-// +build integration
-
+// //go:build integration
+// // +build integration
 package store
 
 import (
-	"database/sql"
-	"lucidify-api/modules/testutils"
+	"lucidify-api/modules/config"
 	"testing"
 
 	_ "github.com/lib/pq"
 )
 
-func createTestUser(db *sql.DB) (string, error) {
+func (s *Store) createTestUser(db *Store) (string, error) {
 	userID := "testuuid1237fyuiaroi"
 	const query = `INSERT INTO users (user_id, username, email) VALUES ($1, 'testuser', 'test@example.com') RETURNING user_id`
-	if err := db.QueryRow(query, userID).Scan(&userID); err != nil {
+	if err := s.db.QueryRow(query, userID).Scan(&userID); err != nil {
 		return "", err
 	}
 	return userID, nil
 }
 
-func deleteTestUser(db *sql.DB, userID string) error { // Changed parameter type
-	_, err := db.Exec(`DELETE FROM users WHERE user_id = $1`, userID)
+func (s *Store) deleteTestUser(db *Store, userID string) error { // Changed parameter type
+	_, err := s.db.Exec(`DELETE FROM users WHERE user_id = $1`, userID)
 	return err
 }
 
-func TestIntegration_UploadDocument(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+func (s *Store) TestIntegration_UploadDocument(t *testing.T) {
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create test user
-	userID, err := createTestUser(db)
+	userID, err := s.createTestUser(store)
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -64,20 +65,23 @@ func TestIntegration_UploadDocument(t *testing.T) {
 	}
 
 	// Delete test user
-	err = deleteTestUser(db, userID)
+	err = store.deleteTestUser(store, userID)
 	if err != nil {
 		t.Fatalf("Failed to delete test user: %v", err)
 	}
 }
 
-func TestGetDocument(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+func (s *Store) TestGetDocument(t *testing.T) {
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create test user
-	userID, err := createTestUser(db)
+	userID, err := store.createTestUser(store)
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -110,20 +114,23 @@ func TestGetDocument(t *testing.T) {
 	}
 
 	// Delete test user
-	err = deleteTestUser(db, userID)
+	err = store.deleteTestUser(store, userID)
 	if err != nil {
 		t.Fatalf("Failed to delete test user: %v", err)
 	}
 }
 
 func TestDeleteDocument(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create test user
-	userID, err := createTestUser(db)
+	userID, err := store.createTestUser(store)
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -155,20 +162,23 @@ func TestDeleteDocument(t *testing.T) {
 	}
 
 	// Delete test user
-	err = deleteTestUser(db, userID)
+	err = store.deleteTestUser(store, userID)
 	if err != nil {
 		t.Fatalf("Failed to delete test user: %v", err)
 	}
 }
 
 func TestUpdateDocument(t *testing.T) {
-	db := testutils.SetupDB()
-	defer db.Close()
+	testconfig := config.NewTestServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
 
-	store := &Store{db: db}
+	store, err := NewStore(PostgresqlURL)
+	if err != nil {
+		t.Fatalf("Failed to create test store: %v", err)
+	}
 
 	// Create test user
-	userID, err := createTestUser(db)
+	userID, err := store.createTestUser(store)
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -207,7 +217,7 @@ func TestUpdateDocument(t *testing.T) {
 	}
 
 	// Delete test user
-	err = deleteTestUser(db, userID)
+	err = store.deleteTestUser(store, userID)
 	if err != nil {
 		t.Fatalf("Failed to delete test user: %v", err)
 	}

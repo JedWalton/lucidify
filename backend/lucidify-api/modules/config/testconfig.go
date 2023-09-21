@@ -2,7 +2,6 @@ package config
 
 import (
 	"log"
-	"lucidify-api/modules/store"
 	"os"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
@@ -13,7 +12,7 @@ type TestServerConfig struct {
 	OPENAI_API_KEY     string
 	AllowedOrigins     []string
 	Port               string
-	TestStore          *store.Store
+	PostgresqlURL      string
 	ClerkClient        clerk.Client
 	ClerkSigningSecret string
 	ClerkSecretKey     string
@@ -45,11 +44,6 @@ func NewTestServerConfig() *TestServerConfig {
 		log.Fatal("POSTGRESQL_URL environment variable is not set")
 	}
 
-	testStore, err := store.NewStore(postgresqlURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	clerkClient, err := clerk.NewClient(os.Getenv("CLERK_SECRET_KEY"))
 	if err != nil {
 		log.Fatalf("Failed to create Clerk client: %v", err)
@@ -68,7 +62,7 @@ func NewTestServerConfig() *TestServerConfig {
 		OPENAI_API_KEY:     OPENAI_API_KEY,
 		AllowedOrigins:     allowedOrigins,
 		Port:               port,
-		TestStore:          testStore,
+		PostgresqlURL:      postgresqlURL,
 		ClerkClient:        clerkClient,
 		ClerkSigningSecret: clerkSigningSecret,
 		ClerkSecretKey:     clerkSecretKey,

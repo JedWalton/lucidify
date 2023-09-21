@@ -72,7 +72,7 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
 
-			err := db.CreateUser(user)
+			err := db.CreateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
 			}
@@ -91,12 +91,12 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 				CreatedAt:        getInt64FromMap(event.Data, "created_at"),
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
-			err := db.UpdateUser(user)
+			err := db.UpdateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error updating user: %v", err)
 			}
 		case "user.deleted":
-			err := db.DeleteUser(event.Data["id"].(string))
+			err := db.DeleteUserInUsersTable(event.Data["id"].(string))
 			if err != nil {
 				log.Printf("Error deleting user: %v", err)
 			}
