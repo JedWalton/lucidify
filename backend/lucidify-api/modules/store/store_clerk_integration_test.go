@@ -10,7 +10,7 @@ import (
 
 func TestIntegration_store_clerk(t *testing.T) {
 	// Test configuration
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	clerkSecretKey := testconfig.ClerkSecretKey
 	testEmail := "store_clerk_integration@example.com"
 	firstName := "store_clerk_firstname"
@@ -47,6 +47,7 @@ func TestIntegration_store_clerk(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
+		log.Printf("Cleaning up test user: %v", userID)
 		err = DeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Fatalf("Failed to delete test user in clerk: %v\n", err)

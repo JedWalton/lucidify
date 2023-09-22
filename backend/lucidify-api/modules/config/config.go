@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
+	"github.com/joho/godotenv"
 )
 
 type ServerConfig struct {
@@ -18,6 +19,15 @@ type ServerConfig struct {
 }
 
 func NewServerConfig() *ServerConfig {
+	// Check if POSTGRESQL_URL environment variable is missing
+	if os.Getenv("POSTGRESQL_URL") == "" || os.Getenv("OPENAI_API_KEY") == "" || os.Getenv("CLERK_SECRET_KEY") == "" || os.Getenv("CLERK_SIGNING_SECRET") == "" {
+		// If missing, load the .env file
+		if err := godotenv.Load("../../../../.env"); err != nil {
+			log.Fatalf("Failed to load .env file: %v", err)
+		}
+	}
+
+	// Now retrieve the environment variables
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
 	if OPENAI_API_KEY == "" {
 		log.Fatal("OPENAI_API_KEY environment variable is not set")
@@ -50,7 +60,7 @@ func NewServerConfig() *ServerConfig {
 
 	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
 	if clerkSecretKey == "" {
-		log.Fatalf("CLERK_SECRET_KEY environment variable is not set: %v", err)
+		log.Fatalf("CLERK_SECRET_KEY environment variable is not set")
 	}
 
 	return &ServerConfig{

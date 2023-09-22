@@ -8,7 +8,7 @@ import (
 )
 
 func TestCreateUserInUsersTable(t *testing.T) {
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
 	store, err := NewStore(PostgresqlURL)
@@ -49,7 +49,7 @@ func TestCreateUserInUsersTable(t *testing.T) {
 }
 
 func TestUpdateUserInUsersTable(t *testing.T) {
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
 	store, err := NewStore(PostgresqlURL)
@@ -100,7 +100,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 }
 
 func TestGetUserInUsersTable(t *testing.T) {
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
 	store, err := NewStore(PostgresqlURL)
@@ -146,7 +146,7 @@ func TestGetUserInUsersTable(t *testing.T) {
 }
 
 func TestDeleteUserInUsersTable(t *testing.T) {
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
 	store, err := NewStore(PostgresqlURL)

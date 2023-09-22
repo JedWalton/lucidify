@@ -1,4 +1,4 @@
-package clerk
+package clerkapi
 
 import (
 	"encoding/json"

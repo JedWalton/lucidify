@@ -8,7 +8,7 @@ import (
 )
 
 func TestStoreFunctions(t *testing.T) {
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
 	store, err := NewStore(PostgresqlURL)

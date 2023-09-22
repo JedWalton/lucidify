@@ -1,6 +1,6 @@
 // // go:build integration
 // // +build integration
-package clerk
+package clerkapi
 
 import (
 	"log"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestIntegration_clerk_handlers(t *testing.T) {
-	testconfig := config.NewTestServerConfig()
+	testconfig := config.NewServerConfig()
 	clerkSecretKey := testconfig.ClerkSecretKey
 	testEmail := "clerk_handler_integration@example.com"
 	firstName := "clerk_handler_firstname"

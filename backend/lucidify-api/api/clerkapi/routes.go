@@ -1,4 +1,4 @@
-package clerk
+package clerkapi
 
 import (
 	"lucidify-api/modules/config"

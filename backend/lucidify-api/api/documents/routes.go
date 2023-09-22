@@ -5,9 +5,11 @@ import (
 	"lucidify-api/modules/middleware"
 	"lucidify-api/modules/store"
 	"net/http"
+
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func SetupRoutes(storeInstance *store.Store, config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
+func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, clerkInstance *clerk.Client) *http.ServeMux {
 	mux.HandleFunc("/documents/upload", middleware.Chain(
 		DocumentsUploadHandler(storeInstance),
 		middleware.CORSMiddleware(config.AllowedOrigins),
