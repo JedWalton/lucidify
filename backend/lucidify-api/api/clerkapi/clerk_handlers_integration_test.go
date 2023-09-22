@@ -50,7 +50,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to delete test user in clerk: %v\n", err)
 		}
-		err = storeInstance.DeleteUserInUsersTable(userID)
+		err = storeInstance.CheckUserDeletedInUsersTable(userID, 10)
 		if err != nil {
 			t.Fatalf("Failed to delete test user in users table: %v\n", err)
 		}
