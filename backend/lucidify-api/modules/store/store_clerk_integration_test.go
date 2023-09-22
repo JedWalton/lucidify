@@ -12,14 +12,14 @@ func TestIntegration_store_clerk(t *testing.T) {
 	// Test configuration
 	testconfig := config.NewTestServerConfig()
 	clerkSecretKey := testconfig.ClerkSecretKey
-	testEmail := "clerk_handler_uce_integration@example.com"
-	firstName := "clerk_handler_uce_int_firstname"
-	lastName := "clerk_handler_uce_int_lastname" // Assuming you meant to have a different last name
+	testEmail := "store_clerk_integration@example.com"
+	firstName := "store_clerk_firstname"
+	lastName := "store_clerk_lastname"
 	password := "$sswordoatnsu28348ckj"
 
 	_, err := CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
 	if err != nil {
-		log.Printf("Failed to create user in Clerk, it likely already exists so nothing to worry about: %v", err)
+		log.Printf("User not created in Clerk, likely already exists.")
 	}
 
 	userID, err := getUserIDByEmail(testEmail, clerkSecretKey)
@@ -27,8 +27,8 @@ func TestIntegration_store_clerk(t *testing.T) {
 		t.Fatalf("Error getting user by email: %v", err)
 	}
 
-	newFirstName := "UpdatedFirstName"
-	newLastName := "UpdatedLastName"
+	newFirstName := "updated_store_clerk_firstname"
+	newLastName := "updated_store_clerk_lastname"
 	err = UpdateUserInClerk(clerkSecretKey, userID, newFirstName, newLastName)
 	if err != nil {
 		t.Fatalf("Failed to update user in Clerk: %v", err)
@@ -47,7 +47,6 @@ func TestIntegration_store_clerk(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		log.Printf("Cleaning up test user: %v", userID)
 		err = DeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Fatalf("Failed to delete test user in clerk: %v\n", err)
