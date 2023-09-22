@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -35,6 +36,44 @@ func CreateUserInClerk(apiKey string, firstName string, lastName string, email s
 		return userID, nil
 	}
 	return "", fmt.Errorf("Failed to create user in Clerk. Response: %s", string(body))
+}
+
+func CheckIfUserExists(apiKey string, email string) (bool, error) {
+	url := "https://api.clerk.dev/v1/users"
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+apiKey)
+	req.Header.Add("Content-Type", "application/json")
+	q := req.URL.Query()
+	q.Add("email_address", "["+email+"]") // Adjusted to pass as an array
+	req.URL.RawQuery = q.Encode()
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, _ := io.ReadAll(res.Body)
+		log.Println("API Response:", string(body)) // Print the API response
+		return false, fmt.Errorf("Failed to fetch users from Clerk. Status code: %d. Response: %s", res.StatusCode, string(body))
+	}
+
+	body, _ := io.ReadAll(res.Body)
+	var users []map[string]interface{}
+	json.Unmarshal(body, &users)
+
+	for _, user := range users {
+		if userEmails, ok := user["email_addresses"].([]interface{}); ok {
+			for _, userEmail := range userEmails {
+				if userEmailStr, ok := userEmail.(string); ok && strings.EqualFold(userEmailStr, email) {
+					return true, nil
+				}
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func DeleteUserInClerk(apiKey string, userID string) error {

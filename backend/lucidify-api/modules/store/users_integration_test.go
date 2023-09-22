@@ -37,7 +37,7 @@ func TestCreateUserInUsersTable(t *testing.T) {
 	}
 
 	// Check if the user exists
-	err = store.checkIfUserInUsersTable(user.UserID, 3)
+	err = store.CheckIfUserInUsersTable(user.UserID, 3)
 	if err != nil {
 		t.Fatalf("User not found after creation: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 	}
 
 	// Check if the user has the expected first name and last name
-	err = store.checkUserHasExpectedFirstNameAndLastNameInUsersTable(user.UserID, 3, "UpdatedFirstName", "UpdatedLastName")
+	err = store.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(user.UserID, 3, "UpdatedFirstName", "UpdatedLastName")
 	if err != nil {
 		t.Fatalf("User not updated correctly: %v", err)
 	}
@@ -182,7 +182,7 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 	}
 
 	// Check if the user has been deleted
-	err = store.checkUserDeletedInUsersTable(user.UserID, 3)
+	err = store.CheckUserDeletedInUsersTable(user.UserID, 3)
 	if err != nil {
 		t.Fatalf("User still exists after deletion: %v", err)
 	}

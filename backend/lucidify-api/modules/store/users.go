@@ -53,7 +53,7 @@ func (s *Store) DeleteUserInUsersTable(userID string) error {
 	return err
 }
 
-func (s *Store) checkIfUserInUsersTable(userID string, retries int) error {
+func (s *Store) CheckIfUserInUsersTable(userID string, retries int) error {
 	for i := 0; i < retries; i++ {
 		_, err := s.GetUserInUsersTable(userID)
 		if err == nil {
@@ -64,7 +64,7 @@ func (s *Store) checkIfUserInUsersTable(userID string, retries int) error {
 	return fmt.Errorf("User not found after %d retries", retries)
 }
 
-func (s *Store) checkUserDeletedInUsersTable(userID string, retries int) error {
+func (s *Store) CheckUserDeletedInUsersTable(userID string, retries int) error {
 	for i := 0; i < retries; i++ {
 		_, err := s.GetUserInUsersTable(userID)
 		if err != nil {
@@ -76,7 +76,7 @@ func (s *Store) checkUserDeletedInUsersTable(userID string, retries int) error {
 	return fmt.Errorf("User still exists in the database after %d retries", retries)
 }
 
-func (s *Store) checkUserHasExpectedFirstNameAndLastNameInUsersTable(userID string, retries int, expectedFirstName string, expectedLastName string) error {
+func (s *Store) CheckUserHasExpectedFirstNameAndLastNameInUsersTable(userID string, retries int, expectedFirstName string, expectedLastName string) error {
 	for i := 0; i < retries; i++ {
 		user, err := s.GetUserInUsersTable(userID)
 		if err == nil && user.FirstName == expectedFirstName && user.LastName == expectedLastName {
