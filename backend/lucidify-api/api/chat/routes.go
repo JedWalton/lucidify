@@ -7,11 +7,13 @@ import (
 )
 
 func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
-	mux.HandleFunc("/chat", middleware.Chain(
-		ChatHandler(),
-		middleware.CORSMiddleware(config.AllowedOrigins),
-		middleware.Logging,
-	))
+	handler := ChatHandler()
+
+	// Wrap the handler with other middlewares
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
+
+	mux.HandleFunc("/chat", handler)
 
 	return mux
 }

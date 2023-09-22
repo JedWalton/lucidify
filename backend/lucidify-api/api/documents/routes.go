@@ -10,11 +10,18 @@ import (
 )
 
 func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, clerkInstance *clerk.Client) *http.ServeMux {
-	mux.HandleFunc("/documents/upload", middleware.Chain(
-		DocumentsUploadHandler(storeInstance),
-		middleware.CORSMiddleware(config.AllowedOrigins),
-		middleware.Logging,
-	))
+	handler := DocumentsUploadHandler(storeInstance)
+
+	// Wrap the handler with Clerk's authentication middleware
+	handler = func(w http.ResponseWriter, r *http.Request) {
+		clerk.RequireSessionV2(*clerkInstance)(http.HandlerFunc(handler)).ServeHTTP(w, r)
+	}
+
+	// Wrap the handler with other middlewares
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
+
+	mux.HandleFunc("/documents/upload", handler)
 
 	return mux
 }

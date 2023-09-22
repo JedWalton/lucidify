@@ -27,7 +27,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		t.Fatalf("Failed to create test store: %v", err)
 	}
 
-	err = storeInstance.CheckIfUserInUsersTable(userID, 20)
+	err = storeInstance.CheckIfUserInUsersTable(userID, 10)
 	if err != nil {
 		t.Fatalf("User not found after creation: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		t.Fatalf("Failed to update user in Clerk: %v", err)
 	}
 
-	err = storeInstance.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(userID, 20, newFirstName, newLastName)
+	err = storeInstance.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(userID, 10, newFirstName, newLastName)
 	if err != nil {
 		t.Fatalf("User first name and last name not updated in users table: %v", err)
 	}
