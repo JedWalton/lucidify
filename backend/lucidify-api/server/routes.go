@@ -7,12 +7,10 @@ import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store"
 	"net/http"
-
-	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, clerkInstance *clerk.Client) {
+func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store) {
 	chat.SetupRoutes(config, mux)
-	documents.SetupRoutes(config, mux, storeInstance, clerkInstance)
+	documents.SetupRoutes(config, mux, storeInstance)
 	clerkapi.SetupRoutes(storeInstance, config, mux)
 }
