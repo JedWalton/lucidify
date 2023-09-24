@@ -9,13 +9,14 @@ import (
 )
 
 type ServerConfig struct {
-	OPENAI_API_KEY     string
-	AllowedOrigins     []string
-	Port               string
-	PostgresqlURL      string
-	ClerkClient        clerk.Client
-	ClerkSigningSecret string
-	ClerkSecretKey     string
+	OPENAI_API_KEY      string
+	AllowedOrigins      []string
+	Port                string
+	PostgresqlURL       string
+	ClerkClient         clerk.Client
+	ClerkSigningSecret  string
+	ClerkSecretKey      string
+	TestJWTSessionToken string
 }
 
 func NewServerConfig() *ServerConfig {
@@ -63,13 +64,20 @@ func NewServerConfig() *ServerConfig {
 		log.Fatalf("CLERK_SECRET_KEY environment variable is not set")
 	}
 
+	testJWTSessionToken := os.Getenv("TEST_JWT_SESSION_TOKEN")
+	if testJWTSessionToken == "" {
+		log.Printf("Either TEST_JWT_SESSION_TOKEN environment variable is not set " +
+			"in development, or this is production and thus not an issue.")
+	}
+
 	return &ServerConfig{
-		OPENAI_API_KEY:     OPENAI_API_KEY,
-		AllowedOrigins:     allowedOrigins,
-		Port:               port,
-		PostgresqlURL:      postgresqlURL,
-		ClerkClient:        clerkClient,
-		ClerkSigningSecret: clerkSigningSecret,
-		ClerkSecretKey:     clerkSecretKey,
+		OPENAI_API_KEY:      OPENAI_API_KEY,
+		AllowedOrigins:      allowedOrigins,
+		Port:                port,
+		PostgresqlURL:       postgresqlURL,
+		ClerkClient:         clerkClient,
+		ClerkSigningSecret:  clerkSigningSecret,
+		ClerkSecretKey:      clerkSecretKey,
+		TestJWTSessionToken: testJWTSessionToken,
 	}
 }

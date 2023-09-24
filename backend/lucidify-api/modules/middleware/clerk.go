@@ -2,41 +2,12 @@ package middleware
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"lucidify-api/modules/config"
 	"net/http"
 
-	"github.com/clerkinc/clerk-sdk-go/clerk"
 	svix "github.com/svix/svix-webhooks/go"
 )
-
-func ClerkAuthenticationMiddleware(config *config.ServerConfig) func(http.HandlerFunc) http.HandlerFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			// Wrap the next handler with Clerk's middleware
-			protectedHandler := clerk.RequireSessionV2(config.ClerkClient) // Removed the dereference *
-			protectedHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// Retrieve the authenticated session's claims
-				session, ok := clerk.SessionFromContext(r.Context())
-				if !ok {
-					http.Error(w, "Unauthorized", http.StatusUnauthorized)
-					return
-				}
-
-				// Access the "Subject" field for user ID from the jwt.Claims
-				userID := session.Claims.Subject
-				if userID == "" {
-					http.Error(w, "User ID not found", http.StatusUnauthorized)
-					return
-				}
-
-				ctx := context.WithValue(r.Context(), "user_id", userID)
-				next.ServeHTTP(w, r.WithContext(ctx))
-			})).ServeHTTP(w, r)
-		}
-	}
-}
 
 func ClerkWebhooksAuthenticationMiddleware(config *config.ServerConfig) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {

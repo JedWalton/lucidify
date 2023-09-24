@@ -1,4 +1,4 @@
-package server
+package clerkclient
 
 import (
 	"github.com/clerkinc/clerk-sdk-go/clerk"
