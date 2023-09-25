@@ -17,6 +17,7 @@ type ServerConfig struct {
 	ClerkSigningSecret  string
 	ClerkSecretKey      string
 	TestJWTSessionToken string
+	TestUserID          string
 }
 
 func NewServerConfig() *ServerConfig {
@@ -70,6 +71,12 @@ func NewServerConfig() *ServerConfig {
 			"in development, or this is production and thus not an issue.")
 	}
 
+	testUserID := os.Getenv("TEST_USER_ID")
+	if testUserID == "" {
+		log.Printf("Either TEST_USER_ID environment variable is not set " +
+			"in development, or this is production and thus not an issue.")
+	}
+
 	return &ServerConfig{
 		OPENAI_API_KEY:      OPENAI_API_KEY,
 		AllowedOrigins:      allowedOrigins,
@@ -79,5 +86,6 @@ func NewServerConfig() *ServerConfig {
 		ClerkSigningSecret:  clerkSigningSecret,
 		ClerkSecretKey:      clerkSecretKey,
 		TestJWTSessionToken: testJWTSessionToken,
+		TestUserID:          testUserID,
 	}
 }

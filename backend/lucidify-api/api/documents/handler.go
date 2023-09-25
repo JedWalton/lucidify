@@ -30,7 +30,7 @@ func DocumentsUploadHandler(db *store.Store, clerkInstance clerk.Client) http.Ha
 			panic(err)
 		}
 
-		w.Write([]byte("Welcome " + *user.FirstName))
+		w.Write([]byte(*&user.ID))
 
 		var reqBody map[string]string
 		decoder := json.NewDecoder(r.Body)
@@ -46,16 +46,13 @@ func DocumentsUploadHandler(db *store.Store, clerkInstance clerk.Client) http.Ha
 		log.Printf("Content: %s\n", content)
 
 		// placeholderUserID := "PLACEHOLDER USER ID"
-		// db.UploadDocument(placeholderUserID, document_name, content)
+		db.UploadDocument(user.ID, document_name, content)
 
-		responseMessage := "PLACEHOLDER RESPONSE2"
-
-		responseBody := map[string]string{
-			"response":  responseMessage,
-			"response2": user.ID,
-		}
+		// responseBody := map[string]string{
+		// 	"user_id": user.ID,
+		// }
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(responseBody)
+		// json.NewEncoder(w).Encode(responseBody)
 	}
 }
