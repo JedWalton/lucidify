@@ -27,7 +27,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		log.Printf("User not created in Clerk. Reason: %v", err)
 	}
 
-	err = storeInstance.CheckIfUserInUsersTable(userID, 10)
+	err = storeInstance.CheckIfUserInUsersTable(userID, 9)
 	if err != nil {
 		t.Fatalf("User not found after creation: %v", err)
 	}

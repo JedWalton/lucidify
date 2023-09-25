@@ -2,7 +2,6 @@ package documents
 
 import (
 	"encoding/json"
-	"log"
 	"lucidify-api/modules/store"
 	"net/http"
 
@@ -42,15 +41,11 @@ func DocumentsUploadHandler(db *store.Store, clerkInstance clerk.Client) http.Ha
 		document_name := reqBody["document_name"]
 		content := reqBody["content"]
 
-		log.Printf("Title: %s\n", document_name)
-		log.Printf("Content: %s\n", content)
-
-		// placeholderUserID := "PLACEHOLDER USER ID"
-		db.UploadDocument(user.ID, document_name, content)
-
-		// responseBody := map[string]string{
-		// 	"user_id": user.ID,
-		// }
+		err = db.UploadDocument(user.ID, document_name, content)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		// json.NewEncoder(w).Encode(responseBody)
