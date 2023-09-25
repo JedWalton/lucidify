@@ -19,7 +19,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 
 	userID, err := store.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
 	if err != nil {
-		log.Printf("Failed to create user in Clerk, it likely already exists so nothing to worry about: %v", err)
+		log.Printf("User not created in Clerk. Reason: %v", err)
 	}
 
 	storeInstance, err := store.NewStore(testconfig.PostgresqlURL)
