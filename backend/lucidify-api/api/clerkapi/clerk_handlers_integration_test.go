@@ -17,14 +17,14 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 	lastName := "clerk_handler_lastname"
 	password := "$sswordoatnsu28348ckj"
 
-	userID, err := store.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
-	if err != nil {
-		log.Printf("User not created in Clerk. Reason: %v", err)
-	}
-
 	storeInstance, err := store.NewStore(testconfig.PostgresqlURL)
 	if err != nil {
 		t.Fatalf("Failed to create test store: %v", err)
+	}
+
+	userID, err := store.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
+	if err != nil {
+		log.Printf("User not created in Clerk. Reason: %v", err)
 	}
 
 	err = storeInstance.CheckIfUserInUsersTable(userID, 10)
