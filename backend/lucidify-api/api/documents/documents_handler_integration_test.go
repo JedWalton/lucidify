@@ -527,3 +527,246 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 		db.DeleteDocument(UserID2, "Test Document 3")
 	})
 }
+
+func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+	createTestUserInDb()
+
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+	cfg := &config.ServerConfig{}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, db, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := testconfig.TestJWTSessionToken
+
+	err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	if err != nil {
+		t.Fatalf("Failed to upload document: %v", err)
+	}
+
+	// Send a POST request to the server with the JWT token
+	document := map[string]string{
+		"document_name": "Test Document",
+	}
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodDelete, server.URL+"/documents/deletedocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	_, err = db.GetDocument(testconfig.TestUserID, "Test Document")
+	if err == nil {
+		t.Fatalf("Should have failed to get document: %v", err)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		db.DeleteUserInUsersTable(UserID)
+		db.DeleteDocument(UserID, "Test Document")
+	})
+}
+
+func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+	createTestUserInDb()
+
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+	cfg := &config.ServerConfig{}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, db, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := testconfig.TestJWTSessionToken + "invalid"
+
+	err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	if err != nil {
+		t.Fatalf("Failed to upload document: %v", err)
+	}
+
+	// Send a POST request to the server with the JWT token
+	document := map[string]string{
+		"document_name": "Test Document",
+	}
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodDelete, server.URL+"/documents/deletedocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	documentFromDb, err := db.GetDocument(testconfig.TestUserID, "Test Document")
+	if err != nil {
+		t.Fatalf("Failed to get document: %v", err)
+	}
+
+	documentFromDbContent := documentFromDb.Content
+	if documentFromDbContent != "Test Content" {
+		t.Fatalf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		db.DeleteUserInUsersTable(UserID)
+		db.DeleteDocument(UserID, "Test Document")
+	})
+}
+
+func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+
+	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+
+	createTestUserInDb()
+	cfg := &config.ServerConfig{}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, db, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := testconfig.TestJWTSessionToken
+
+	document := map[string]string{
+		"document_name": "Test Document",
+		"content":       "Test Content Updated",
+	}
+
+	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodPut, server.URL+"/documents/updatedocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	document_response, err := db.GetDocument(testconfig.TestUserID, "Test Document")
+	if err != nil {
+		t.Fatalf("Failed to get document: %v", err)
+	}
+	if document_response.Content != "Test Content Updated" {
+		t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		db.DeleteUserInUsersTable(UserID)
+		db.DeleteDocument(UserID, "Test Document")
+	})
+}
+
+func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+
+	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+
+	createTestUserInDb()
+	cfg := &config.ServerConfig{}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, db, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := testconfig.TestJWTSessionToken + "invalid"
+
+	document := map[string]string{
+		"document_name": "Test Document",
+		"content":       "Test Content Updated",
+	}
+
+	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodPut, server.URL+"/documents/updatedocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, resp.StatusCode)
+	}
+
+	document_response, err := db.GetDocument(testconfig.TestUserID, "Test Document")
+	if err != nil {
+		t.Fatalf("Failed to get document: %v", err)
+	}
+	if document_response.Content == "Test Content Updated" {
+		t.Errorf("Expected document content to have not been updated.")
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		db.DeleteUserInUsersTable(UserID)
+		db.DeleteDocument(UserID, "Test Document")
+	})
+}
