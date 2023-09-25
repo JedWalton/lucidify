@@ -50,6 +50,45 @@ func createTestUserInDb() {
 		log.Fatalf("User not found after creation: %v", err)
 	}
 }
+func createASecondTestUserInDb() string {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+
+	// the user id registered by the jwt token must exist in the local database
+	user := store.User{
+		UserID:           "userid_testuserid2",
+		ExternalID:       "TestCreateSecondUserInUsersTableExternalID",
+		Username:         "TestCreateSecondUserInUsersTableUsername",
+		PasswordEnabled:  true,
+		Email:            "TestCreateSecondUserInUsersTable@example.com",
+		FirstName:        "TestCreateSecondUserInUsersTableCreateTest",
+		LastName:         "TestCreateSecondUserInUsersTableUser",
+		ImageURL:         "https://TestCreateSecondUserInUsersTable.com/image.jpg",
+		ProfileImageURL:  "https://TestCreateSecondUserInUsersTable.com/profile.jpg",
+		TwoFactorEnabled: false,
+		CreatedAt:        1654012591514,
+		UpdatedAt:        1654012591514,
+	}
+
+	db.DeleteUserInUsersTable(user.UserID)
+	err = db.CheckUserDeletedInUsersTable(user.UserID, 3)
+	if err != nil {
+		log.Fatalf("Failed to delete user: %v", err)
+	}
+	err = db.CreateUserInUsersTable(user)
+	if err != nil {
+		log.Fatalf("Failed to create user: %v", err)
+	}
+
+	// Check if the user exists
+	err = db.CheckIfUserInUsersTable(user.UserID, 3)
+	if err != nil {
+		log.Fatalf("User not found after creation: %v", err)
+	}
+
+	return user.UserID
+}
 
 func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
@@ -309,11 +348,6 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 
 	jwtToken := testconfig.TestJWTSessionToken
 
-	// document := map[string]string{
-	// 	"document_name": "Test Document",
-	// 	"content":       "Test Content",
-	// }
-
 	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
 	db.UploadDocument(testconfig.TestUserID, "Test Document 2", "Test Content 2")
 	db.UploadDocument(testconfig.TestUserID, "Test Document 3", "Test Content 3")
@@ -368,84 +402,128 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	})
 }
 
-// func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T) {
-// 	testconfig := config.NewServerConfig()
-// 	PostgresqlURL := testconfig.PostgresqlURL
-// 	db, err := store.NewStore(PostgresqlURL)
-//
-// 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
-//
-// 	db.CheckUserDeletedInUsersTable(testconfig.TestUserID, 3)
-// 	createTestUserInDb()
-//
-// 	if err != nil {
-// 		t.Fatalf("Failed to create Clerk client: %v", err)
-// 	}
-// 	cfg := &config.ServerConfig{}
-//
-// 	// Create a test server
-// 	mux := http.NewServeMux()
-// 	SetupRoutes(cfg, mux, db, clerkInstance)
-// 	server := httptest.NewServer(mux)
-// 	defer server.Close()
-//
-// 	jwtToken := testconfig.TestJWTSessionToken + "invalid"
-//
-// 	// document := map[string]string{
-// 	// 	"document_name": "Test Document",
-// 	// 	"content":       "Test Content",
-// 	// }
-//
-// 	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
-// 	db.UploadDocument(testconfig.TestUserID, "Test Document 2", "Test Content 2")
-// 	db.UploadDocument(testconfig.TestUserID, "Test Document 3", "Test Content 3")
-//
-// 	req, _ := http.NewRequest(http.MethodGet, server.URL+"/documents/getalldocuments", nil)
-// 	req.Header.Set("Authorization", "Bearer "+jwtToken)
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		t.Fatalf("Failed to send request: %v", err)
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	// Check the response
-// 	if resp.StatusCode != http.StatusOK {
-// 		t.Fatalf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
-// 	}
-//
-// 	// Read the response body
-// 	respBody, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		t.Fatalf("Failed to read response body: %v", err)
-// 	}
-//
-// 	// Unmarshal the response body into a slice of Document objects
-// 	var respDocuments []store.Document
-// 	err = json.Unmarshal(respBody, &respDocuments)
-// 	if err != nil {
-// 		t.Fatalf("Failed to unmarshal response body: %v", err)
-// 	}
-//
-// 	// Check if the returned documents are correct
-// 	if len(respDocuments) != 3 {
-// 		t.Errorf("Expected 3 documents, got %d", len(respDocuments))
-// 	}
-//
-// 	expectedDocs := []string{"Test Document", "Test Document 2", "Test Document 3"}
-// 	for i, doc := range respDocuments {
-// 		if doc.DocumentName != expectedDocs[i] {
-// 			t.Errorf("Expected document name %s, got %s", expectedDocs[i], doc.DocumentName)
-// 		}
-// 	}
-//
-// 	// Cleanup the database
-// 	t.Cleanup(func() {
-// 		testconfig := config.NewServerConfig()
-// 		UserID := testconfig.TestUserID
-// 		db.DeleteUserInUsersTable(UserID)
-// 		db.DeleteDocument(UserID, "Test Document")
-// 		db.DeleteDocument(UserID, "Test Document 2")
-// 		db.DeleteDocument(UserID, "Test Document 3")
-// 	})
-// }
+func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T) {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+
+	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+
+	createTestUserInDb()
+
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+	cfg := &config.ServerConfig{}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, db, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := testconfig.TestJWTSessionToken + "invalid"
+
+	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	db.UploadDocument(testconfig.TestUserID, "Test Document 2", "Test Content 2")
+	db.UploadDocument(testconfig.TestUserID, "Test Document 3", "Test Content 3")
+
+	req, _ := http.NewRequest(http.MethodGet, server.URL+"/documents/getalldocuments", nil)
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		db.DeleteUserInUsersTable(UserID)
+		db.DeleteDocument(UserID, "Test Document")
+		db.DeleteDocument(UserID, "Test Document 2")
+		db.DeleteDocument(UserID, "Test Document 3")
+	})
+}
+
+func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *testing.T) {
+	testconfig := config.NewServerConfig()
+	PostgresqlURL := testconfig.PostgresqlURL
+	db, err := store.NewStore(PostgresqlURL)
+
+	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+
+	createTestUserInDb()
+
+	UserID2 := createASecondTestUserInDb()
+
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+	cfg := &config.ServerConfig{}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, db, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := testconfig.TestJWTSessionToken
+
+	db.UploadDocument(UserID2, "Test Document", "Test Content")
+	db.UploadDocument(UserID2, "Test Document 2", "Test Content 2")
+	db.UploadDocument(UserID2, "Test Document 3", "Test Content 3")
+
+	req, _ := http.NewRequest(http.MethodGet, server.URL+"/documents/getalldocuments", nil)
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
+	}
+
+	// Read the response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
+
+	// Unmarshal the response body into a slice of Document objects
+	var respDocuments []store.Document
+	err = json.Unmarshal(respBody, &respDocuments)
+	if err != nil {
+		t.Errorf("Failed to unmarshal response body: %v", err)
+	}
+
+	// Check if the returned documents are correct
+	if len(respDocuments) == 3 {
+		t.Errorf("Expected 0 documents, got %d", len(respDocuments))
+	}
+
+	expectedDocs := []string{"Test Document", "Test Document 2", "Test Document 3"}
+	for i, doc := range respDocuments {
+		if doc.DocumentName == expectedDocs[i] {
+			t.Errorf("Expected to not mach document name %s, got %s", expectedDocs[i], doc.DocumentName)
+		}
+	}
+	// Cleanup the database
+	t.Cleanup(func() {
+		db.DeleteUserInUsersTable(UserID2)
+		db.DeleteDocument(UserID2, "Test Document")
+		db.DeleteDocument(UserID2, "Test Document 2")
+		db.DeleteDocument(UserID2, "Test Document 3")
+	})
+}
