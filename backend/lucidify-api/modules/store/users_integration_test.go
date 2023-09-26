@@ -13,7 +13,7 @@ func TestCreateUserInUsersTable(t *testing.T) {
 
 	store, err := NewStore(PostgresqlURL)
 	if err != nil {
-		t.Fatalf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test store: %v", err)
 	}
 
 	user := User{
@@ -33,13 +33,13 @@ func TestCreateUserInUsersTable(t *testing.T) {
 
 	err = store.CreateUserInUsersTable(user)
 	if err != nil {
-		t.Fatalf("Failed to create user: %v", err)
+		t.Errorf("Failed to create user: %v", err)
 	}
 
 	// Check if the user exists
 	err = store.CheckIfUserInUsersTable(user.UserID, 3)
 	if err != nil {
-		t.Fatalf("User not found after creation: %v", err)
+		t.Errorf("User not found after creation: %v", err)
 	}
 
 	// Register cleanup function
@@ -54,7 +54,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 
 	store, err := NewStore(PostgresqlURL)
 	if err != nil {
-		t.Fatalf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test store: %v", err)
 	}
 
 	// Create a user first
@@ -75,7 +75,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 
 	err = store.CreateUserInUsersTable(user)
 	if err != nil {
-		t.Fatalf("Failed to create user for update test: %v", err)
+		t.Errorf("Failed to create user for update test: %v", err)
 	}
 
 	// Update the user
@@ -83,13 +83,13 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 	user.LastName = "UpdatedLastName"
 	err = store.UpdateUserInUsersTable(user)
 	if err != nil {
-		t.Fatalf("Failed to update user: %v", err)
+		t.Errorf("Failed to update user: %v", err)
 	}
 
 	// Check if the user has the expected first name and last name
 	err = store.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(user.UserID, 3, "UpdatedFirstName", "UpdatedLastName")
 	if err != nil {
-		t.Fatalf("User not updated correctly: %v", err)
+		t.Errorf("User not updated correctly: %v", err)
 	}
 
 	// Register cleanup function
@@ -105,7 +105,7 @@ func TestGetUserInUsersTable(t *testing.T) {
 
 	store, err := NewStore(PostgresqlURL)
 	if err != nil {
-		t.Fatalf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test store: %v", err)
 	}
 
 	// Create a user first
@@ -126,17 +126,17 @@ func TestGetUserInUsersTable(t *testing.T) {
 
 	err = store.CreateUserInUsersTable(user)
 	if err != nil {
-		t.Fatalf("Failed to create user for get test: %v", err)
+		t.Errorf("Failed to create user for get test: %v", err)
 	}
 
 	// Fetch the user
 	fetchedUser, err := store.GetUserInUsersTable(user.UserID)
 	if err != nil {
-		t.Fatalf("Failed to fetch user: %v", err)
+		t.Errorf("Failed to fetch user: %v", err)
 	}
 
 	if fetchedUser.UserID != user.UserID || fetchedUser.Email != user.Email {
-		t.Fatalf("Fetched user does not match created user. Expected user ID: %v, got: %v. Expected email: %v, got: %v", user.UserID, fetchedUser.UserID, user.Email, fetchedUser.Email)
+		t.Errorf("Fetched user does not match created user. Expected user ID: %v, got: %v. Expected email: %v, got: %v", user.UserID, fetchedUser.UserID, user.Email, fetchedUser.Email)
 	}
 
 	// Cleanup
@@ -151,7 +151,7 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 
 	store, err := NewStore(PostgresqlURL)
 	if err != nil {
-		t.Fatalf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test store: %v", err)
 	}
 
 	// Create a user first
@@ -172,19 +172,19 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 
 	err = store.CreateUserInUsersTable(user)
 	if err != nil {
-		t.Fatalf("Failed to create user for delete test: %v", err)
+		t.Errorf("Failed to create user for delete test: %v", err)
 	}
 
 	// Delete the user
 	err = store.DeleteUserInUsersTable(user.UserID)
 	if err != nil {
-		t.Fatalf("Failed to delete user: %v", err)
+		t.Errorf("Failed to delete user: %v", err)
 	}
 
 	// Check if the user has been deleted
 	err = store.CheckUserDeletedInUsersTable(user.UserID, 3)
 	if err != nil {
-		t.Fatalf("User still exists after deletion: %v", err)
+		t.Errorf("User still exists after deletion: %v", err)
 	}
 
 	t.Cleanup(func() {

@@ -19,7 +19,7 @@ func TestIntegrationNewStore(t *testing.T) {
 
 	store, err := NewStore(postgresqlURL)
 	if err != nil {
-		t.Fatalf("Failed to create store: %v", err)
+		t.Errorf("Failed to create store: %v", err)
 	}
 
 	if store.db == nil {
