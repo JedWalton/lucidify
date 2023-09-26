@@ -39,7 +39,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		}
 	})
 
-	err = storeInstance.CheckIfUserInUsersTable(userID, 30)
+	err = storeInstance.CheckIfUserInUsersTable(userID, 10)
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)
 	}
