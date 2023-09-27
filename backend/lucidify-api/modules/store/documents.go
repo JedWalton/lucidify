@@ -1,6 +1,8 @@
 package store
 
-import "time"
+import (
+	"time"
+)
 
 type Document struct {
 	UserID       string
@@ -11,9 +13,19 @@ type Document struct {
 }
 
 func (s *Store) UploadDocument(userID string, name, content string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query := `INSERT INTO documents (user_id, document_name, content) VALUES ($1, $2, $3)`
-	_, err := s.db.Exec(query, userID, name, content)
-	return err
+	_, err = tx.Exec(query, userID, name, content)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *Store) GetDocument(userID string, name string) (*Document, error) {
@@ -46,13 +58,33 @@ func (s *Store) GetAllDocuments(userID string) ([]Document, error) {
 }
 
 func (s *Store) DeleteDocument(userID string, name string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query := `DELETE FROM documents WHERE user_id = $1 AND document_name = $2`
-	_, err := s.db.Exec(query, userID, name)
-	return err
+	_, err = tx.Exec(query, userID, name)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *Store) UpdateDocument(userID string, name, content string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND document_name = $3`
-	_, err := s.db.Exec(query, content, userID, name)
-	return err
+	_, err = tx.Exec(query, content, userID, name)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
