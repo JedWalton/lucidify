@@ -3,16 +3,18 @@
 package clerkapi
 
 import (
+	"fmt"
 	"log"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store"
 	"testing"
+	"time"
 )
 
 func TestIntegration_clerk_handlers(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	clerkSecretKey := testconfig.ClerkSecretKey
-	testEmail := "clerk_handler_integration@example.com"
+	testEmail := fmt.Sprintf("clerk_handler_integration_%d@example.com", time.Now().UnixNano())
 	firstName := "clerk_handler_firstname"
 	lastName := "clerk_handler_lastname"
 	password := "$sswordoatnsu28348ckj"
