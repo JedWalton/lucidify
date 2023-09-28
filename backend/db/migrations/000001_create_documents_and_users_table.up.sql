@@ -18,7 +18,6 @@ CREATE TABLE users (
 -- Documents table
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
-    weaviate_uuid UUID,
     user_id VARCHAR(255) NOT NULL REFERENCES users(user_id) ON DELETE CASCADE, -- Changed data type to VARCHAR(255)
     document_name VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
