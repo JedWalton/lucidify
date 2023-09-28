@@ -16,15 +16,15 @@ func TestWeaviateClient(t *testing.T) {
 		t.Errorf("failed to upload document: %v", err)
 	}
 
-	// Test updating a document
-	err = client.UpdateDocument("testuser", "testdoc", "updated test content")
-	if err != nil {
-		t.Errorf("failed to update document: %v", err)
-	}
-
-	// Test deleting a document
-	err = client.DeleteDocument("testuser", "testdoc")
-	if err != nil {
-		t.Errorf("failed to delete document: %v", err)
-	}
+	// // Test updating a document
+	// err = client.UpdateDocument("testuser", "testdoc", "updated test content")
+	// if err != nil {
+	// 	t.Errorf("failed to update document: %v", err)
+	// }
+	//
+	// // Test deleting a document
+	// err = client.DeleteDocument("testuser", "testdoc")
+	// if err != nil {
+	// 	t.Errorf("failed to delete document: %v", err)
+	// }
 }

@@ -1,4 +1,4 @@
-package store
+package postgresqlclient
 
 import (
 	"database/sql"
@@ -7,11 +7,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Store struct {
+type PostgreSQL struct {
 	db *sql.DB
 }
 
-func NewStore(postgresqlURL string) (*Store, error) {
+func NewPostgreSQL(postgresqlURL string) (*PostgreSQL, error) {
 	if postgresqlURL == "" {
 		return nil, fmt.Errorf("POSTGRESQL_URL environment variable is not set")
 	}
@@ -25,5 +25,5 @@ func NewStore(postgresqlURL string) (*Store, error) {
 		return nil, err
 	}
 
-	return &Store{db: db}, nil
+	return &PostgreSQL{db: db}, nil
 }

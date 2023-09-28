@@ -3,11 +3,11 @@ package clerkapi
 import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/middleware"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/postgresqlclient"
 	"net/http"
 )
 
-func SetupRoutes(storeInstance *store.Store, config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
+func SetupRoutes(storeInstance *postgresqlclient.PostgreSQL, config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	handler := ClerkHandler(storeInstance)
 
 	handler = middleware.ClerkWebhooksAuthenticationMiddleware(config)(handler)

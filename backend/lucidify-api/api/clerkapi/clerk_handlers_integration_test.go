@@ -5,8 +5,9 @@ package clerkapi
 import (
 	"fmt"
 	"log"
+	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/postgresqlclient"
 	"testing"
 	"time"
 )
@@ -19,19 +20,19 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 	lastName := "clerk_handler_lastname"
 	password := "$sswordoatnsu28348ckj"
 
-	storeInstance, err := store.NewStore(testconfig.PostgresqlURL)
+	storeInstance, err := postgresqlclient.NewPostgreSQL(testconfig.PostgresqlURL)
 	if err != nil {
-		t.Errorf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	userID, err := store.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
+	userID, err := clerkclient.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
 	if err != nil {
 		t.Errorf("User not created in Clerk. Reason: %v", err)
 	}
 
 	t.Cleanup(func() {
 		log.Printf("Cleaning up test user: %v", userID)
-		err = store.DeleteUserInClerk(clerkSecretKey, userID)
+		err = clerkclient.DeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}
@@ -48,7 +49,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 
 	newFirstName := "updated_clerk_handler_firstname"
 	newLastName := "updated_clerk_handler_lastname"
-	err = store.UpdateUserInClerk(clerkSecretKey, userID, newFirstName, newLastName)
+	err = clerkclient.UpdateUserInClerk(clerkSecretKey, userID, newFirstName, newLastName)
 	if err != nil {
 		t.Errorf("Failed to update user in Clerk: %v", err)
 	}

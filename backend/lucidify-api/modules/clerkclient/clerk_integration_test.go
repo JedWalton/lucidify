@@ -1,6 +1,6 @@
 // //go:build integration
 // // +build integration
-package store
+package clerkclient
 
 import (
 	"log"

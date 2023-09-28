@@ -1,4 +1,4 @@
-package store
+package postgresqlclient
 
 import (
 	"time"
@@ -12,7 +12,7 @@ type Document struct {
 	UpdatedAt    time.Time
 }
 
-func (s *Store) UploadDocument(userID string, name, content string) error {
+func (s *PostgreSQL) UploadDocument(userID string, name, content string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (s *Store) UploadDocument(userID string, name, content string) error {
 	return tx.Commit()
 }
 
-func (s *Store) GetDocument(userID string, name string) (*Document, error) {
+func (s *PostgreSQL) GetDocument(userID string, name string) (*Document, error) {
 	doc := &Document{}
 	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1 AND document_name = $2`
 	err := s.db.QueryRow(query, userID, name).Scan(&doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
@@ -38,7 +38,7 @@ func (s *Store) GetDocument(userID string, name string) (*Document, error) {
 	return doc, nil
 }
 
-func (s *Store) GetAllDocuments(userID string) ([]Document, error) {
+func (s *PostgreSQL) GetAllDocuments(userID string) ([]Document, error) {
 	var documents []Document
 	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1`
 	rows, err := s.db.Query(query, userID)
@@ -57,7 +57,7 @@ func (s *Store) GetAllDocuments(userID string) ([]Document, error) {
 	return documents, nil
 }
 
-func (s *Store) DeleteDocument(userID string, name string) error {
+func (s *PostgreSQL) DeleteDocument(userID string, name string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (s *Store) DeleteDocument(userID string, name string) error {
 	return tx.Commit()
 }
 
-func (s *Store) UpdateDocument(userID string, name, content string) error {
+func (s *PostgreSQL) UpdateDocument(userID string, name, content string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err

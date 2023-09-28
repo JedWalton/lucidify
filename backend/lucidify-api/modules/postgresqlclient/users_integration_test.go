@@ -1,6 +1,6 @@
 // //go:build integration
 // // +build integration
-package store
+package postgresqlclient
 
 import (
 	"lucidify-api/modules/config"
@@ -11,9 +11,9 @@ func TestCreateUserInUsersTable(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
-	store, err := NewStore(PostgresqlURL)
+	store, err := NewPostgreSQL(PostgresqlURL)
 	if err != nil {
-		t.Errorf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
 	user := User{
@@ -52,9 +52,9 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
-	store, err := NewStore(PostgresqlURL)
+	store, err := NewPostgreSQL(PostgresqlURL)
 	if err != nil {
-		t.Errorf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
 	// Create a user first
@@ -103,9 +103,9 @@ func TestGetUserInUsersTable(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
-	store, err := NewStore(PostgresqlURL)
+	store, err := NewPostgreSQL(PostgresqlURL)
 	if err != nil {
-		t.Errorf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
 	// Create a user first
@@ -149,9 +149,9 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
 
-	store, err := NewStore(PostgresqlURL)
+	store, err := NewPostgreSQL(PostgresqlURL)
 	if err != nil {
-		t.Errorf("Failed to create test store: %v", err)
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
 	// Create a user first

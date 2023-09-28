@@ -4,7 +4,7 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/postgresqlclient"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
-	storeInstance, err := store.NewStore(config.PostgresqlURL)
+	storeInstance, err := postgresqlclient.NewPostgreSQL(config.PostgresqlURL)
 	if err != nil {
 		log.Fatal(err)
 	}

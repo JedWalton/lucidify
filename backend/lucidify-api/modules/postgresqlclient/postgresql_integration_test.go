@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package store
+package postgresqlclient
 
 import (
 	"os"
@@ -17,9 +17,9 @@ func TestIntegrationNewStore(t *testing.T) {
 	// Get the POSTGRESQL_URL environment variable
 	postgresqlURL := os.Getenv("POSTGRESQL_URL")
 
-	store, err := NewStore(postgresqlURL)
+	store, err := NewPostgreSQL(postgresqlURL)
 	if err != nil {
-		t.Errorf("Failed to create store: %v", err)
+		t.Errorf("Failed to create postgresqlclient: %v", err)
 	}
 
 	if store.db == nil {

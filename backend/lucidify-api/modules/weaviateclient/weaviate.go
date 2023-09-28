@@ -13,8 +13,8 @@ import (
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
 	UploadDocument(userID, name, content string) error
-	DeleteDocument(userID, name string) error
-	UpdateDocument(userID, name, content string) error
+	//DeleteDocument(userID, name string) error
+	//UpdateDocument(userID, name, content string) error
 }
 
 type WeaviateClientImpl struct {
@@ -55,41 +55,12 @@ func (w *WeaviateClientImpl) UploadDocument(userID, name, content string) error 
 	}
 
 	_, err := w.client.Data().Creator().
-		WithClassName("Document").
+		WithID("postgres_doc_id_here").
+		WithClassName("documents").
 		WithProperties(document).
 		Do(context.Background())
 
 	return err
-}
-
-func (w *WeaviateClientImpl) DeleteDocument(userID, name string) error {
-	documentID := getDocumentID(userID, name)
-	err := w.client.Data().Deleter().
-		WithClassName("documents").
-		WithID(documentID).
-		Do(context.Background())
-
-	return err
-}
-
-func (w *WeaviateClientImpl) UpdateDocument(userID, name, content string) error {
-	documentID := getDocumentID(userID, name)
-	document := map[string]interface{}{
-		"content": content,
-	}
-
-	err := w.client.Data().Updater().
-		WithClassName("documents").
-		WithID(documentID).
-		WithProperties(document).
-		Do(context.Background())
-
-	return err
-}
-
-func getDocumentID(userID, name string) string {
-	// Implement the logic to get the document ID based on userID and name
-	return "some-document-id"
 }
 
 func doesClassExist(client *weaviate.Client, className string) bool {
@@ -154,3 +125,33 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 		panic(err)
 	}
 }
+
+//func (w *WeaviateClientImpl) DeleteDocument(userID, name string) error {
+//	documentID := getDocumentID(userID, name)
+//	err := w.client.Data().Deleter().
+//		WithClassName("documents").
+//		WithID(documentID).
+//		Do(context.Background())
+//
+//	return err
+//}
+//
+//func (w *WeaviateClientImpl) UpdateDocument(userID, name, content string) error {
+//	documentID := getDocumentID(userID, name)
+//	document := map[string]interface{}{
+//		"content": content,
+//	}
+//
+//	err := w.client.Data().Updater().
+//		WithClassName("documents").
+//		WithID(documentID).
+//		WithProperties(document).
+//		Do(context.Background())
+//
+//	return err
+//}
+//
+//func getDocumentID(userID, name string) string {
+//	// Implement the logic to get the document ID based on userID and name
+//	return "some-document-id"
+//}

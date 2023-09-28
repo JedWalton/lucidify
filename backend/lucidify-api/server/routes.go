@@ -3,9 +3,9 @@ package server
 import (
 	"lucidify-api/api/chat"
 	"lucidify-api/api/clerkapi"
-	"lucidify-api/api/documents"
+	"lucidify-api/api/documentsapi"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/postgresqlclient"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
@@ -14,10 +14,10 @@ import (
 func SetupRoutes(
 	config *config.ServerConfig,
 	mux *http.ServeMux,
-	storeInstance *store.Store,
+	storeInstance *postgresqlclient.PostgreSQL,
 	clerkInstance clerk.Client) {
 
 	chat.SetupRoutes(config, mux)
-	documents.SetupRoutes(config, mux, storeInstance, clerkInstance)
+	documentsapi.SetupRoutes(config, mux, storeInstance, clerkInstance)
 	clerkapi.SetupRoutes(storeInstance, config, mux)
 }
