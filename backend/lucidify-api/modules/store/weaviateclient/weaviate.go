@@ -15,6 +15,7 @@ type WeaviateClient interface {
 	UploadDocument(documentID, userID, name, content string) error
 	GetDocument(documentID string) (*Document, error)
 	UpdateDocumentContent(documentID, content string) error
+	UpdateDocumentName(documentID, documentName string) error
 	DeleteDocument(documentID string) error
 }
 
@@ -103,6 +104,21 @@ func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
 func (w *WeaviateClientImpl) UpdateDocumentContent(documentID, content string) error {
 	document := map[string]interface{}{
 		"content": content,
+	}
+
+	err := w.client.Data().Updater().
+		WithMerge().
+		WithID(documentID).
+		WithClassName("Documents").
+		WithProperties(document).
+		Do(context.Background())
+
+	return err
+}
+
+func (w *WeaviateClientImpl) UpdateDocumentName(documentID, documentName string) error {
+	document := map[string]interface{}{
+		"documentName": documentName,
 	}
 
 	err := w.client.Data().Updater().
