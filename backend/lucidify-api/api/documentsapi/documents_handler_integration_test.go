@@ -9,7 +9,7 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/postgresqlclient"
+	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,10 +18,10 @@ import (
 func createTestUserInDb() {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient.User{
+	user := postgresqlclient2.User{
 		UserID:           testconfig.TestUserID,
 		ExternalID:       "TestCreateUserInUsersTableExternalIDDocuments",
 		Username:         "TestCreateUserInUsersTableUsernameDocuments",
@@ -55,10 +55,10 @@ func createTestUserInDb() {
 func createASecondTestUserInDb() string {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient.User{
+	user := postgresqlclient2.User{
 		UserID:           "userid_testuserid2",
 		ExternalID:       "TestCreateSecondUserInUsersTableExternalID",
 		Username:         "TestCreateSecondUserInUsersTableUsername",
@@ -95,7 +95,7 @@ func createASecondTestUserInDb() string {
 func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 	// Setup the real environment
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
@@ -156,7 +156,7 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 	// Setup the real environment
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
@@ -207,7 +207,7 @@ func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
@@ -255,7 +255,7 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	}
 
 	// Unmarshal the response body into a Document object
-	var respDocument postgresqlclient.Document
+	var respDocument postgresqlclient2.Document
 	err = json.Unmarshal(respBody, &respDocument)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -278,7 +278,7 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -331,7 +331,7 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -375,7 +375,7 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []postgresqlclient.Document
+	var respDocuments []postgresqlclient2.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -407,7 +407,7 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -458,7 +458,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T)
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -504,7 +504,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []postgresqlclient.Document
+	var respDocuments []postgresqlclient2.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -533,7 +533,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
@@ -592,7 +592,7 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
@@ -656,7 +656,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
@@ -716,7 +716,7 @@ func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
 	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"lucidify-api/api/clerkapi"
 	"lucidify-api/api/documentsapi"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/postgresqlclient"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"

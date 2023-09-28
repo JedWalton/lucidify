@@ -4,7 +4,7 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/postgresqlclient"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 )
 

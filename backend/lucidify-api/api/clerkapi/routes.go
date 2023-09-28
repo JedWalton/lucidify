@@ -3,7 +3,7 @@ package clerkapi
 import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/middleware"
-	"lucidify-api/modules/postgresqlclient"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 )
 

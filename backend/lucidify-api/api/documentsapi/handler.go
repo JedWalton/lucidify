@@ -2,7 +2,7 @@ package documentsapi
 
 import (
 	"encoding/json"
-	"lucidify-api/modules/postgresqlclient"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"

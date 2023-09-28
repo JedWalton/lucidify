@@ -33,13 +33,6 @@ func getGitRoot() (string, error) {
 }
 
 func NewServerConfig() *ServerConfig {
-	// Check if POSTGRESQL_URL environment variable is missing
-	// if os.Getenv("POSTGRESQL_URL") == "" || os.Getenv("OPENAI_API_KEY") == "" || os.Getenv("CLERK_SECRET_KEY") == "" || os.Getenv("CLERK_SIGNING_SECRET") == "" {
-	// 	// If missing, load the .env file
-	// 	if err := godotenv.Load("../../../../.env"); err != nil {
-	// 		log.Fatalf("Failed to load .env file: %v", err)
-	// 	}
-	// }
 	if os.Getenv("POSTGRESQL_URL") == "" || os.Getenv("OPENAI_API_KEY") == "" || os.Getenv("CLERK_SECRET_KEY") == "" || os.Getenv("CLERK_SIGNING_SECRET") == "" {
 		// If missing, load the .env file
 		gitRoot, err := getGitRoot()
