@@ -7,7 +7,7 @@ import (
 )
 
 type Document struct {
-	DoumentID    uuid.UUID
+	DocumentID   uuid.UUID
 	UserID       string
 	DocumentName string
 	Content      string

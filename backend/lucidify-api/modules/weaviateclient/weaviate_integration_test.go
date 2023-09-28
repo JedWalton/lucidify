@@ -51,10 +51,15 @@ func TestWeaviateClient(t *testing.T) {
 	if document.UserID != "testuser" {
 		t.Errorf("document owner is incorrect: %v", document.UserID)
 	}
-	//
-	// // Test deleting a document
-	// err = client.DeleteDocument("testuser", "testdoc")
-	// if err != nil {
-	// 	t.Errorf("failed to delete document: %v", err)
-	// }
+
+	// Test deleting a document
+	err = weaviateClient.DeleteDocument(documentID)
+	if err != nil {
+		t.Errorf("failed to delete document: %v", err)
+	}
+
+	_, err = weaviateClient.GetDocument(documentID)
+	if err == nil {
+		t.Errorf("document was not deleted")
+	}
 }

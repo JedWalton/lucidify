@@ -15,8 +15,7 @@ type WeaviateClient interface {
 	UploadDocument(documentID, userID, name, content string) error
 	GetDocument(documentID string) (*Document, error)
 	UpdateDocumentContent(documentID, content string) error
-	//DeleteDocument(userID, name string) error
-	//UpdateDocument(userID, name, content string) error
+	DeleteDocument(documentID string) error
 }
 
 type WeaviateClientImpl struct {
@@ -116,6 +115,15 @@ func (w *WeaviateClientImpl) UpdateDocumentContent(documentID, content string) e
 	return err
 }
 
+func (w *WeaviateClientImpl) DeleteDocument(documentID string) error {
+	err := w.client.Data().Deleter().
+		WithClassName("Documents").
+		WithID(documentID).
+		Do(context.Background())
+
+	return err
+}
+
 func classExists(client *weaviate.Client, className string) bool {
 	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
 	if err != nil {
@@ -180,16 +188,6 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 		panic(err)
 	}
 }
-
-//	func (w *WeaviateClientImpl) DeleteDocument(userID, name string) error {
-//		documentID := getDocumentID(userID, name)
-//		err := w.client.Data().Deleter().
-//			WithClassName("documents").
-//			WithID(documentID).
-//			Do(context.Background())
-//
-//		return err
-//	}
 
 //
 //func getDocumentID(userID, name string) string {
