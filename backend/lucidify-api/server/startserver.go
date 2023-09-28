@@ -23,6 +23,11 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
+	// weaviateInstance, err := weaviateclient.NewWeaviateClient()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	SetupRoutes(config, mux, storeInstance, clerkInstance)
 
 	BasicLogging(config, mux)
