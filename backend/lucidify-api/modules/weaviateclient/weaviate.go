@@ -64,16 +64,12 @@ func (w *WeaviateClientImpl) UploadDocument(userID, name, content string) error 
 }
 
 func doesClassExist(client *weaviate.Client, className string) bool {
-	if client == nil {
-		log.Println("Client is nil in doesClassExist")
-		return false
-	}
 	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
 	if err != nil {
-		return false
+		return true
 	}
 	log.Printf("%v", schema)
-	return true
+	return false
 }
 
 func createWeaviateDocumentsClass(client *weaviate.Client) {
