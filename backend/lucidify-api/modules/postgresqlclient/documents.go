@@ -2,9 +2,12 @@ package postgresqlclient
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Document struct {
+	DoumentID    uuid.UUID
 	UserID       string
 	DocumentName string
 	Content      string
@@ -13,14 +16,16 @@ type Document struct {
 }
 
 func (s *PostgreSQL) UploadDocument(userID string, name, content string) error {
+	documentID := uuid.New()
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	query := `INSERT INTO documents (user_id, document_name, content) VALUES ($1, $2, $3)`
-	_, err = tx.Exec(query, userID, name, content)
+	query := `INSERT INTO documents (id, user_id, document_name, content) VALUES ($1, $2, $3, $4)`
+	_, err = tx.Exec(query, documentID, userID, name, content)
 	if err != nil {
 		return err
 	}

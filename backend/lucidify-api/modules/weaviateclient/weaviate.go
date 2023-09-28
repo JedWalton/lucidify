@@ -12,13 +12,21 @@ import (
 
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
-	UploadDocument(userID, name, content string) error
+	UploadDocument(documentID, userID, name, content string) error
+	GetDocument(documentID string) (*Document, error)
+	UpdateDocumentContent(documentID, content string) error
 	//DeleteDocument(userID, name string) error
 	//UpdateDocument(userID, name, content string) error
 }
 
 type WeaviateClientImpl struct {
 	client *weaviate.Client
+}
+
+type Document struct {
+	UserID       string `json:"userId"`
+	DocumentName string `json:"documentName"`
+	Content      string `json:"content"`
 }
 
 func NewWeaviateClient() (WeaviateClient, error) {
@@ -37,9 +45,11 @@ func NewWeaviateClient() (WeaviateClient, error) {
 	if client == nil {
 		return nil, errors.New("client is nil after initialization")
 	}
-	if !doesClassExist(client, "documents") {
+
+	if !classExists(client, "Documents") {
 		createWeaviateDocumentsClass(client)
 	}
+
 	return &WeaviateClientImpl{client: client}, nil
 }
 
@@ -47,7 +57,7 @@ func (w *WeaviateClientImpl) GetWeaviateClient() *weaviate.Client {
 	return w.client
 }
 
-func (w *WeaviateClientImpl) UploadDocument(userID, name, content string) error {
+func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
 	document := map[string]interface{}{
 		"userId":       userID,
 		"documentName": name,
@@ -55,21 +65,64 @@ func (w *WeaviateClientImpl) UploadDocument(userID, name, content string) error 
 	}
 
 	_, err := w.client.Data().Creator().
-		WithID("postgres_doc_id_here").
-		WithClassName("documents").
+		WithID(documentID).
+		WithClassName("Documents").
 		WithProperties(document).
 		Do(context.Background())
 
 	return err
 }
 
-func doesClassExist(client *weaviate.Client, className string) bool {
+func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
+	objects, err := w.client.Data().ObjectsGetter().
+		WithClassName("Documents").
+		WithID(documentID).
+		Do(context.Background())
+	if err != nil {
+		// handle error
+		return nil, err // it's better to return the error rather than panic
+	}
+
+	// If no objects are returned, return an error
+	if len(objects) == 0 {
+		return nil, errors.New("no documents found")
+	}
+
+	// Assume the first object is the one you're looking for
+	obj := objects[0]
+
+	// Convert the object to a Document
+	doc := &Document{
+		UserID:       obj.Properties.(map[string]interface{})["userId"].(string),
+		DocumentName: obj.Properties.(map[string]interface{})["documentName"].(string),
+		Content:      obj.Properties.(map[string]interface{})["content"].(string),
+	}
+
+	return doc, nil
+}
+
+func (w *WeaviateClientImpl) UpdateDocumentContent(documentID, content string) error {
+	document := map[string]interface{}{
+		"content": content,
+	}
+
+	err := w.client.Data().Updater().
+		WithMerge().
+		WithID(documentID).
+		WithClassName("Documents").
+		WithProperties(document).
+		Do(context.Background())
+
+	return err
+}
+
+func classExists(client *weaviate.Client, className string) bool {
 	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
 	if err != nil {
-		return true
+		return false
 	}
 	log.Printf("%v", schema)
-	return false
+	return true
 }
 
 func createWeaviateDocumentsClass(client *weaviate.Client) {
@@ -78,13 +131,19 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 		return
 	}
 
+	// Check if the class already exists
+	if classExists(client, "Documents") {
+		log.Println("Class 'Documents' already exists")
+		return
+	}
+
 	classObj := &models.Class{
-		Class:       "documents",
+		Class:       "Documents",
 		Description: "A document with associated metadata",
 		Vectorizer:  "text2vec-openai",
 		Properties: []*models.Property{
 			{
-				DataType:    []string{"int"},
+				DataType:    []string{"string"},
 				Description: "Unique identifier of the document",
 				Name:        "documentId",
 			},
@@ -122,30 +181,16 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	}
 }
 
-//func (w *WeaviateClientImpl) DeleteDocument(userID, name string) error {
-//	documentID := getDocumentID(userID, name)
-//	err := w.client.Data().Deleter().
-//		WithClassName("documents").
-//		WithID(documentID).
-//		Do(context.Background())
+//	func (w *WeaviateClientImpl) DeleteDocument(userID, name string) error {
+//		documentID := getDocumentID(userID, name)
+//		err := w.client.Data().Deleter().
+//			WithClassName("documents").
+//			WithID(documentID).
+//			Do(context.Background())
 //
-//	return err
-//}
-//
-//func (w *WeaviateClientImpl) UpdateDocument(userID, name, content string) error {
-//	documentID := getDocumentID(userID, name)
-//	document := map[string]interface{}{
-//		"content": content,
+//		return err
 //	}
-//
-//	err := w.client.Data().Updater().
-//		WithClassName("documents").
-//		WithID(documentID).
-//		WithProperties(document).
-//		Do(context.Background())
-//
-//	return err
-//}
+
 //
 //func getDocumentID(userID, name string) string {
 //	// Implement the logic to get the document ID based on userID and name
