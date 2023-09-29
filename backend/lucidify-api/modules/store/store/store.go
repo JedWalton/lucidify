@@ -11,9 +11,10 @@ import (
 type DocumentService interface {
 	UploadDocument(userID, name, content string) (*postgresqlclient.Document, error)
 	GetDocument(userID, name string) (*postgresqlclient.Document, error)
-	// GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
-	// UpdateDocumentContent(userID, name, content string) error
+	GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
 	DeleteDocument(userID, name, documentUUID string) error
+	// UpdateDocumentName(documentUUID, name string) error
+	// UpdateDocumentContent(documentUUID, content string) error
 }
 
 type DocumentServiceImpl struct {
@@ -72,6 +73,10 @@ func (d *DocumentServiceImpl) GetDocument(userID, name string) (*postgresqlclien
 	return d.postgresqlDB.GetDocument(userID, name)
 }
 
+func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]postgresqlclient.Document, error) {
+	return d.postgresqlDB.GetAllDocuments(userID)
+}
+
 func (d *DocumentServiceImpl) DeleteDocument(userID, name, documentUUID string) error {
 	err := d.postgresqlDB.DeleteDocument(userID, name)
 	if err != nil {
@@ -84,3 +89,29 @@ func (d *DocumentServiceImpl) DeleteDocument(userID, name, documentUUID string) 
 	}
 	return nil
 }
+
+// func (d *DocumentServiceImpl) UpdateDocumentName(userID, documentUUID, name string) error {
+// 	oldName, err := d.postgresqlDB.GetDocument(documentUUID)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	err = d.postgresqlDB.UpdateDocumentName(uuid.MustParse(documentUUID), name)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	err = d.weaviateDB.UpdateDocumentName(documentUUID, name)
+// 	if err != nil {
+// 		err = d.postgresqlDB.UndoUpdateDocumentName(uuid.MustParse(documentUUID), oldName)
+// 	}
+//
+// 	return nil
+// }
+
+// func (d *DocumentServiceImpl) UpdateDocumentContent(documentUUID, content string) error {
+// 	d.postgresqlDB.UpdateDocumentContent(uuid.MustParse(documentUUID), content)
+// 	d.weaviateDB.UpdateDocumentContent(documentUUID, content)
+//
+// 	return nil
+// }
