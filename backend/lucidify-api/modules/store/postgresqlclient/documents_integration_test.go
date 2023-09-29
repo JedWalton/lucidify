@@ -37,7 +37,7 @@ func TestStoreFunctions(t *testing.T) {
 	}
 
 	// Test UploadDocument
-	err = store.UploadDocument("documents_integration_test_user_id", "test_doc", "test_content")
+	_, err = store.UploadDocument("documents_integration_test_user_id", "test_doc", "test_content")
 	if err != nil {
 		t.Errorf("Failed to upload document: %v", err)
 	}

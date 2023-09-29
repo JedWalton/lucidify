@@ -15,22 +15,45 @@ type Document struct {
 	UpdatedAt    time.Time
 }
 
-func (s *PostgreSQL) UploadDocument(userID string, name, content string) error {
-	documentID := uuid.New()
+//	func (s *PostgreSQL) UploadDocument(userID string, name, content string) error {
+//		documentID := uuid.New()
+//
+//		tx, err := s.db.Begin()
+//		if err != nil {
+//			return err
+//		}
+//		defer tx.Rollback()
+//
+//		query := `INSERT INTO documents (id, user_id, document_name, content) VALUES ($1, $2, $3, $4)`
+//		_, err = tx.Exec(query, documentID, userID, name, content)
+//		if err != nil {
+//			return err
+//		}
+//
+//		return tx.Commit()
+//	}
+func (s *PostgreSQL) UploadDocument(userID string, name, content string) (uuid.UUID, error) {
+	var documentID uuid.UUID
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return err
+		return documentID, err
 	}
 	defer tx.Rollback()
 
-	query := `INSERT INTO documents (id, user_id, document_name, content) VALUES ($1, $2, $3, $4)`
-	_, err = tx.Exec(query, documentID, userID, name, content)
+	// Omit the id from the INSERT statement, and use the RETURNING clause to return the generated id
+	query := `INSERT INTO documents (user_id, document_name, content) VALUES ($1, $2, $3) RETURNING id`
+	err = tx.QueryRow(query, userID, name, content).Scan(&documentID)
 	if err != nil {
-		return err
+		return documentID, err
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return documentID, err
+	}
+
+	return documentID, nil
 }
 
 func (s *PostgreSQL) GetDocument(userID string, name string) (*Document, error) {

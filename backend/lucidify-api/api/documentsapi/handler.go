@@ -41,7 +41,7 @@ func DocumentsUploadHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk
 		document_name := reqBody["document_name"]
 		content := reqBody["content"]
 
-		err = db.UploadDocument(user.ID, document_name, content)
+		_, err = db.UploadDocument(user.ID, document_name, content)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return

@@ -15,9 +15,12 @@ CREATE TABLE users (
     deleted BOOLEAN DEFAULT FALSE
 );
 
+-- Enable the uuid-ossp extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Documents table
 CREATE TABLE documents (
-    id UUID PRIMARY KEY,
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL REFERENCES users(user_id) ON DELETE CASCADE, -- Changed data type to VARCHAR(255)
     document_name VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,

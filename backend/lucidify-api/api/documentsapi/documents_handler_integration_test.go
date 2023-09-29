@@ -551,7 +551,7 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	// Obtain a JWT token from Clerk
 	jwtToken := testconfig.TestJWTSessionToken
 
-	err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	_, err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
 	if err != nil {
 		t.Errorf("Failed to upload document: %v", err)
 	}
@@ -610,7 +610,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	// Obtain a JWT token from Clerk
 	jwtToken := testconfig.TestJWTSessionToken + "invalid"
 
-	err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	_, err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
 	if err != nil {
 		t.Errorf("Failed to upload document: %v", err)
 	}
