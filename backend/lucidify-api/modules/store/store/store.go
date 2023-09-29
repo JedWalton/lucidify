@@ -6,6 +6,8 @@ import (
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/weaviateclient"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type DocumentService interface {
@@ -13,7 +15,7 @@ type DocumentService interface {
 	GetDocument(userID, name string) (*postgresqlclient.Document, error)
 	GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
 	DeleteDocument(userID, name, documentUUID string) error
-	// UpdateDocumentName(documentUUID, name string) error
+	UpdateDocumentName(documentUUID, name string) error
 	// UpdateDocumentContent(documentUUID, content string) error
 }
 
@@ -22,7 +24,9 @@ type DocumentServiceImpl struct {
 	weaviateDB   weaviateclient.WeaviateClient
 }
 
-func NewDocumentService(postgresqlDB *postgresqlclient.PostgreSQL, weaviateDB weaviateclient.WeaviateClient) DocumentService {
+func NewDocumentService(
+	postgresqlDB *postgresqlclient.PostgreSQL,
+	weaviateDB weaviateclient.WeaviateClient) DocumentService {
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
@@ -39,7 +43,9 @@ func NewDocumentService(postgresqlDB *postgresqlclient.PostgreSQL, weaviateDB we
 // 	return nil
 // }
 
-func (d *DocumentServiceImpl) UploadDocument(userID, name, content string) (*postgresqlclient.Document, error) {
+func (d *DocumentServiceImpl) UploadDocument(
+	userID, name, content string) (*postgresqlclient.Document, error) {
+
 	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
 	if err != nil {
 		return document, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
@@ -61,7 +67,8 @@ func (d *DocumentServiceImpl) UploadDocument(userID, name, content string) (*pos
 		}
 
 		if delErr != nil {
-			return document, fmt.Errorf("failed to upload document to Weaviate: %w; failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
+			return document, fmt.Errorf("failed to upload document to Weaviate: %w; "+
+				"failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
 		}
 		return document, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
 	}
@@ -84,30 +91,46 @@ func (d *DocumentServiceImpl) DeleteDocument(userID, name, documentUUID string) 
 	}
 	err = d.weaviateDB.DeleteDocument(documentUUID)
 	if err != nil {
-		log.Printf("Failed to delete document from Weaviate: %v", err)
-		return err
+		return fmt.Errorf("Failed to delete document from Weaviate: %w", err)
 	}
 	return nil
 }
 
-// func (d *DocumentServiceImpl) UpdateDocumentName(userID, documentUUID, name string) error {
-// 	oldName, err := d.postgresqlDB.GetDocument(documentUUID)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	err = d.postgresqlDB.UpdateDocumentName(uuid.MustParse(documentUUID), name)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	err = d.weaviateDB.UpdateDocumentName(documentUUID, name)
-// 	if err != nil {
-// 		err = d.postgresqlDB.UndoUpdateDocumentName(uuid.MustParse(documentUUID), oldName)
-// 	}
-//
-// 	return nil
-// }
+func (d *DocumentServiceImpl) UpdateDocumentName(documentUUID, name string) error {
+	parsedDocumentUUID, err := uuid.Parse(documentUUID)
+	if err != nil {
+		return fmt.Errorf("failed to parse UUID: %w", err)
+	}
+
+	documentBeforeChange, err := d.postgresqlDB.GetDocumentByUUID(documentUUID)
+	if err != nil {
+		return err
+	}
+
+	nameBeforeChange := documentBeforeChange.DocumentName
+
+	err = d.postgresqlDB.UpdateDocumentName(parsedDocumentUUID, name)
+	if err != nil {
+		return fmt.Errorf("failed to update document name in PostgreSQL: %w", err)
+	}
+
+	// Try to update the name in Weaviate
+	err = d.weaviateDB.UpdateDocumentName(documentUUID, name)
+	if err != nil {
+		// Log the error and try to revert the change in PostgreSQL
+		log.Printf("Failed to update document name in Weaviate: %v. Returning postgresql name back to original", err)
+		revertErr := d.postgresqlDB.UpdateDocumentName(parsedDocumentUUID, nameBeforeChange)
+		if revertErr != nil {
+			log.Printf("Failed to restore document name to original name in PostgreSQL: %v", revertErr)
+			// Consider whether to return the original error, the revert error, or both
+			return fmt.Errorf("failed to update document name in Weaviate, and failed to revert change in PostgreSQL: %w, revert error: %v", err, revertErr)
+		}
+		// If revert was successful, return the original error
+		return fmt.Errorf("failed to update document name in Weaviate: %w", err)
+	}
+
+	return nil
+}
 
 // func (d *DocumentServiceImpl) UpdateDocumentContent(documentUUID, content string) error {
 // 	d.postgresqlDB.UpdateDocumentContent(uuid.MustParse(documentUUID), content)

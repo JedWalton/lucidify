@@ -96,3 +96,58 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Fatalf("failed to delete test document: %v", err)
 	}
 }
+
+func TestUpdateDocumentNameIntegration(t *testing.T) {
+	// Initialize the PostgreSQL client
+	config := config.NewServerConfig()
+	postgresqlURL := config.PostgresqlURL
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL(postgresqlURL)
+	if err != nil {
+		t.Fatalf("failed to initialize PostgreSQL client: %v", err)
+	}
+
+	// Initialize the Weaviate client
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("failed to initialize Weaviate client: %v", err)
+	}
+
+	// Initialize the DocumentService
+	documentService := NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Define test document parameters
+	userID := createTestUserInDb()
+	name := "test-document-name"
+	content := "test-document-content"
+	newName := "updated-document-name"
+
+	// Attempt to upload the document
+	document, err := documentService.UploadDocument(userID, name, content)
+	if err != nil {
+		t.Fatalf("failed to upload document: %v", err)
+	}
+
+	// Attempt to update the document name
+	err = documentService.UpdateDocumentName(document.DocumentUUID.String(), newName)
+	if err != nil {
+		t.Fatalf("failed to update document name: %v", err)
+	}
+
+	// Verify that the document name was updated in PostgreSQL
+	doc, err := postgresqlDB.GetDocument(userID, newName)
+	if err != nil || doc == nil || doc.DocumentName != newName {
+		t.Fatalf("failed to retrieve document with updated name from PostgreSQL: %v", err)
+	}
+
+	// Verify that the document name was updated in Weaviate
+	doc2, err := weaviateDB.GetDocument(document.DocumentUUID.String())
+	if err != nil || doc2 == nil || doc2.DocumentName != newName {
+		t.Fatalf("failed to retrieve document with updated name from Weaviate: %v", err)
+	}
+
+	// Clean up: delete the uploaded document
+	err = documentService.DeleteDocument(userID, newName, document.DocumentUUID.String())
+	if err != nil {
+		t.Fatalf("failed to delete test document: %v", err)
+	}
+}
