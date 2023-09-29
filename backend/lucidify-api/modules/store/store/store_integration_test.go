@@ -73,7 +73,7 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	content := "test-document-content"
 
 	// Attempt to upload the document
-	documentUUID, err := documentService.UploadDocument(userID, name, content)
+	document, err := documentService.UploadDocument(userID, name, content)
 	if err != nil {
 		t.Fatalf("failed to upload document: %v", err)
 	}
@@ -85,13 +85,13 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 
 	// Verify that the document was uploaded to Weaviate
-	doc2, err := weaviateDB.GetDocument(documentUUID.String())
+	doc2, err := weaviateDB.GetDocument(document.DocumentUUID.String())
 	if err != nil || doc2 == nil {
 		t.Fatalf("failed to retrieve document from Weaviate: %v", err)
 	}
 
 	// Clean up: delete the uploaded document
-	err = documentService.DeleteDocument(userID, name, documentUUID.String())
+	err = documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
 	if err != nil {
 		t.Fatalf("failed to delete test document: %v", err)
 	}

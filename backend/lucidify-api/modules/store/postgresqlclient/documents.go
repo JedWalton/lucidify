@@ -7,12 +7,12 @@ import (
 )
 
 type Document struct {
-	DocumentID   uuid.UUID
-	UserID       string
-	DocumentName string
-	Content      string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	DocumentUUID uuid.UUID `db:"id"` // db tag is used to map the struct field to the SQL column name
+	UserID       string    `db:"user_id"`
+	DocumentName string    `db:"document_name"`
+	Content      string    `db:"content"`
+	CreatedAt    time.Time `db:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at"`
 }
 
 //	func (s *PostgreSQL) UploadDocument(userID string, name, content string) error {
@@ -32,34 +32,74 @@ type Document struct {
 //
 //		return tx.Commit()
 //	}
-func (s *PostgreSQL) UploadDocument(userID string, name, content string) (uuid.UUID, error) {
-	var documentID uuid.UUID
+// func (s *PostgreSQL) UploadDocument(userID string, name, content string) (uuid.UUID, error) {
+// 	var documentID uuid.UUID
+//
+// 	tx, err := s.db.Begin()
+// 	if err != nil {
+// 		return documentID, err
+// 	}
+// 	defer tx.Rollback()
+//
+// 	// Omit the id from the INSERT statement, and use the RETURNING clause to return the generated id
+// 	query := `INSERT INTO documents (user_id, document_name, content) VALUES ($1, $2, $3) RETURNING id`
+// 	err = tx.QueryRow(query, userID, name, content).Scan(&documentID)
+// 	if err != nil {
+// 		return documentID, err
+// 	}
+//
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		return documentID, err
+// 	}
+//
+// 	return documentID, nil
+// }
+//
+// func (s *PostgreSQL) GetDocument(userID string, name string) (*Document, error) {
+// 	doc := &Document{}
+// 	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1 AND document_name = $2`
+// 	err := s.db.QueryRow(query, userID, name).Scan(&doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return doc, nil
+// }
+
+func (s *PostgreSQL) UploadDocument(userID string, name, content string) (*Document, error) {
+	doc := &Document{}
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return documentID, err
+		return nil, err
 	}
 	defer tx.Rollback()
 
-	// Omit the id from the INSERT statement, and use the RETURNING clause to return the generated id
-	query := `INSERT INTO documents (user_id, document_name, content) VALUES ($1, $2, $3) RETURNING id`
-	err = tx.QueryRow(query, userID, name, content).Scan(&documentID)
+	// Use the RETURNING clause to return all fields of the inserted row
+	query := `INSERT INTO documents (user_id, document_name, content) 
+	          VALUES ($1, $2, $3) 
+	          RETURNING id, user_id, document_name, content, created_at, updated_at`
+	err = tx.QueryRow(query, userID, name, content).Scan(
+		&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 	if err != nil {
-		return documentID, err
+		return nil, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return documentID, err
+		return nil, err
 	}
 
-	return documentID, nil
+	return doc, nil
 }
 
 func (s *PostgreSQL) GetDocument(userID string, name string) (*Document, error) {
 	doc := &Document{}
-	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1 AND document_name = $2`
-	err := s.db.QueryRow(query, userID, name).Scan(&doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
+	query := `SELECT id, user_id, document_name, content, created_at, updated_at 
+	          FROM documents 
+	          WHERE user_id = $1 AND document_name = $2`
+	err := s.db.QueryRow(query, userID, name).Scan(
+		&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}

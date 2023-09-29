@@ -59,6 +59,7 @@ func (w *WeaviateClientImpl) GetWeaviateClient() *weaviate.Client {
 
 func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
 	document := map[string]interface{}{
+		"documentId":   documentID,
 		"userId":       userID,
 		"documentName": name,
 		"content":      content,

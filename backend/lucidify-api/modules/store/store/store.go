@@ -2,15 +2,14 @@ package store
 
 import (
 	"fmt"
+	"log"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/weaviateclient"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type DocumentService interface {
-	UploadDocument(userID, name, content string) (uuid.UUID, error)
+	UploadDocument(userID, name, content string) (*postgresqlclient.Document, error)
 	GetDocument(userID, name string) (*postgresqlclient.Document, error)
 	// GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
 	// UpdateDocumentContent(userID, name, content string) error
@@ -39,15 +38,15 @@ func NewDocumentService(postgresqlDB *postgresqlclient.PostgreSQL, weaviateDB we
 // 	return nil
 // }
 
-func (d *DocumentServiceImpl) UploadDocument(userID, name, content string) (uuid.UUID, error) {
-	documentUUID, err := d.postgresqlDB.UploadDocument(userID, name, content)
+func (d *DocumentServiceImpl) UploadDocument(userID, name, content string) (*postgresqlclient.Document, error) {
+	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
 	if err != nil {
-		return documentUUID, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
+		return document, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
 	}
 
 	const maxRetries = 3
 	const retryDelay = time.Second * 2
-	err = d.weaviateDB.UploadDocument(documentUUID.String(), userID, name, content)
+	err = d.weaviateDB.UploadDocument(document.DocumentUUID.String(), userID, name, content)
 	if err != nil {
 		// Attempt to rollback the PostgreSQL upload.
 		var delErr error
@@ -61,12 +60,12 @@ func (d *DocumentServiceImpl) UploadDocument(userID, name, content string) (uuid
 		}
 
 		if delErr != nil {
-			return documentUUID, fmt.Errorf("failed to upload document to Weaviate: %w; failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
+			return document, fmt.Errorf("failed to upload document to Weaviate: %w; failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
 		}
-		return documentUUID, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
+		return document, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
 	}
 
-	return documentUUID, nil
+	return document, nil
 }
 
 func (d *DocumentServiceImpl) GetDocument(userID, name string) (*postgresqlclient.Document, error) {
@@ -76,10 +75,11 @@ func (d *DocumentServiceImpl) GetDocument(userID, name string) (*postgresqlclien
 func (d *DocumentServiceImpl) DeleteDocument(userID, name, documentUUID string) error {
 	err := d.postgresqlDB.DeleteDocument(userID, name)
 	if err != nil {
-		return err
+		log.Printf("Failed to delete document from PostgreSQL: %v", err)
 	}
 	err = d.weaviateDB.DeleteDocument(documentUUID)
 	if err != nil {
+		log.Printf("Failed to delete document from Weaviate: %v", err)
 		return err
 	}
 	return nil
