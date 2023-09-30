@@ -16,7 +16,7 @@ type DocumentService interface {
 	GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
 	DeleteDocument(userID, name, documentUUID string) error
 	UpdateDocumentName(documentUUID, name string) error
-	// UpdateDocumentContent(documentUUID, content string) error
+	UpdateDocumentContent(documentUUID, content string) error
 }
 
 type DocumentServiceImpl struct {
@@ -107,8 +107,6 @@ func (d *DocumentServiceImpl) UpdateDocumentName(documentUUID, name string) erro
 		return err
 	}
 
-	nameBeforeChange := documentBeforeChange.DocumentName
-
 	err = d.postgresqlDB.UpdateDocumentName(parsedDocumentUUID, name)
 	if err != nil {
 		return fmt.Errorf("failed to update document name in PostgreSQL: %w", err)
@@ -119,7 +117,7 @@ func (d *DocumentServiceImpl) UpdateDocumentName(documentUUID, name string) erro
 	if err != nil {
 		// Log the error and try to revert the change in PostgreSQL
 		log.Printf("Failed to update document name in Weaviate: %v. Returning postgresql name back to original", err)
-		revertErr := d.postgresqlDB.UpdateDocumentName(parsedDocumentUUID, nameBeforeChange)
+		revertErr := d.postgresqlDB.UpdateDocumentName(parsedDocumentUUID, documentBeforeChange.DocumentName)
 		if revertErr != nil {
 			log.Printf("Failed to restore document name to original name in PostgreSQL: %v", revertErr)
 			// Consider whether to return the original error, the revert error, or both
@@ -132,9 +130,30 @@ func (d *DocumentServiceImpl) UpdateDocumentName(documentUUID, name string) erro
 	return nil
 }
 
-// func (d *DocumentServiceImpl) UpdateDocumentContent(documentUUID, content string) error {
-// 	d.postgresqlDB.UpdateDocumentContent(uuid.MustParse(documentUUID), content)
-// 	d.weaviateDB.UpdateDocumentContent(documentUUID, content)
-//
-// 	return nil
-// }
+func (d *DocumentServiceImpl) UpdateDocumentContent(documentUUID, content string) error {
+	// First, get the document by UUID to ensure it exists and to get the current content.
+	documentBeforeChange, err := d.postgresqlDB.GetDocumentByUUID(documentUUID)
+	if err != nil {
+		return err
+	}
+
+	// Update the content in the PostgreSQL database.
+	err = d.postgresqlDB.UpdateDocumentContent(uuid.MustParse(documentUUID), content)
+	if err != nil {
+		return err
+	}
+
+	// Update the content in the Weaviate database.
+	err = d.weaviateDB.UpdateDocumentContent(documentUUID, content)
+	if err != nil {
+		// If updating in Weaviate fails, rollback the change in PostgreSQL.
+		log.Printf("Failed to update document content in Weaviate: %v. Returning PostgreSQL content back to original", err)
+		errRollback := d.postgresqlDB.UpdateDocumentContent(uuid.MustParse(documentUUID), documentBeforeChange.Content)
+		if errRollback != nil {
+			log.Printf("Failed to restore document content to original in PostgreSQL: %v", errRollback)
+		}
+		return err
+	}
+
+	return nil
+}

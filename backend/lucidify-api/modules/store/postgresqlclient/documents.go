@@ -7,7 +7,7 @@ import (
 )
 
 type Document struct {
-	DocumentUUID uuid.UUID `db:"id"` // db tag is used to map the struct field to the SQL column name
+	DocumentUUID uuid.UUID `db:"id"`
 	UserID       string    `db:"user_id"`
 	DocumentName string    `db:"document_name"`
 	Content      string    `db:"content"`

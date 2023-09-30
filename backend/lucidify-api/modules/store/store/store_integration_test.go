@@ -95,6 +95,18 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to delete test document: %v", err)
 	}
+
+	// Clean up: delete the uploaded document and user
+	t.Cleanup(func() {
+		err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
+		if err != nil {
+			t.Errorf("failed to delete test document: %v", err)
+		}
+		err = postgresqlDB.DeleteUserInUsersTable(userID)
+		if err != nil {
+			t.Errorf("failed to delete test user: %v", err)
+		}
+	})
 }
 
 func TestUpdateDocumentNameIntegration(t *testing.T) {
@@ -150,4 +162,83 @@ func TestUpdateDocumentNameIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to delete test document: %v", err)
 	}
+
+	// Clean up: delete the uploaded document and user
+	t.Cleanup(func() {
+		err := documentService.DeleteDocument(userID, newName, document.DocumentUUID.String())
+		if err != nil {
+			t.Errorf("failed to delete test document: %v", err)
+		}
+		err = postgresqlDB.DeleteUserInUsersTable(userID)
+		if err != nil {
+			t.Errorf("failed to delete test user: %v", err)
+		}
+	})
+}
+
+func TestUpdateDocumentContentIntegration(t *testing.T) {
+	// Initialize the PostgreSQL client
+	config := config.NewServerConfig()
+	postgresqlURL := config.PostgresqlURL
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL(postgresqlURL)
+	if err != nil {
+		t.Fatalf("failed to initialize PostgreSQL client: %v", err)
+	}
+
+	// Initialize the Weaviate client
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("failed to initialize Weaviate client: %v", err)
+	}
+
+	// Initialize the DocumentService
+	documentService := NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Define test document parameters
+	userID := createTestUserInDb()
+	name := "test-document-name"
+	content := "test-document-content"
+	newContent := "updated-document-content"
+
+	// Attempt to upload the document
+	document, err := documentService.UploadDocument(userID, name, content)
+	if err != nil {
+		t.Fatalf("failed to upload document: %v", err)
+	}
+
+	// Attempt to update the document content
+	err = documentService.UpdateDocumentContent(document.DocumentUUID.String(), newContent)
+	if err != nil {
+		t.Fatalf("failed to update document content: %v", err)
+	}
+
+	// Verify that the document content was updated in PostgreSQL
+	doc, err := postgresqlDB.GetDocument(userID, name)
+	if err != nil || doc == nil || doc.Content != newContent {
+		t.Fatalf("failed to retrieve document with updated content from PostgreSQL: %v", err)
+	}
+
+	// Verify that the document content was updated in Weaviate
+	doc2, err := weaviateDB.GetDocument(document.DocumentUUID.String())
+	if err != nil || doc2 == nil || doc2.Content != newContent {
+		t.Fatalf("failed to retrieve document with updated content from Weaviate: %v", err)
+	}
+
+	// Clean up: delete the uploaded document
+	err = documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
+	if err != nil {
+		t.Fatalf("failed to delete test document: %v", err)
+	}
+
+	// Clean up: delete the uploaded document and user
+	t.Cleanup(func() {
+		err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
+		if err != nil {
+			t.Errorf("failed to delete test document: %v", err)
+		}
+		err = postgresqlDB.DeleteUserInUsersTable(userID)
+		if err != nil {
+			t.Errorf("failed to delete test user: %v", err)
+		}
+	})
 }
