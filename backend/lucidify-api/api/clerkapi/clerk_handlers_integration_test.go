@@ -20,7 +20,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 	lastName := "clerk_handler_lastname"
 	password := "$sswordoatnsu28348ckj"
 
-	storeInstance, err := postgresqlclient.NewPostgreSQL(testconfig.PostgresqlURL)
+	storeInstance, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}

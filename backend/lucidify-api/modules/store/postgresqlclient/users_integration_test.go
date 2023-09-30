@@ -3,15 +3,11 @@
 package postgresqlclient
 
 import (
-	"lucidify-api/modules/config"
 	"testing"
 )
 
 func TestCreateUserInUsersTable(t *testing.T) {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-
-	store, err := NewPostgreSQL(PostgresqlURL)
+	store, err := NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
@@ -49,10 +45,7 @@ func TestCreateUserInUsersTable(t *testing.T) {
 }
 
 func TestUpdateUserInUsersTable(t *testing.T) {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-
-	store, err := NewPostgreSQL(PostgresqlURL)
+	store, err := NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
@@ -100,10 +93,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 }
 
 func TestGetUserInUsersTable(t *testing.T) {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-
-	store, err := NewPostgreSQL(PostgresqlURL)
+	store, err := NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
@@ -146,10 +136,7 @@ func TestGetUserInUsersTable(t *testing.T) {
 }
 
 func TestDeleteUserInUsersTable(t *testing.T) {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-
-	store, err := NewPostgreSQL(PostgresqlURL)
+	store, err := NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}

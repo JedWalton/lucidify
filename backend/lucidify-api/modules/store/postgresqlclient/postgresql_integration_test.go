@@ -4,20 +4,11 @@
 package postgresqlclient
 
 import (
-	"os"
 	"testing"
-
-	"github.com/joho/godotenv"
 )
 
 func TestIntegrationNewStore(t *testing.T) {
-	// Load environment variables from .env file
-	godotenv.Load("../../../../.env")
-
-	// Get the POSTGRESQL_URL environment variable
-	postgresqlURL := os.Getenv("POSTGRESQL_URL")
-
-	store, err := NewPostgreSQL(postgresqlURL)
+	store, err := NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create postgresqlclient: %v", err)
 	}

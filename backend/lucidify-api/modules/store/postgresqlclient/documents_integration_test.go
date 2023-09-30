@@ -3,15 +3,11 @@
 package postgresqlclient
 
 import (
-	"lucidify-api/modules/config"
 	"testing"
 )
 
 func TestStoreFunctions(t *testing.T) {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-
-	store, err := NewPostgreSQL(PostgresqlURL)
+	store, err := NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}

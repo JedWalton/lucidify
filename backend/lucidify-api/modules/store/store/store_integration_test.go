@@ -4,16 +4,13 @@ package store
 
 import (
 	"log"
-	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/weaviateclient"
 	"testing"
 )
 
 func createTestUserInDb() string {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
 	user := postgresqlclient.User{
@@ -50,10 +47,7 @@ func createTestUserInDb() string {
 }
 
 func TestUploadDocumentIntegration(t *testing.T) {
-	// Initialize the PostgreSQL client
-	config := config.NewServerConfig()
-	postgresqlURL := config.PostgresqlURL
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL(postgresqlURL)
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		t.Fatalf("failed to initialize PostgreSQL client: %v", err)
 	}
@@ -104,10 +98,7 @@ func TestUploadDocumentIntegration(t *testing.T) {
 }
 
 func TestUpdateDocumentNameIntegration(t *testing.T) {
-	// Initialize the PostgreSQL client
-	config := config.NewServerConfig()
-	postgresqlURL := config.PostgresqlURL
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL(postgresqlURL)
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		t.Fatalf("failed to initialize PostgreSQL client: %v", err)
 	}
@@ -165,10 +156,7 @@ func TestUpdateDocumentNameIntegration(t *testing.T) {
 }
 
 func TestUpdateDocumentContentIntegration(t *testing.T) {
-	// Initialize the PostgreSQL client
-	config := config.NewServerConfig()
-	postgresqlURL := config.PostgresqlURL
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL(postgresqlURL)
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		t.Fatalf("failed to initialize PostgreSQL client: %v", err)
 	}

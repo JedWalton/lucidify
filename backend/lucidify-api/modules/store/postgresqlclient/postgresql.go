@@ -12,14 +12,14 @@ type PostgreSQL struct {
 	db *sql.DB
 }
 
-func NewPostgreSQL(postgresqlURL string) (*PostgreSQL, error) {
+func NewPostgreSQL() (*PostgreSQL, error) {
 	config := config.NewServerConfig()
-	postgresqlURLFromConfig := config.PostgresqlURL
+	postgresqlURL := config.PostgresqlURL
 	if postgresqlURL == "" {
 		return nil, fmt.Errorf("POSTGRESQL_URL environment variable is not set")
 	}
 
-	db, err := sql.Open("postgres", postgresqlURLFromConfig)
+	db, err := sql.Open("postgres", postgresqlURL)
 	if err != nil {
 		return nil, err
 	}

@@ -17,8 +17,7 @@ import (
 
 func createTestUserInDb() {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
 	user := postgresqlclient2.User{
@@ -53,9 +52,7 @@ func createTestUserInDb() {
 	}
 }
 func createASecondTestUserInDb() string {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
 	user := postgresqlclient2.User{
@@ -94,8 +91,7 @@ func createASecondTestUserInDb() string {
 
 func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	// Setup the real environment
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
@@ -155,8 +151,7 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 
 func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	// Setup the real environment
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
@@ -206,8 +201,7 @@ func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 
 func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
@@ -277,8 +271,7 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 
 func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -330,8 +323,7 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 
 func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -406,8 +398,7 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -457,8 +448,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T)
 
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -532,8 +522,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 
 func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
@@ -591,8 +580,7 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 
 func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
@@ -655,8 +643,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 
 func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
@@ -715,8 +702,7 @@ func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 
 func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := postgresqlclient2.NewPostgreSQL(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {

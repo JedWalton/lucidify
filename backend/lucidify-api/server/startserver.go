@@ -13,7 +13,7 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
-	storeInstance, err := postgresqlclient.NewPostgreSQL(config.PostgresqlURL)
+	storeInstance, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		log.Fatal(err)
 	}
