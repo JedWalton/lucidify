@@ -30,19 +30,6 @@ func NewDocumentService(
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
-// func (d *DocumentServiceImpl) UploadDocument(userID, name, content string) error {
-// 	document_uuid, err := d.postgresqlDB.UploadDocument(userID, name, content)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	err = d.weaviateDB.UploadDocument(document_uuid.String(), userID, name, content)
-// 	if err != nil {
-// 		err = d.postgresqlDB.DeleteDocument(userID, name)
-// 		return err
-// 	}
-// 	return nil
-// }
-
 func (d *DocumentServiceImpl) UploadDocument(
 	userID, name, content string) (*postgresqlclient.Document, error) {
 
