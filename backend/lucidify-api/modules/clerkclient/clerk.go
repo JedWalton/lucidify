@@ -1,4 +1,4 @@
-package store
+package clerkclient
 
 import (
 	"encoding/json"
@@ -37,7 +37,7 @@ func CreateUserInClerk(apiKey string, firstName string, lastName string, email s
 	return "", fmt.Errorf("Failed to create user in Clerk. Response: %s", string(body))
 }
 
-func getUserIDByEmail(email string, bearerToken string) (string, error) {
+func GetUserIDByEmail(email string, apiKey string) (string, error) {
 	// Construct the URL
 	baseURL := "https://api.clerk.dev/v1"
 	url := fmt.Sprintf("%s/users?email_address=%s", baseURL, email)
@@ -49,7 +49,7 @@ func getUserIDByEmail(email string, bearerToken string) (string, error) {
 	}
 
 	// Set the Authorization header for bearer authentication
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bearerToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
 	// Make the request
 	resp, err := http.DefaultClient.Do(req)

@@ -1,17 +1,20 @@
-package store
+package postgresqlclient
 
 import (
 	"database/sql"
 	"fmt"
+	"lucidify-api/modules/config"
 
 	_ "github.com/lib/pq"
 )
 
-type Store struct {
+type PostgreSQL struct {
 	db *sql.DB
 }
 
-func NewStore(postgresqlURL string) (*Store, error) {
+func NewPostgreSQL() (*PostgreSQL, error) {
+	config := config.NewServerConfig()
+	postgresqlURL := config.PostgresqlURL
 	if postgresqlURL == "" {
 		return nil, fmt.Errorf("POSTGRESQL_URL environment variable is not set")
 	}
@@ -25,5 +28,5 @@ func NewStore(postgresqlURL string) (*Store, error) {
 		return nil, err
 	}
 
-	return &Store{db: db}, nil
+	return &PostgreSQL{db: db}, nil
 }

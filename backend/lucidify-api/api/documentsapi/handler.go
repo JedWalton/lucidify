@@ -1,14 +1,14 @@
-package documents
+package documentsapi
 
 import (
 	"encoding/json"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func DocumentsUploadHandler(db *store.Store, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUploadHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -41,7 +41,7 @@ func DocumentsUploadHandler(db *store.Store, clerkInstance clerk.Client) http.Ha
 		document_name := reqBody["document_name"]
 		content := reqBody["content"]
 
-		err = db.UploadDocument(user.ID, document_name, content)
+		_, err = db.UploadDocument(user.ID, document_name, content)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
@@ -51,7 +51,7 @@ func DocumentsUploadHandler(db *store.Store, clerkInstance clerk.Client) http.Ha
 	}
 }
 
-func DocumentsGetDocumentHandler(db *store.Store, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -100,7 +100,7 @@ func DocumentsGetDocumentHandler(db *store.Store, clerkInstance clerk.Client) ht
 	}
 }
 
-func DocumentsGetAllDocumentsHandler(db *store.Store, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetAllDocumentsHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -140,7 +140,7 @@ func DocumentsGetAllDocumentsHandler(db *store.Store, clerkInstance clerk.Client
 	}
 }
 
-func DocumentsDeleteDocumentHandler(db *store.Store, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsDeleteDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -180,7 +180,7 @@ func DocumentsDeleteDocumentHandler(db *store.Store, clerkInstance clerk.Client)
 	}
 }
 
-func DocumentsUpdateDocumentHandler(db *store.Store, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUpdateDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

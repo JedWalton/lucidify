@@ -1,4 +1,6 @@
-package documents
+// // go:build integration
+// // +build integration
+package documentsapi
 
 import (
 	"bytes"
@@ -7,7 +9,7 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/store"
+	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,16 +17,15 @@ import (
 
 func createTestUserInDb() {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := store.User{
+	user := postgresqlclient2.User{
 		UserID:           testconfig.TestUserID,
-		ExternalID:       "TestCreateUserInUsersTableExternalID",
-		Username:         "TestCreateUserInUsersTableUsername",
+		ExternalID:       "TestCreateUserInUsersTableExternalIDDocuments",
+		Username:         "TestCreateUserInUsersTableUsernameDocuments",
 		PasswordEnabled:  true,
-		Email:            "TestCreateUserInUsersTable@example.com",
+		Email:            "TestCreateUserInUsersTableDocuments@example.com",
 		FirstName:        "TestCreateUserInUsersTableCreateTest",
 		LastName:         "TestCreateUserInUsersTableUser",
 		ImageURL:         "https://TestCreateUserInUsersTable.com/image.jpg",
@@ -51,12 +52,10 @@ func createTestUserInDb() {
 	}
 }
 func createASecondTestUserInDb() string {
-	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := store.User{
+	user := postgresqlclient2.User{
 		UserID:           "userid_testuserid2",
 		ExternalID:       "TestCreateSecondUserInUsersTableExternalID",
 		Username:         "TestCreateSecondUserInUsersTableUsername",
@@ -92,14 +91,13 @@ func createASecondTestUserInDb() string {
 
 func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	// Setup the real environment
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -123,7 +121,7 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -134,12 +132,12 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 
 	documentFromDb, err := db.GetDocument(testconfig.TestUserID, "Test Document")
 	if err != nil {
-		t.Fatalf("Failed to get document: %v", err)
+		t.Errorf("Failed to get document: %v", err)
 	}
 
 	documentFromDbContent := documentFromDb.Content
 	if documentFromDbContent != "Test Content" {
-		t.Fatalf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
+		t.Errorf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
 	}
 
 	// Cleanup the database
@@ -153,14 +151,13 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 
 func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	// Setup the real environment
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -184,7 +181,7 @@ func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -204,12 +201,11 @@ func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 
 func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 
 	createTestUserInDb()
@@ -236,7 +232,7 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -249,14 +245,14 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	// Read the response body
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		t.Fatalf("Failed to read response body: %v", err)
+		t.Errorf("Failed to read response body: %v", err)
 	}
 
 	// Unmarshal the response body into a Document object
-	var respDocument store.Document
+	var respDocument postgresqlclient2.Document
 	err = json.Unmarshal(respBody, &respDocument)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal response body: %v", err)
+		t.Errorf("Failed to unmarshal response body: %v", err)
 	}
 
 	// Check if the returned document is correct
@@ -275,15 +271,14 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 
 func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -308,13 +303,13 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Check the response
 	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("Expected status code Bad Request, 400. Got: %v", resp.StatusCode)
+		t.Errorf("Expected status code Bad Request, 400. Got: %v", resp.StatusCode)
 	}
 
 	// Cleanup the database
@@ -328,15 +323,14 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 
 func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -357,7 +351,7 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -369,11 +363,11 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	// Read the response body
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		t.Fatalf("Failed to read response body: %v", err)
+		t.Errorf("Failed to read response body: %v", err)
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []store.Document
+	var respDocuments []postgresqlclient2.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -404,15 +398,14 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -433,13 +426,13 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Check the response
 	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatalf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
+		t.Errorf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
 	}
 
 	// Cleanup the database
@@ -455,8 +448,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T)
 
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 
@@ -465,7 +457,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 	UserID2 := createASecondTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -486,23 +478,23 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Check the response
 	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
+		t.Errorf("Expected status code %v, got %v", http.StatusOK, resp.StatusCode)
 	}
 
 	// Read the response body
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		t.Fatalf("Failed to read response body: %v", err)
+		t.Errorf("Failed to read response body: %v", err)
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []store.Document
+	var respDocuments []postgresqlclient2.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -530,13 +522,12 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 
 func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -549,9 +540,9 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	// Obtain a JWT token from Clerk
 	jwtToken := testconfig.TestJWTSessionToken
 
-	err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	_, err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
 	if err != nil {
-		t.Fatalf("Failed to upload document: %v", err)
+		t.Errorf("Failed to upload document: %v", err)
 	}
 
 	// Send a POST request to the server with the JWT token
@@ -564,7 +555,7 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -575,7 +566,7 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 
 	_, err = db.GetDocument(testconfig.TestUserID, "Test Document")
 	if err == nil {
-		t.Fatalf("Should have failed to get document: %v", err)
+		t.Errorf("Should have failed to get document: %v", err)
 	}
 
 	// Cleanup the database
@@ -589,13 +580,12 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 
 func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	createTestUserInDb()
 
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 	cfg := &config.ServerConfig{}
 
@@ -608,9 +598,9 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	// Obtain a JWT token from Clerk
 	jwtToken := testconfig.TestJWTSessionToken + "invalid"
 
-	err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
+	_, err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
 	if err != nil {
-		t.Fatalf("Failed to upload document: %v", err)
+		t.Errorf("Failed to upload document: %v", err)
 	}
 
 	// Send a POST request to the server with the JWT token
@@ -623,7 +613,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -634,12 +624,12 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 
 	documentFromDb, err := db.GetDocument(testconfig.TestUserID, "Test Document")
 	if err != nil {
-		t.Fatalf("Failed to get document: %v", err)
+		t.Errorf("Failed to get document: %v", err)
 	}
 
 	documentFromDbContent := documentFromDb.Content
 	if documentFromDbContent != "Test Content" {
-		t.Fatalf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
+		t.Errorf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
 	}
 
 	// Cleanup the database
@@ -653,12 +643,11 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 
 func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 
 	createTestUserInDb()
@@ -685,7 +674,7 @@ func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -696,7 +685,7 @@ func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 
 	document_response, err := db.GetDocument(testconfig.TestUserID, "Test Document")
 	if err != nil {
-		t.Fatalf("Failed to get document: %v", err)
+		t.Errorf("Failed to get document: %v", err)
 	}
 	if document_response.Content != "Test Content Updated" {
 		t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
@@ -713,12 +702,11 @@ func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 
 func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	testconfig := config.NewServerConfig()
-	PostgresqlURL := testconfig.PostgresqlURL
-	db, err := store.NewStore(PostgresqlURL)
+	db, err := postgresqlclient2.NewPostgreSQL()
 
 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Errorf("Failed to create Clerk client: %v", err)
 	}
 
 	createTestUserInDb()
@@ -745,7 +733,7 @@ func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Failed to send request: %v", err)
+		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -756,7 +744,7 @@ func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 
 	document_response, err := db.GetDocument(testconfig.TestUserID, "Test Document")
 	if err != nil {
-		t.Fatalf("Failed to get document: %v", err)
+		t.Errorf("Failed to get document: %v", err)
 	}
 	if document_response.Content == "Test Content Updated" {
 		t.Errorf("Expected document content to have not been updated.")

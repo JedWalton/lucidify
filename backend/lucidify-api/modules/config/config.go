@@ -3,6 +3,9 @@ package config
 import (
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/joho/godotenv"
@@ -20,11 +23,24 @@ type ServerConfig struct {
 	TestUserID          string
 }
 
+func getGitRoot() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
 func NewServerConfig() *ServerConfig {
-	// Check if POSTGRESQL_URL environment variable is missing
 	if os.Getenv("POSTGRESQL_URL") == "" || os.Getenv("OPENAI_API_KEY") == "" || os.Getenv("CLERK_SECRET_KEY") == "" || os.Getenv("CLERK_SIGNING_SECRET") == "" {
 		// If missing, load the .env file
-		if err := godotenv.Load("../../../../.env"); err != nil {
+		gitRoot, err := getGitRoot()
+		if err != nil {
+			log.Fatalf("Error getting git root: %v", err)
+		}
+		envPath := filepath.Join(gitRoot, ".env")
+		if err := godotenv.Load(envPath); err != nil {
 			log.Fatalf("Failed to load .env file: %v", err)
 		}
 	}

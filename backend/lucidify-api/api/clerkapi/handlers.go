@@ -3,7 +3,7 @@ package clerkapi
 import (
 	"encoding/json"
 	"log"
-	"lucidify-api/modules/store"
+	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 )
 
@@ -40,7 +40,7 @@ func getInt64FromMap(m map[string]interface{}, key string) int64 {
 	return 0
 }
 
-func ClerkHandler(db *store.Store) http.HandlerFunc {
+func ClerkHandler(db *postgresqlclient2.PostgreSQL) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -57,7 +57,7 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 
 		switch event.Type {
 		case "user.created":
-			user := store.User{
+			user := postgresqlclient2.User{
 				UserID:           getStringFromMap(event.Data, "id"),
 				ExternalID:       getStringFromMap(event.Data, "external_id"),
 				Username:         getStringFromMap(event.Data, "username"),
@@ -77,7 +77,7 @@ func ClerkHandler(db *store.Store) http.HandlerFunc {
 				log.Printf("Error creating user: %v", err)
 			}
 		case "user.updated":
-			user := store.User{
+			user := postgresqlclient2.User{
 				UserID:           getStringFromMap(event.Data, "id"),
 				ExternalID:       getStringFromMap(event.Data, "external_id"),
 				Username:         getStringFromMap(event.Data, "username"),

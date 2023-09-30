@@ -1,15 +1,15 @@
-package documents
+package documentsapi
 
 import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/middleware"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, client clerk.Client) *http.ServeMux {
+func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 	mux = SetupDocumentsUploadHandler(config, mux, storeInstance, client)
 	mux = SetupDocumentsGetDocumentHandler(config, mux, storeInstance, client)
 	mux = SetupDocumentsGetAllDocumentHandler(config, mux, storeInstance, client)
@@ -19,7 +19,7 @@ func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, storeInstance 
 	return mux
 }
 
-func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsUploadHandler(storeInstance, client)
 
@@ -33,7 +33,7 @@ func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux
 	return mux
 }
 
-func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, client clerk.Client) *http.ServeMux {
+func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsGetDocumentHandler(storeInstance, client)
 
@@ -47,7 +47,7 @@ func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.Ser
 	return mux
 }
 
-func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, client clerk.Client) *http.ServeMux {
+func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsGetAllDocumentsHandler(storeInstance, client)
 
@@ -61,7 +61,7 @@ func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.
 	return mux
 }
 
-func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, client clerk.Client) *http.ServeMux {
+func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsDeleteDocumentHandler(storeInstance, client)
 
@@ -75,7 +75,7 @@ func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.
 	return mux
 }
 
-func SetupDocumentsUpdateDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *store.Store, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUpdateDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsUpdateDocumentHandler(storeInstance, client)
 

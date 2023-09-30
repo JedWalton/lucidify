@@ -4,7 +4,7 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	"lucidify-api/modules/store"
+	"lucidify-api/modules/store/postgresqlclient"
 	"net/http"
 )
 
@@ -13,7 +13,7 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
-	storeInstance, err := store.NewStore(config.PostgresqlURL)
+	storeInstance, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,6 +22,11 @@ func StartServer() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// weaviateInstance, err := weaviateclient.NewWeaviateClient()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	SetupRoutes(config, mux, storeInstance, clerkInstance)
 

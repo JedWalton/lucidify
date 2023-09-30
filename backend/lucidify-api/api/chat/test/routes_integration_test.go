@@ -33,15 +33,15 @@ func TestIntegration_chat(t *testing.T) {
 
 	fileContent, err := ReadFromFile("chat.txt")
 	if err != nil {
-		t.Fatalf("Failed to read from file: %v", err)
+		t.Errorf("Failed to read from file: %v", err)
 	}
 
 	response, err := MakeCurlRequest()
 	if err != nil {
-		t.Fatalf("Failed to make curl request: %v", err)
+		t.Errorf("Failed to make curl request: %v", err)
 	}
 
 	if response != fileContent {
-		t.Fatalf("Expected %q but got %q", fileContent, response)
+		t.Errorf("Expected %q but got %q", fileContent, response)
 	}
 }
