@@ -90,12 +90,6 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Fatalf("failed to retrieve document from Weaviate: %v", err)
 	}
 
-	// Clean up: delete the uploaded document
-	err = documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
-	if err != nil {
-		t.Fatalf("failed to delete test document: %v", err)
-	}
-
 	// Clean up: delete the uploaded document and user
 	t.Cleanup(func() {
 		err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
@@ -157,12 +151,6 @@ func TestUpdateDocumentNameIntegration(t *testing.T) {
 		t.Fatalf("failed to retrieve document with updated name from Weaviate: %v", err)
 	}
 
-	// Clean up: delete the uploaded document
-	err = documentService.DeleteDocument(userID, newName, document.DocumentUUID.String())
-	if err != nil {
-		t.Fatalf("failed to delete test document: %v", err)
-	}
-
 	// Clean up: delete the uploaded document and user
 	t.Cleanup(func() {
 		err := documentService.DeleteDocument(userID, newName, document.DocumentUUID.String())
@@ -222,12 +210,6 @@ func TestUpdateDocumentContentIntegration(t *testing.T) {
 	doc2, err := weaviateDB.GetDocument(document.DocumentUUID.String())
 	if err != nil || doc2 == nil || doc2.Content != newContent {
 		t.Fatalf("failed to retrieve document with updated content from Weaviate: %v", err)
-	}
-
-	// Clean up: delete the uploaded document
-	err = documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
-	if err != nil {
-		t.Fatalf("failed to delete test document: %v", err)
 	}
 
 	// Clean up: delete the uploaded document and user
