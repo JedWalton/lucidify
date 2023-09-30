@@ -205,9 +205,3 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 		panic(err)
 	}
 }
-
-//
-//func getDocumentID(userID, name string) string {
-//	// Implement the logic to get the document ID based on userID and name
-//	return "some-document-id"
-//}
