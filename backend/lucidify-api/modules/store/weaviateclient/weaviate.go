@@ -3,10 +3,12 @@ package weaviateclient
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"lucidify-api/modules/config"
 
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
+	"github.com/weaviate/weaviate-go-client/v4/weaviate/graphql"
 	"github.com/weaviate/weaviate/entities/models"
 )
 
@@ -17,6 +19,7 @@ type WeaviateClient interface {
 	UpdateDocumentContent(documentID, content string) error
 	UpdateDocumentName(documentID, documentName string) error
 	DeleteDocument(documentID string) error
+	SearchDocumentsByText(limit int, userID string) (string, error)
 }
 
 type WeaviateClientImpl struct {
@@ -204,4 +207,46 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (string, error) {
+	className := "Documents"
+
+	name := graphql.Field{Name: "content"}
+	_additional := graphql.Field{
+		Name: "_additional", Fields: []graphql.Field{
+			{Name: "certainty"}, // only supported if distance==cosine
+			{Name: "distance"},  // always supported
+		},
+	}
+
+	concepts := []string{"dogs"}
+	distance := float32(0.6)
+	// moveAwayFrom := &graphql.MoveParameters{
+	// 	Concepts: []string{"finance"},
+	// 	Force:    0.45,
+	// }
+	// moveTo := &graphql.MoveParameters{
+	// 	Concepts: []string{"haute couture"},
+	// 	Force:    0.85,
+	// }
+	nearText := w.client.GraphQL().NearTextArgBuilder().
+		WithConcepts(concepts).
+		WithDistance(distance) // use WithCertainty(certainty) prior to v1.14
+		// WithMoveTo(moveTo).
+		// WithMoveAwayFrom(moveAwayFrom)
+
+	ctx := context.Background()
+
+	result, err := w.client.GraphQL().Get().
+		WithClassName(className).
+		WithFields(name, _additional).
+		WithNearText(nearText).
+		WithLimit(limit).
+		Do(ctx)
+
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%v", result), nil
 }
