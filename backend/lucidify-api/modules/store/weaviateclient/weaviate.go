@@ -220,7 +220,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (st
 		},
 	}
 
-	concepts := []string{"dogs"}
+	concepts := []string{"small animal that goes meow sometimes"}
 	distance := float32(0.6)
 	// moveAwayFrom := &graphql.MoveParameters{
 	// 	Concepts: []string{"finance"},

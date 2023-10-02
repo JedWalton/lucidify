@@ -121,11 +121,11 @@ func TestSearchDocumentsByText(t *testing.T) {
 
 	// Define a query and limit for the test
 	// query := "test"
-	limit := 3
+	top_k := 3
 	userID := "testuser1"
 
 	// Call the SearchDocumentsByText function
-	res, err := client.SearchDocumentsByText(limit, userID)
+	res, err := client.SearchDocumentsByText(top_k, userID)
 	// if err != nil {
 	// 	t.Fatalf("failed to search documents by text: %v", err)
 	// }
