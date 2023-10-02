@@ -3,7 +3,6 @@ package weaviateclient
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"lucidify-api/modules/config"
 
@@ -20,7 +19,7 @@ type WeaviateClient interface {
 	UpdateDocumentContent(documentID, content string) error
 	UpdateDocumentName(documentID, documentName string) error
 	DeleteDocument(documentID string) error
-	SearchDocumentsByText(limit int, userID string) (string, error)
+	SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error)
 }
 
 type WeaviateClientImpl struct {
@@ -210,10 +209,11 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	}
 }
 
-func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (string, error) {
+func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error) {
 	className := "Documents"
 
-	name := graphql.Field{Name: "content"}
+	documentName := graphql.Field{Name: "documentName"}
+	content := graphql.Field{Name: "content"}
 	_additional := graphql.Field{
 		Name: "_additional", Fields: []graphql.Field{
 			{Name: "certainty"}, // only supported if distance==cosine
@@ -221,7 +221,6 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (st
 		},
 	}
 
-	concepts := []string{"small animal that goes meow sometimes"}
 	distance := float32(0.6)
 	// moveAwayFrom := &graphql.MoveParameters{
 	// 	Concepts: []string{"finance"},
@@ -247,7 +246,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (st
 
 	result, err := w.client.GraphQL().Get().
 		WithClassName(className).
-		WithFields(name, _additional).
+		WithFields(documentName, content, _additional).
 		WithNearText(nearText).
 		WithLimit(limit).
 		WithWhere(whereFilter).
@@ -256,5 +255,5 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (st
 	if err != nil {
 		panic(err)
 	}
-	return fmt.Sprintf("%v", result), nil
+	return result, nil
 }

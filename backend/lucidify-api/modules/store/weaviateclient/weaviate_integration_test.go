@@ -3,6 +3,7 @@
 package weaviateclient
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -96,45 +97,92 @@ func TestSearchDocumentsByText(t *testing.T) {
 	}
 
 	users := []string{"testuser1", "testuser2", "testuser3"}
-	categories := map[string]string{
-		"testuser1": "Cats " + repeatString("cat ", 20),                         // Repeating "cat " 20 times to make up around 100 words
-		"testuser2": "Dogs " + repeatString("dog ", 20),                         // Repeating "dog " 20 times to make up around 100 words
-		"testuser3": "Vector Databases " + repeatString("vector database ", 10), // Repeating "vector database " 10 times to make up around 100 words
+	categories := map[string][]string{
+		"testuser1": {
+			`Put your first custom data for Cats here.`,
+			`Put your second custom data for Cats here.`,
+			`Put your third custom data for Cats here.`,
+			`Put your fourth custom data for Cats here.`,
+			`Put your fifth custom data for Cats here.`,
+		},
+		"testuser2": {
+			`Put your first custom data for Dogs here.`,
+			`Put your second custom data for Dogs here.`,
+			`Put your third custom data for Dogs here.`,
+			`Put your fourth custom data for Dogs here.`,
+			`Put your fifth custom data for Dogs here.`,
+		},
+		"testuser3": {
+			`Put your first custom data for Vector Databases here.`,
+			`Put your second custom data for Vector Databases here.`,
+			`Put your third custom data for Vector Databases here.`,
+			`Put your fourth custom data for Vector Databases here.`,
+			`Put your fifth custom data for Vector Databases here.`,
+		},
 	}
 
-	// Upload 20 documents
-	for i := 0; i < 20; i++ {
-		documentID := uuid.New().String()
-		user := users[i%3]           // Rotate between the three users
-		category := categories[user] // Get category associated with the user
-		err = weaviateClient.UploadDocument(documentID, user, "testdoc", category)
-		if err != nil {
-			t.Errorf("failed to upload document: %v", err)
+	// Keep track of uploaded document IDs for cleanup
+	var documentIDs []string
+
+	// Upload 5 documents for each user
+	for _, user := range users {
+		for i, category := range categories[user] {
+			documentID := uuid.New().String()
+			documentIDs = append(documentIDs, documentID) // Store the document ID
+			err = weaviateClient.UploadDocument(documentID, user, fmt.Sprintf("testdoc%d", i+1), category)
+			if err != nil {
+				t.Errorf("failed to upload document: %v", err)
+			}
 		}
 	}
 
-	t.Log("Initializing the Weaviate client")
-	client, err := NewWeaviateClient()
-	if err != nil {
-		t.Fatalf("failed to create weaviate client: %v", err)
-	}
+	// Defer cleanup: delete uploaded documents after test
+	defer func() {
+		for _, id := range documentIDs {
+			err := weaviateClient.DeleteDocument(id)
+			if err != nil {
+				t.Errorf("failed to delete document with ID %s: %v", id, err)
+			}
+		}
+	}()
 
 	// Define a query and limit for the test
-	// query := "test"
 	top_k := 3
-	userID := "testuser3"
+	userID := "testuser1"
 
+	concepts := []string{"small animal that goes meow sometimes"}
 	// Call the SearchDocumentsByText function
-	res, err := client.SearchDocumentsByText(top_k, userID)
-	// if err != nil {
-	// 	t.Fatalf("failed to search documents by text: %v", err)
-	// }
-	t.Logf("SearchDocumentsByText %v", res)
+	result, err := weaviateClient.SearchDocumentsByText(top_k, userID, concepts)
 
-	t.Fatalf("SearchDocumentsByText %v", res)
-	// Validate the results
-	// For example, check if the returned slice is not nil
+	if result != nil && result.Data != nil {
+		getData, ok := result.Data["Get"].(map[string]interface{})
+		if !ok {
+			t.Fatalf("unexpected format for 'Get' data")
+		}
 
-	// Additional validations can be added here
-	// For example, checking the length of the returned slice, checking the content of the returned documents, etc.
+		documents, ok := getData["Documents"].([]interface{})
+		if !ok {
+			t.Fatalf("unexpected format for 'Documents' data")
+		}
+
+		for _, document := range documents {
+			docMap, ok := document.(map[string]interface{})
+			if !ok {
+				t.Fatalf("unexpected format for 'document' data")
+			}
+
+			documentName := docMap["documentName"].(string)
+			content := docMap["content"].(string)
+			additional := docMap["_additional"].(map[string]interface{})
+			certainty := additional["certainty"].(float64)
+			distance := additional["distance"].(float64)
+
+			fmt.Printf("Document Name: %s\n", documentName)
+			fmt.Printf("Content: %s\n", content)
+			fmt.Printf("Certainty: %f\n", certainty)
+			fmt.Printf("Distance: %f\n", distance)
+		}
+	}
+
+	t.Fatalf("SearchDocumentsByText %v", result)
 }
