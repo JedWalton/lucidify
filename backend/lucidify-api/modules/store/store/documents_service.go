@@ -100,7 +100,7 @@ func (d *DocumentServiceImpl) UpdateDocumentName(documentUUID, name string) erro
 	}
 
 	// Try to update the name in Weaviate
-	err = d.weaviateDB.UpdateDocumentName(documentUUID, name)
+	err = d.weaviateDB.UpdateDocument(documentUUID, documentBeforeChange.UserID, name, documentBeforeChange.Content)
 	if err != nil {
 		// Log the error and try to revert the change in PostgreSQL
 		log.Printf("Failed to update document name in Weaviate: %v. Returning postgresql name back to original", err)
@@ -131,7 +131,7 @@ func (d *DocumentServiceImpl) UpdateDocumentContent(documentUUID, content string
 	}
 
 	// Update the content in the Weaviate database.
-	err = d.weaviateDB.UpdateDocumentContent(documentUUID, content)
+	err = d.weaviateDB.UpdateDocument(documentUUID, documentBeforeChange.UserID, documentBeforeChange.DocumentName, content)
 	if err != nil {
 		// If updating in Weaviate fails, rollback the change in PostgreSQL.
 		log.Printf("Failed to update document content in Weaviate: %v. Returning PostgreSQL content back to original", err)

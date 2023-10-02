@@ -16,8 +16,7 @@ type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
 	UploadDocument(documentID, userID, name, content string) error
 	GetDocument(documentID string) (*Document, error)
-	UpdateDocumentContent(documentID, content string) error
-	UpdateDocumentName(documentID, documentName string) error
+	UpdateDocument(documentID, userID, name, content string) error
 	DeleteDocument(documentID string) error
 	SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error)
 }
@@ -60,99 +59,6 @@ func (w *WeaviateClientImpl) GetWeaviateClient() *weaviate.Client {
 	return w.client
 }
 
-func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
-	document := map[string]interface{}{
-		"documentId":   documentID,
-		"userId":       userID,
-		"documentName": name,
-		"content":      content,
-	}
-
-	_, err := w.client.Data().Creator().
-		WithID(documentID).
-		WithClassName("Documents").
-		WithProperties(document).
-		Do(context.Background())
-
-	return err
-}
-
-func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
-	objects, err := w.client.Data().ObjectsGetter().
-		WithClassName("Documents").
-		WithID(documentID).
-		Do(context.Background())
-	if err != nil {
-		// handle error
-		return nil, err // it's better to return the error rather than panic
-	}
-
-	// If no objects are returned, return an error
-	if len(objects) == 0 {
-		return nil, errors.New("no documents found")
-	}
-
-	// Assume the first object is the one you're looking for
-	obj := objects[0]
-
-	// Convert the object to a Document
-	doc := &Document{
-		UserID:       obj.Properties.(map[string]interface{})["userId"].(string),
-		DocumentName: obj.Properties.(map[string]interface{})["documentName"].(string),
-		Content:      obj.Properties.(map[string]interface{})["content"].(string),
-	}
-
-	return doc, nil
-}
-
-func (w *WeaviateClientImpl) UpdateDocumentContent(documentID, content string) error {
-	document := map[string]interface{}{
-		"content": content,
-	}
-
-	err := w.client.Data().Updater().
-		WithMerge().
-		WithID(documentID).
-		WithClassName("Documents").
-		WithProperties(document).
-		Do(context.Background())
-
-	return err
-}
-
-func (w *WeaviateClientImpl) UpdateDocumentName(documentID, documentName string) error {
-	document := map[string]interface{}{
-		"documentName": documentName,
-	}
-
-	err := w.client.Data().Updater().
-		WithMerge().
-		WithID(documentID).
-		WithClassName("Documents").
-		WithProperties(document).
-		Do(context.Background())
-
-	return err
-}
-
-func (w *WeaviateClientImpl) DeleteDocument(documentID string) error {
-	err := w.client.Data().Deleter().
-		WithClassName("Documents").
-		WithID(documentID).
-		Do(context.Background())
-
-	return err
-}
-
-func classExists(client *weaviate.Client, className string) bool {
-	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
-	if err != nil {
-		return false
-	}
-	log.Printf("%v", schema)
-	return true
-}
-
 func createWeaviateDocumentsClass(client *weaviate.Client) {
 	if client == nil {
 		log.Println("Client is nil in createWeaviateDocumentsClass")
@@ -187,8 +93,13 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 			},
 			{
 				DataType:    []string{"text"},
-				Description: "Content of the document",
-				Name:        "content",
+				Description: "A chunk of the document content",
+				Name:        "chunk",
+			},
+			{
+				DataType:    []string{"int"},
+				Description: "Unique identifier of the chunk within the document",
+				Name:        "chunkId",
 			},
 			{
 				DataType:    []string{"date"},
@@ -207,6 +118,185 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+//	func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
+//		document := map[string]interface{}{
+//			"documentId":   documentID,
+//			"userId":       userID,
+//			"documentName": name,
+//			"content":      content,
+//		}
+//
+//		_, err := w.client.Data().Creator().
+//			WithID(documentID).
+//			WithClassName("Documents").
+//			WithProperties(document).
+//			Do(context.Background())
+//
+//		return err
+//	}
+
+// Helper function to split content into chunks
+func splitContentIntoChunks(content string, chunkSize int) []string {
+	var chunks []string
+	runes := []rune(content)
+
+	for i := 0; i < len(runes); i += chunkSize {
+		end := i + chunkSize
+		if end > len(runes) {
+			end = len(runes)
+		}
+		chunks = append(chunks, string(runes[i:end]))
+	}
+
+	return chunks
+}
+
+func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
+	// Split the content into chunks
+	chunkSize := 1000
+	chunks := splitContentIntoChunks(content, chunkSize)
+
+	for i, chunk := range chunks {
+		document := map[string]interface{}{
+			"documentId":   documentID,
+			"userId":       userID,
+			"documentName": name,
+			"chunk":        chunk,
+			"chunkId":      i,
+		}
+
+		_, err := w.client.Data().Creator().
+			WithID(documentID).
+			WithClassName("Documents").
+			WithProperties(document).
+			Do(context.Background())
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
+	objects, err := w.client.Data().ObjectsGetter().
+		WithClassName("Documents").
+		WithID(documentID).
+		Do(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	// If no objects are returned, return an error
+	if len(objects) == 0 {
+		return nil, errors.New("no documents found")
+	}
+
+	// Combine chunks to form the complete document content
+	var content string
+	for _, obj := range objects {
+		if obj.Properties == nil {
+			return nil, errors.New("properties does not exist")
+		}
+
+		chunkValue, exists := obj.Properties.(map[string]interface{})["chunk"]
+		if !exists || chunkValue == nil {
+			return nil, errors.New("chunk does not exist")
+		}
+		content += chunkValue.(string)
+	}
+
+	// Assume the first object is the one you're looking for
+	obj := objects[0]
+
+	// Additional checks for each field before type assertion
+	userID, ok := obj.Properties.(map[string]interface{})["userId"]
+	if !ok || userID == nil {
+		return nil, errors.New("userId does not exist")
+	}
+
+	documentName, ok := obj.Properties.(map[string]interface{})["documentName"]
+	if !ok || documentName == nil {
+		return nil, errors.New("documentName does not exist")
+	}
+
+	// Convert the object to a Document
+	doc := &Document{
+		UserID:       userID.(string),
+		DocumentName: documentName.(string),
+		Content:      content,
+	}
+
+	return doc, nil
+}
+
+//	func (w *WeaviateClientImpl) UpdateDocumentContent(documentID, content string) error {
+//		document := map[string]interface{}{
+//			"content": content,
+//		}
+//
+//		err := w.client.Data().Updater().
+//			WithMerge().
+//			WithID(documentID).
+//			WithClassName("Documents").
+//			WithProperties(document).
+//			Do(context.Background())
+//
+//		return err
+//	}
+func (w *WeaviateClientImpl) UpdateDocument(documentID, userID, name, content string) error {
+	// First, delete all existing chunks for the document
+	err := w.client.Data().Deleter().
+		WithClassName("Documents").
+		WithID(documentID).
+		Do(context.Background())
+	if err != nil {
+		return err
+	}
+
+	// Now, use the UploadDocument function to add the new content
+	err = w.UploadDocument(documentID, userID, name, content)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// func (w *WeaviateClientImpl) UpdateDocumentName(documentID, documentName string) error {
+// 	document := map[string]interface{}{
+// 		"documentName": documentName,
+// 	}
+//
+// 	err := w.client.Data().Updater().
+// 		WithMerge().
+// 		WithID(documentID).
+// 		WithClassName("Documents").
+// 		WithProperties(document).
+// 		Do(context.Background())
+//
+// 	return err
+// }
+
+func (w *WeaviateClientImpl) DeleteDocument(documentID string) error {
+	err := w.client.Data().Deleter().
+		WithClassName("Documents").
+		WithID(documentID).
+		Do(context.Background())
+
+	return err
+}
+
+func classExists(client *weaviate.Client, className string) bool {
+	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
+	if err != nil {
+		return false
+	}
+	log.Printf("%v", schema)
+	return true
 }
 
 func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error) {
