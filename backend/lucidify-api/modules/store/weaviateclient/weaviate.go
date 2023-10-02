@@ -8,6 +8,7 @@ import (
 	"lucidify-api/modules/config"
 
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
+	"github.com/weaviate/weaviate-go-client/v4/weaviate/filters"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate/graphql"
 	"github.com/weaviate/weaviate/entities/models"
 )
@@ -236,6 +237,12 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (st
 		// WithMoveTo(moveTo).
 		// WithMoveAwayFrom(moveAwayFrom)
 
+		// Creating the where filter
+	whereFilter := filters.Where().
+		WithPath([]string{"userId"}).
+		WithOperator(filters.Equal).
+		WithValueText(userID)
+
 	ctx := context.Background()
 
 	result, err := w.client.GraphQL().Get().
@@ -243,6 +250,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string) (st
 		WithFields(name, _additional).
 		WithNearText(nearText).
 		WithLimit(limit).
+		WithWhere(whereFilter).
 		Do(ctx)
 
 	if err != nil {

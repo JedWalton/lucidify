@@ -122,7 +122,7 @@ func TestSearchDocumentsByText(t *testing.T) {
 	// Define a query and limit for the test
 	// query := "test"
 	top_k := 3
-	userID := "testuser1"
+	userID := "testuser3"
 
 	// Call the SearchDocumentsByText function
 	res, err := client.SearchDocumentsByText(top_k, userID)
