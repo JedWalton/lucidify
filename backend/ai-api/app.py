@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, abort
-import spacy
 import os
 from dotenv import load_dotenv
 
@@ -9,14 +8,12 @@ SECRET_KEY = os.getenv("AI_API_SECRET_KEY")
 print(f"Loaded SECRET_KEY from .env: {SECRET_KEY}")  # Diagnostic print
 
 app = Flask(__name__)
-nlp = spacy.load("en_core_web_sm")
 
 @app.route('/split_sentences', methods=['POST'])
 def split_sentences():
     try:
         secret_key = request.headers.get('X-AI-API-KEY')
         print(f"Received AI_API_SECRET_KEY header: {secret_key}")  # Diagnostic print
-        print(request.headers)
 
         if not secret_key or secret_key != SECRET_KEY:
             print("Unauthorized due to mismatched or missing secret key.")  # Diagnostic print
@@ -26,9 +23,8 @@ def split_sentences():
         if not text:
             return jsonify({"error": "No text provided"}), 400
 
-        doc = nlp(text)
-        sentences = [sent.text for sent in doc.sents]
-        return jsonify(sentences)
+
+        return jsonify(text)
     except Exception as e:
         print(f"Exception occurred: {str(e)}")  # Diagnostic print
         return jsonify({"error": str(e)}), 500
