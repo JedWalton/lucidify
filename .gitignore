@@ -267,3 +267,8 @@ __pycache__/
 dist/
 build/
 
+
+
+# Virtual environment
+venv/
+env/
