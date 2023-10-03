@@ -153,10 +153,53 @@ func splitContentIntoChunks(content string, chunkSize int) []string {
 	return chunks
 }
 
+// func splitContentIntoChunks(content string) ([]string, error) {
+// 	cfg := config.NewServerConfig()
+//
+// 	url := cfg.AI_API_URL + "/split_sentences"
+// 	payload := map[string]string{
+// 		"text": content,
+// 	}
+// 	jsonPayload, err := json.Marshal(payload)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("X-AI-API-KEY", cfg.X_AI_API_KEY)
+//
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusOK {
+// 		body, _ := io.ReadAll(resp.Body)
+// 		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
+// 	}
+//
+// 	var chunks []string
+// 	if err := json.NewDecoder(resp.Body).Decode(&chunks); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return chunks, nil
+// }
+
 func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
 	// Split the content into chunks
 	chunkSize := 1000
 	chunks := splitContentIntoChunks(content, chunkSize)
+	// chunks, err := splitContentIntoChunks(content)
+	// if err != nil {
+	// 	return err
+	// }
 
 	for i, chunk := range chunks {
 		document := map[string]interface{}{
