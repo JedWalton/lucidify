@@ -161,7 +161,7 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 func splitContentIntoChunks(content string) ([]string, error) {
 	cfg := config.NewServerConfig()
 
-	url := cfg.AI_API_URL + "/split_sentences"
+	url := cfg.AI_API_URL + "/split_text_to_chunks"
 	payload := map[string]string{
 		"text": content,
 	}

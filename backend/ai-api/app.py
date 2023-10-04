@@ -18,7 +18,7 @@ print(f"Loaded SECRET_KEY from .env: {SECRET_KEY}")  # Diagnostic print
 app = Flask(__name__)
 
 
-@app.route('/split_sentences', methods=['POST'])
+@app.route('/split_text_to_chunks', methods=['POST'])
 def split_sentences():
     try:
         secret_key = request.headers.get('X-AI-API-KEY')
@@ -32,8 +32,7 @@ def split_sentences():
         if not text:
             return jsonify({"error": "No text provided"}), 400
 
-        # tt = TextTilingTokenizer()
-        tt = TextTilingTokenizer(w=20, k=2)
+        tt = TextTilingTokenizer(w=20, k=10)
 
         try:
             segments = tt.tokenize(text)

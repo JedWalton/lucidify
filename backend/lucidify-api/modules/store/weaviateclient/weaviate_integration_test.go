@@ -91,20 +91,36 @@ func repeatString(str string, count int) string {
 }
 
 func TestSplitContentIntoChunks(t *testing.T) {
-	// Sample content to be split
-	contentBytes, err := os.ReadFile("test_doc.txt")
-	if err != nil {
-		t.Fatalf("failed to read test file: %v", err)
+	// Define a struct for test cases
+	type testCase struct {
+		filename       string
+		expectedChunks int
 	}
-	content := string(contentBytes)
 
-	// Use the function to split the content
-	chunks, err := splitContentIntoChunks(content)
-	if err != nil {
-		t.Errorf("failed to split content: %v", err)
+	// Create a slice of test cases
+	testCases := []testCase{
+		{"test_doc_dogs.txt", 4},
+		{"test_doc_cats.txt", 4},
+		{"test_doc_vector_databases.txt", 4},
 	}
-	if len(chunks) != 3 {
-		t.Errorf("incorrect number of chunks: %v", len(chunks))
+
+	for _, tc := range testCases {
+		t.Run(tc.filename, func(t *testing.T) {
+			contentBytes, err := os.ReadFile(tc.filename)
+			if err != nil {
+				t.Fatalf("failed to read test file: %v", err)
+			}
+			content := string(contentBytes)
+
+			// Use the function to split the content
+			chunks, err := splitContentIntoChunks(content)
+			if err != nil {
+				t.Errorf("failed to split content: %v", err)
+			}
+			if len(chunks) != tc.expectedChunks {
+				t.Errorf("incorrect number of chunks: got %v, want %v", len(chunks), tc.expectedChunks)
+			}
+		})
 	}
 }
 
