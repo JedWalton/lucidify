@@ -34,17 +34,17 @@ services:
     env_file:
       - ../.env
 
-  # ai-api:
-  #   image: backend/ai-api
-  #   build:
-  #     context: ../backend/ai-api
-  #     dockerfile: Dockerfile.dev
-  #   ports:
-  #     - "5000:5000"
-  #   volumes:
-  #     - ../backend/ai-api:/app
-  #   env_file:
-  #     - ../.env
+  ai-api:
+    image: backend/ai-api
+    build:
+      context: ../backend/ai-api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../backend/ai-api:/app
+    env_file:
+      - ../.env
 
   weaviate:
     image: semitechnologies/weaviate:1.21.3

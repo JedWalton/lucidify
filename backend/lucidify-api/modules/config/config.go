@@ -21,6 +21,8 @@ type ServerConfig struct {
 	ClerkSecretKey      string
 	TestJWTSessionToken string
 	TestUserID          string
+	X_AI_API_KEY        string
+	AI_API_URL          string
 }
 
 func getGitRoot() (string, error) {
@@ -93,6 +95,16 @@ func NewServerConfig() *ServerConfig {
 			"in development, or this is production and thus not an issue.")
 	}
 
+	X_AI_API_KEY := os.Getenv("X_AI_API_KEY")
+	if X_AI_API_KEY == "" {
+		log.Fatal("AI_API_KEY environment variable is not set")
+	}
+
+	AI_API_URL := os.Getenv("AI_API_URL")
+	if AI_API_URL == "" {
+		log.Fatal("AI_API_URL environment variable is not set")
+	}
+
 	return &ServerConfig{
 		OPENAI_API_KEY:      OPENAI_API_KEY,
 		AllowedOrigins:      allowedOrigins,
@@ -103,5 +115,7 @@ func NewServerConfig() *ServerConfig {
 		ClerkSecretKey:      clerkSecretKey,
 		TestJWTSessionToken: testJWTSessionToken,
 		TestUserID:          testUserID,
+		X_AI_API_KEY:        X_AI_API_KEY,
+		AI_API_URL:          AI_API_URL,
 	}
 }
