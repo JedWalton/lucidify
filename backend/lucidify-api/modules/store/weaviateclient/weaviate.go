@@ -214,7 +214,7 @@ func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content st
 		}
 
 		_, err := w.client.Data().Creator().
-			WithID(documentID).
+			// WithID(documentID).
 			WithClassName("Documents").
 			WithProperties(document).
 			Do(context.Background())

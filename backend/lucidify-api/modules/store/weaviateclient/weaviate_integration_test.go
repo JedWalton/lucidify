@@ -100,7 +100,7 @@ func TestSplitContentIntoChunks(t *testing.T) {
 
 	// Create a slice of test cases
 	testCases := []testCase{
-		{"test_doc_dogs.txt", 4},
+		{"test_doc_user1_01.txt", 4},
 		{"test_doc_cats.txt", 4},
 		{"test_doc_vector_databases.txt", 4},
 	}
@@ -124,15 +124,31 @@ func TestSplitContentIntoChunks(t *testing.T) {
 	}
 }
 
-func setupDocuments(client WeaviateClient, users []string, categories map[string][]string) ([]string, error) {
+func setupDocuments(client WeaviateClient) ([]string, error) {
 	var documentIDs []string
 
-	for _, user := range users {
-		for i, category := range categories[user] {
+	userDocuments := map[string][]string{
+		"testuser1": {
+			"test_doc_user1_01.txt",
+			// "test_doc_testuser1_02.txt",
+			// "test_doc_testuser1_03.txt",
+		},
+		// Add more users and their documents as needed
+	}
+
+	for user, docs := range userDocuments {
+		for _, doc := range docs {
 			documentID := uuid.New().String()
 			documentIDs = append(documentIDs, documentID)
-			if err := client.UploadDocument(documentID, user, fmt.Sprintf("testdoc%d", i+1), category); err != nil {
-				return nil, fmt.Errorf("failed to upload document: %v", err)
+
+			content, err := readFileContent(doc)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read file content for %s: %v", doc, err)
+			}
+
+			// Assuming the document name in the UploadDocument function is the same as the filename
+			if err := client.UploadDocument(documentID, user, doc, content); err != nil {
+				return nil, fmt.Errorf("failed to upload document %s for user %s: %v", doc, user, err)
 			}
 		}
 	}
@@ -155,33 +171,8 @@ func TestSearchDocumentsByText(t *testing.T) {
 		t.Fatalf("failed to create weaviate client: %v", err)
 	}
 
-	users := []string{"testuser1", "testuser2", "testuser3"}
-	documents := map[string][]string{
-		"testuser1": {
-			`Put your first custom data for Cats here.`,
-			`Put your second custom data for Cats here.`,
-			`Put your third custom data for Cats here.`,
-			`Put your fourth custom data for Cats here.`,
-			`Put your fifth custom data for Cats here.`,
-		},
-		"testuser2": {
-			`Put your first custom data for Dogs here.`,
-			`Put your second custom data for Dogs here.`,
-			`Put your third custom data for Dogs here.`,
-			`Put your fourth custom data for Dogs here.`,
-			`Put your fifth custom data for Dogs here.`,
-		},
-		"testuser3": {
-			`Put your first custom data for Vector Databases here.`,
-			`Put your second custom data for Vector Databases here.`,
-			`Put your third custom data for Vector Databases here.`,
-			`Put your fourth custom data for Vector Databases here.`,
-			`Put your fifth custom data for Vector Databases here.`,
-		},
-	}
-
 	// Keep track of uploaded document IDs for cleanup
-	documentIDs, err := setupDocuments(weaviateClient, users, documents)
+	documentIDs, err := setupDocuments(weaviateClient)
 	if err != nil {
 		t.Fatalf("setup failed: %v", err)
 	}
