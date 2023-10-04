@@ -3,8 +3,8 @@
 package weaviateclient
 
 import (
+	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -82,12 +82,13 @@ func TestWeaviateClient(t *testing.T) {
 	}
 }
 
-func repeatString(str string, count int) string {
-	var repeated strings.Builder
-	for i := 0; i < count; i++ {
-		repeated.WriteString(str)
+// Helper function to read the content of a file and return it as a string
+func readFileContent(filename string) (string, error) {
+	contentBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
 	}
-	return repeated.String()
+	return string(contentBytes), nil
 }
 
 func TestSplitContentIntoChunks(t *testing.T) {
@@ -106,11 +107,10 @@ func TestSplitContentIntoChunks(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.filename, func(t *testing.T) {
-			contentBytes, err := os.ReadFile(tc.filename)
+			content, err := readFileContent(tc.filename)
 			if err != nil {
-				t.Fatalf("failed to read test file: %v", err)
+				t.Errorf("failed to read file content: %v", err)
 			}
-			content := string(contentBytes)
 
 			// Use the function to split the content
 			chunks, err := splitContentIntoChunks(content)
@@ -124,61 +124,76 @@ func TestSplitContentIntoChunks(t *testing.T) {
 	}
 }
 
-// func TestSearchDocumentsByText(t *testing.T) {
-// 	weaviateClient, err := NewWeaviateClient()
-// 	if err != nil {
-// 		t.Fatalf("failed to create weaviate client: %v", err)
-// 	}
-//
-// 	users := []string{"testuser1", "testuser2", "testuser3"}
-// 	categories := map[string][]string{
-// 		"testuser1": {
-// 			`Put your first custom data for Cats here.`,
-// 			`Put your second custom data for Cats here.`,
-// 			`Put your third custom data for Cats here.`,
-// 			`Put your fourth custom data for Cats here.`,
-// 			`Put your fifth custom data for Cats here.`,
-// 		},
-// 		"testuser2": {
-// 			`Put your first custom data for Dogs here.`,
-// 			`Put your second custom data for Dogs here.`,
-// 			`Put your third custom data for Dogs here.`,
-// 			`Put your fourth custom data for Dogs here.`,
-// 			`Put your fifth custom data for Dogs here.`,
-// 		},
-// 		"testuser3": {
-// 			`Put your first custom data for Vector Databases here.`,
-// 			`Put your second custom data for Vector Databases here.`,
-// 			`Put your third custom data for Vector Databases here.`,
-// 			`Put your fourth custom data for Vector Databases here.`,
-// 			`Put your fifth custom data for Vector Databases here.`,
-// 		},
-// 	}
-//
-// 	// Keep track of uploaded document IDs for cleanup
-// 	var documentIDs []string
-//
-// 	// Upload 5 documents for each user
-// 	for _, user := range users {
-// 		for i, category := range categories[user] {
-// 			documentID := uuid.New().String()
-// 			documentIDs = append(documentIDs, documentID) // Store the document ID
-// 			err = weaviateClient.UploadDocument(documentID, user, fmt.Sprintf("testdoc%d", i+1), category)
-// 			if err != nil {
-// 				t.Errorf("failed to upload document: %v", err)
-// 			}
-// 		}
-// 	}
-//
-// 	// Defer cleanup: delete uploaded documents after test
-// 	defer func() {
-// 		for _, id := range documentIDs {
-// 			err := weaviateClient.DeleteDocument(id)
-// 			if err != nil {
-// 				t.Errorf("failed to delete document with ID %s: %v", id, err)
-// 			}
-// 		}
-// 	}()
+func setupDocuments(client WeaviateClient, users []string, categories map[string][]string) ([]string, error) {
+	var documentIDs []string
+
+	for _, user := range users {
+		for i, category := range categories[user] {
+			documentID := uuid.New().String()
+			documentIDs = append(documentIDs, documentID)
+			if err := client.UploadDocument(documentID, user, fmt.Sprintf("testdoc%d", i+1), category); err != nil {
+				return nil, fmt.Errorf("failed to upload document: %v", err)
+			}
+		}
+	}
+
+	return documentIDs, nil
+}
+
+func teardownDocuments(client WeaviateClient, documentIDs []string) error {
+	for _, id := range documentIDs {
+		if err := client.DeleteDocument(id); err != nil {
+			return fmt.Errorf("failed to delete document with ID %s: %v", id, err)
+		}
+	}
+	return nil
+}
+
+func TestSearchDocumentsByText(t *testing.T) {
+	weaviateClient, err := NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("failed to create weaviate client: %v", err)
+	}
+
+	users := []string{"testuser1", "testuser2", "testuser3"}
+	documents := map[string][]string{
+		"testuser1": {
+			`Put your first custom data for Cats here.`,
+			`Put your second custom data for Cats here.`,
+			`Put your third custom data for Cats here.`,
+			`Put your fourth custom data for Cats here.`,
+			`Put your fifth custom data for Cats here.`,
+		},
+		"testuser2": {
+			`Put your first custom data for Dogs here.`,
+			`Put your second custom data for Dogs here.`,
+			`Put your third custom data for Dogs here.`,
+			`Put your fourth custom data for Dogs here.`,
+			`Put your fifth custom data for Dogs here.`,
+		},
+		"testuser3": {
+			`Put your first custom data for Vector Databases here.`,
+			`Put your second custom data for Vector Databases here.`,
+			`Put your third custom data for Vector Databases here.`,
+			`Put your fourth custom data for Vector Databases here.`,
+			`Put your fifth custom data for Vector Databases here.`,
+		},
+	}
+
+	// Keep track of uploaded document IDs for cleanup
+	documentIDs, err := setupDocuments(weaviateClient, users, documents)
+	if err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	defer func() {
+		if err := teardownDocuments(weaviateClient, documentIDs); err != nil {
+			t.Errorf("teardown failed: %v", err)
+		}
+	}()
+
+}
+
 //
 // 	// Define a query and limit for the test
 // 	top_k := 3
