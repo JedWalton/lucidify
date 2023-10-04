@@ -29,11 +29,12 @@ def split_sentences():
             abort(401, description="Unauthorized")
 
         text = request.json.get('text', "")
-        text = sanitize_input(text)
         if not text:
             return jsonify({"error": "No text provided"}), 400
 
-        tt = TextTilingTokenizer()
+        # tt = TextTilingTokenizer()
+        tt = TextTilingTokenizer(w=20, k=2)
+
         try:
             segments = tt.tokenize(text)
         except ValueError as e:
@@ -46,19 +47,6 @@ def split_sentences():
     except Exception as e:
         print(f"Exception occurred: {str(e)}")  # Diagnostic print
         return jsonify({"error": str(e)}), 500
-
-def sanitize_input(text):
-    """Sanitize the input text by removing control characters and ensuring it's a string."""
-    if not isinstance(text, str):
-        return "Invalid input. Expected a string."
-    
-    # Remove control characters
-    sanitized_text = re.sub(r'[\x00-\x1f\x7f-\x9f]', ' ', text)
-    
-    # Replace multiple spaces with a single space
-    sanitized_text = re.sub(r'\s+', ' ', sanitized_text).strip()
-
-    return sanitized_text
 
 @app.errorhandler(500)
 def internal_error(error):

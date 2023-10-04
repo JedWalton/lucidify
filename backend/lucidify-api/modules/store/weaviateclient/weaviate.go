@@ -198,9 +198,7 @@ func splitContentIntoChunks(content string) ([]string, error) {
 }
 
 func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
-	// Split the content into chunks
-	// chunkSize := 1000
-	// chunks := splitContentIntoChunks(content, chunkSize)
+
 	chunks, err := splitContentIntoChunks(content)
 	if err != nil {
 		return err

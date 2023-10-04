@@ -3,6 +3,7 @@
 package weaviateclient
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -87,6 +88,24 @@ func repeatString(str string, count int) string {
 		repeated.WriteString(str)
 	}
 	return repeated.String()
+}
+
+func TestSplitContentIntoChunks(t *testing.T) {
+	// Sample content to be split
+	contentBytes, err := os.ReadFile("test_doc.txt")
+	if err != nil {
+		t.Fatalf("failed to read test file: %v", err)
+	}
+	content := string(contentBytes)
+
+	// Use the function to split the content
+	chunks, err := splitContentIntoChunks(content)
+	if err != nil {
+		t.Errorf("failed to split content: %v", err)
+	}
+	if len(chunks) != 3 {
+		t.Errorf("incorrect number of chunks: %v", len(chunks))
+	}
 }
 
 // func TestSearchDocumentsByText(t *testing.T) {
