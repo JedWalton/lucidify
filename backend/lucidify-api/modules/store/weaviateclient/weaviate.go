@@ -12,18 +12,16 @@ import (
 	"net/http"
 
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
-	"github.com/weaviate/weaviate-go-client/v4/weaviate/filters"
-	"github.com/weaviate/weaviate-go-client/v4/weaviate/graphql"
 	"github.com/weaviate/weaviate/entities/models"
 )
 
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
 	UploadDocument(documentID, userID, name, content string) error
-	GetDocument(documentID string) (*Document, error)
-	UpdateDocument(documentID, userID, name, content string) error
-	DeleteDocument(documentID string) error
-	SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error)
+	// GetDocument(documentID string) (*Document, error)
+	// UpdateDocument(documentID, userID, name, content string) error
+	// DeleteDocument(documentID string) error
+	// SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error)
 }
 
 type WeaviateClientImpl struct {
@@ -227,58 +225,58 @@ func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content st
 	return nil
 }
 
-func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
-	objects, err := w.client.Data().ObjectsGetter().
-		WithClassName("Documents").
-		WithID(documentID).
-		Do(context.Background())
-
-	if err != nil {
-		return nil, err
-	}
-
-	// If no objects are returned, return an error
-	if len(objects) == 0 {
-		return nil, errors.New("no documents found")
-	}
-
-	// Combine chunks to form the complete document content
-	var content string
-	for _, obj := range objects {
-		if obj.Properties == nil {
-			return nil, errors.New("properties does not exist")
-		}
-
-		chunkValue, exists := obj.Properties.(map[string]interface{})["chunk"]
-		if !exists || chunkValue == nil {
-			return nil, errors.New("chunk does not exist")
-		}
-		content += chunkValue.(string)
-	}
-
-	// Assume the first object is the one you're looking for
-	obj := objects[0]
-
-	// Additional checks for each field before type assertion
-	userID, ok := obj.Properties.(map[string]interface{})["userId"]
-	if !ok || userID == nil {
-		return nil, errors.New("userId does not exist")
-	}
-
-	documentName, ok := obj.Properties.(map[string]interface{})["documentName"]
-	if !ok || documentName == nil {
-		return nil, errors.New("documentName does not exist")
-	}
-
-	// Convert the object to a Document
-	doc := &Document{
-		UserID:       userID.(string),
-		DocumentName: documentName.(string),
-		Content:      content,
-	}
-
-	return doc, nil
-}
+// func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
+// 	objects, err := w.client.Data().ObjectsGetter().
+// 		WithClassName("Documents").
+// 		WithID(documentID).
+// 		Do(context.Background())
+//
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// If no objects are returned, return an error
+// 	if len(objects) == 0 {
+// 		return nil, errors.New("no documents found")
+// 	}
+//
+// 	// Combine chunks to form the complete document content
+// 	var content string
+// 	for _, obj := range objects {
+// 		if obj.Properties == nil {
+// 			return nil, errors.New("properties does not exist")
+// 		}
+//
+// 		chunkValue, exists := obj.Properties.(map[string]interface{})["chunk"]
+// 		if !exists || chunkValue == nil {
+// 			return nil, errors.New("chunk does not exist")
+// 		}
+// 		content += chunkValue.(string)
+// 	}
+//
+// 	// Assume the first object is the one you're looking for
+// 	obj := objects[0]
+//
+// 	// Additional checks for each field before type assertion
+// 	userID, ok := obj.Properties.(map[string]interface{})["userId"]
+// 	if !ok || userID == nil {
+// 		return nil, errors.New("userId does not exist")
+// 	}
+//
+// 	documentName, ok := obj.Properties.(map[string]interface{})["documentName"]
+// 	if !ok || documentName == nil {
+// 		return nil, errors.New("documentName does not exist")
+// 	}
+//
+// 	// Convert the object to a Document
+// 	doc := &Document{
+// 		UserID:       userID.(string),
+// 		DocumentName: documentName.(string),
+// 		Content:      content,
+// 	}
+//
+// 	return doc, nil
+// }
 
 //	func (w *WeaviateClientImpl) UpdateDocumentContent(documentID, content string) error {
 //		document := map[string]interface{}{
@@ -294,23 +292,23 @@ func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
 //
 //		return err
 //	}
-func (w *WeaviateClientImpl) UpdateDocument(documentID, userID, name, content string) error {
-	// First, delete all existing chunks for the document
-	err := w.client.Data().Deleter().
-		WithClassName("Documents").
-		WithID(documentID).
-		Do(context.Background())
-	if err != nil {
-		return err
-	}
-
-	// Now, use the UploadDocument function to add the new content
-	err = w.UploadDocument(documentID, userID, name, content)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (w *WeaviateClientImpl) UpdateDocument(documentID, userID, name, content string) error {
+// 	// First, delete all existing chunks for the document
+// 	err := w.client.Data().Deleter().
+// 		WithClassName("Documents").
+// 		WithID(documentID).
+// 		Do(context.Background())
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	// Now, use the UploadDocument function to add the new content
+// 	err = w.UploadDocument(documentID, userID, name, content)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // func (w *WeaviateClientImpl) UpdateDocumentName(documentID, documentName string) error {
 // 	document := map[string]interface{}{
@@ -327,14 +325,14 @@ func (w *WeaviateClientImpl) UpdateDocument(documentID, userID, name, content st
 // 	return err
 // }
 
-func (w *WeaviateClientImpl) DeleteDocument(documentID string) error {
-	err := w.client.Data().Deleter().
-		WithClassName("Documents").
-		WithID(documentID).
-		Do(context.Background())
-
-	return err
-}
+// func (w *WeaviateClientImpl) DeleteDocument(documentID string) error {
+// 	err := w.client.Data().Deleter().
+// 		WithClassName("Documents").
+// 		WithID(documentID).
+// 		Do(context.Background())
+//
+// 	return err
+// }
 
 func classExists(client *weaviate.Client, className string) bool {
 	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
@@ -345,51 +343,51 @@ func classExists(client *weaviate.Client, className string) bool {
 	return true
 }
 
-func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error) {
-	className := "Documents"
-
-	documentName := graphql.Field{Name: "documentName"}
-	content := graphql.Field{Name: "content"}
-	_additional := graphql.Field{
-		Name: "_additional", Fields: []graphql.Field{
-			{Name: "certainty"}, // only supported if distance==cosine
-			{Name: "distance"},  // always supported
-		},
-	}
-
-	distance := float32(0.6)
-	// moveAwayFrom := &graphql.MoveParameters{
-	// 	Concepts: []string{"finance"},
-	// 	Force:    0.45,
-	// }
-	// moveTo := &graphql.MoveParameters{
-	// 	Concepts: []string{"haute couture"},
-	// 	Force:    0.85,
-	// }
-	nearText := w.client.GraphQL().NearTextArgBuilder().
-		WithConcepts(concepts).
-		WithDistance(distance) // use WithCertainty(certainty) prior to v1.14
-		// WithMoveTo(moveTo).
-		// WithMoveAwayFrom(moveAwayFrom)
-
-		// Creating the where filter
-	whereFilter := filters.Where().
-		WithPath([]string{"userId"}).
-		WithOperator(filters.Equal).
-		WithValueText(userID)
-
-	ctx := context.Background()
-
-	result, err := w.client.GraphQL().Get().
-		WithClassName(className).
-		WithFields(documentName, content, _additional).
-		WithNearText(nearText).
-		WithLimit(limit).
-		WithWhere(whereFilter).
-		Do(ctx)
-
-	if err != nil {
-		panic(err)
-	}
-	return result, nil
-}
+// func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error) {
+// 	className := "Documents"
+//
+// 	documentName := graphql.Field{Name: "documentName"}
+// 	content := graphql.Field{Name: "content"}
+// 	_additional := graphql.Field{
+// 		Name: "_additional", Fields: []graphql.Field{
+// 			{Name: "certainty"}, // only supported if distance==cosine
+// 			{Name: "distance"},  // always supported
+// 		},
+// 	}
+//
+// 	distance := float32(0.6)
+// 	// moveAwayFrom := &graphql.MoveParameters{
+// 	// 	Concepts: []string{"finance"},
+// 	// 	Force:    0.45,
+// 	// }
+// 	// moveTo := &graphql.MoveParameters{
+// 	// 	Concepts: []string{"haute couture"},
+// 	// 	Force:    0.85,
+// 	// }
+// 	nearText := w.client.GraphQL().NearTextArgBuilder().
+// 		WithConcepts(concepts).
+// 		WithDistance(distance) // use WithCertainty(certainty) prior to v1.14
+// 		// WithMoveTo(moveTo).
+// 		// WithMoveAwayFrom(moveAwayFrom)
+//
+// 		// Creating the where filter
+// 	whereFilter := filters.Where().
+// 		WithPath([]string{"userId"}).
+// 		WithOperator(filters.Equal).
+// 		WithValueText(userID)
+//
+// 	ctx := context.Background()
+//
+// 	result, err := w.client.GraphQL().Get().
+// 		WithClassName(className).
+// 		WithFields(documentName, content, _additional).
+// 		WithNearText(nearText).
+// 		WithLimit(limit).
+// 		WithWhere(whereFilter).
+// 		Do(ctx)
+//
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return result, nil
+// }

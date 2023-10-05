@@ -31,3 +31,15 @@ CREATE TABLE documents (
 
 -- Index on user_id for the documents table remains unchanged
 CREATE INDEX idx_documents_user_id ON documents(user_id);
+
+-- Chunks table
+CREATE TABLE document_chunks (
+    chunk_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    chunk_content TEXT NOT NULL,
+    chunk_index INT NOT NULL -- To keep track of the order of chunks for a document
+);
+
+-- Index on document_id for the document_chunks table
+CREATE INDEX idx_document_chunks_document_id ON document_chunks(document_id);
+

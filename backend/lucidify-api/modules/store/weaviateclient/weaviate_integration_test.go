@@ -3,8 +3,6 @@
 package weaviateclient
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -22,168 +20,169 @@ func TestWeaviateClient(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to upload document: %v", err)
 	}
-
-	document, err := weaviateClient.GetDocument(documentID)
-	if err != nil {
-		t.Errorf("failed to get document: %v", err)
-	}
-	t.Logf("document: %+v", document)
-	if document.UserID != "testuser" {
-		t.Errorf("document owner is incorrect: %v", document.UserID)
-	}
-	if document.DocumentName != "testdoc" {
-		t.Errorf("document name is incorrect: %v", document.DocumentName)
-	}
-	if document.Content != "test content" {
-		t.Errorf("document content is incorrect: %v", document.Content)
-	}
-
-	// Test updating a document content
-	err = weaviateClient.UpdateDocument(documentID, "testuser", "testdoc", "updated test content")
-	if err != nil {
-		t.Errorf("failed to update document: %v", err)
-	}
-	document, err = weaviateClient.GetDocument(documentID)
-	if document.Content != "updated test content" {
-		t.Errorf("document content is incorrect: %v", document.Content)
-	}
-	if document.DocumentName != "testdoc" {
-		t.Errorf("document name is incorrect: %v", document.DocumentName)
-	}
-	if document.UserID != "testuser" {
-		t.Errorf("document owner is incorrect: %v", document.UserID)
-	}
-
-	// Test updating a document name
-	err = weaviateClient.UpdateDocument(documentID, "testuser", "updated testdoc name", "updated test content")
-	if err != nil {
-		t.Errorf("failed to update document: %v", err)
-	}
-	document, err = weaviateClient.GetDocument(documentID)
-	if document.Content != "updated test content" {
-		t.Errorf("document content is incorrect: %v", document.Content)
-	}
-	if document.DocumentName != "updated testdoc name" {
-		t.Errorf("document name is incorrect: %v", document.DocumentName)
-	}
-	if document.UserID != "testuser" {
-		t.Errorf("document owner is incorrect: %v", document.UserID)
-	}
-
-	// Test deleting a document
-	err = weaviateClient.DeleteDocument(documentID)
-	if err != nil {
-		t.Errorf("failed to delete document: %v", err)
-	}
-
-	_, err = weaviateClient.GetDocument(documentID)
-	if err == nil {
-		t.Errorf("document was not deleted")
-	}
 }
 
-// Helper function to read the content of a file and return it as a string
-func readFileContent(filename string) (string, error) {
-	contentBytes, err := os.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(contentBytes), nil
-}
-
-func TestSplitContentIntoChunks(t *testing.T) {
-	// Define a struct for test cases
-	type testCase struct {
-		filename       string
-		expectedChunks int
-	}
-
-	// Create a slice of test cases
-	testCases := []testCase{
-		{"test_doc_user1_01.txt", 4},
-		{"test_doc_cats.txt", 4},
-		{"test_doc_vector_databases.txt", 4},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.filename, func(t *testing.T) {
-			content, err := readFileContent(tc.filename)
-			if err != nil {
-				t.Errorf("failed to read file content: %v", err)
-			}
-
-			// Use the function to split the content
-			chunks, err := splitContentIntoChunks(content)
-			if err != nil {
-				t.Errorf("failed to split content: %v", err)
-			}
-			if len(chunks) != tc.expectedChunks {
-				t.Errorf("incorrect number of chunks: got %v, want %v", len(chunks), tc.expectedChunks)
-			}
-		})
-	}
-}
-
-func setupDocuments(client WeaviateClient) ([]string, error) {
-	var documentIDs []string
-
-	userDocuments := map[string][]string{
-		"testuser1": {
-			"test_doc_user1_01.txt",
-			// "test_doc_testuser1_02.txt",
-			// "test_doc_testuser1_03.txt",
-		},
-		// Add more users and their documents as needed
-	}
-
-	for user, docs := range userDocuments {
-		for _, doc := range docs {
-			documentID := uuid.New().String()
-			documentIDs = append(documentIDs, documentID)
-
-			content, err := readFileContent(doc)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read file content for %s: %v", doc, err)
-			}
-
-			// Assuming the document name in the UploadDocument function is the same as the filename
-			if err := client.UploadDocument(documentID, user, doc, content); err != nil {
-				return nil, fmt.Errorf("failed to upload document %s for user %s: %v", doc, user, err)
-			}
-		}
-	}
-
-	return documentIDs, nil
-}
-
-func teardownDocuments(client WeaviateClient, documentIDs []string) error {
-	for _, id := range documentIDs {
-		if err := client.DeleteDocument(id); err != nil {
-			return fmt.Errorf("failed to delete document with ID %s: %v", id, err)
-		}
-	}
-	return nil
-}
-
-func TestSearchDocumentsByText(t *testing.T) {
-	weaviateClient, err := NewWeaviateClient()
-	if err != nil {
-		t.Fatalf("failed to create weaviate client: %v", err)
-	}
-
-	// Keep track of uploaded document IDs for cleanup
-	documentIDs, err := setupDocuments(weaviateClient)
-	if err != nil {
-		t.Fatalf("setup failed: %v", err)
-	}
-
-	defer func() {
-		if err := teardownDocuments(weaviateClient, documentIDs); err != nil {
-			t.Errorf("teardown failed: %v", err)
-		}
-	}()
-
-}
+// 	document, err := weaviateClient.GetDocument(documentID)
+// 	if err != nil {
+// 		t.Errorf("failed to get document: %v", err)
+// 	}
+// 	t.Logf("document: %+v", document)
+// 	if document.UserID != "testuser" {
+// 		t.Errorf("document owner is incorrect: %v", document.UserID)
+// 	}
+// 	if document.DocumentName != "testdoc" {
+// 		t.Errorf("document name is incorrect: %v", document.DocumentName)
+// 	}
+// 	if document.Content != "test content" {
+// 		t.Errorf("document content is incorrect: %v", document.Content)
+// 	}
+//
+// 	// Test updating a document content
+// 	err = weaviateClient.UpdateDocument(documentID, "testuser", "testdoc", "updated test content")
+// 	if err != nil {
+// 		t.Errorf("failed to update document: %v", err)
+// 	}
+// 	document, err = weaviateClient.GetDocument(documentID)
+// 	if document.Content != "updated test content" {
+// 		t.Errorf("document content is incorrect: %v", document.Content)
+// 	}
+// 	if document.DocumentName != "testdoc" {
+// 		t.Errorf("document name is incorrect: %v", document.DocumentName)
+// 	}
+// 	if document.UserID != "testuser" {
+// 		t.Errorf("document owner is incorrect: %v", document.UserID)
+// 	}
+//
+// 	// Test updating a document name
+// 	err = weaviateClient.UpdateDocument(documentID, "testuser", "updated testdoc name", "updated test content")
+// 	if err != nil {
+// 		t.Errorf("failed to update document: %v", err)
+// 	}
+// 	document, err = weaviateClient.GetDocument(documentID)
+// 	if document.Content != "updated test content" {
+// 		t.Errorf("document content is incorrect: %v", document.Content)
+// 	}
+// 	if document.DocumentName != "updated testdoc name" {
+// 		t.Errorf("document name is incorrect: %v", document.DocumentName)
+// 	}
+// 	if document.UserID != "testuser" {
+// 		t.Errorf("document owner is incorrect: %v", document.UserID)
+// 	}
+//
+// 	// Test deleting a document
+// 	err = weaviateClient.DeleteDocument(documentID)
+// 	if err != nil {
+// 		t.Errorf("failed to delete document: %v", err)
+// 	}
+//
+// 	_, err = weaviateClient.GetDocument(documentID)
+// 	if err == nil {
+// 		t.Errorf("document was not deleted")
+// 	}
+// }
+//
+// // Helper function to read the content of a file and return it as a string
+// func readFileContent(filename string) (string, error) {
+// 	contentBytes, err := os.ReadFile(filename)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return string(contentBytes), nil
+// }
+//
+// func TestSplitContentIntoChunks(t *testing.T) {
+// 	// Define a struct for test cases
+// 	type testCase struct {
+// 		filename       string
+// 		expectedChunks int
+// 	}
+//
+// 	// Create a slice of test cases
+// 	testCases := []testCase{
+// 		{"test_doc_user1_01.txt", 4},
+// 		{"test_doc_cats.txt", 4},
+// 		{"test_doc_vector_databases.txt", 4},
+// 	}
+//
+// 	for _, tc := range testCases {
+// 		t.Run(tc.filename, func(t *testing.T) {
+// 			content, err := readFileContent(tc.filename)
+// 			if err != nil {
+// 				t.Errorf("failed to read file content: %v", err)
+// 			}
+//
+// 			// Use the function to split the content
+// 			chunks, err := splitContentIntoChunks(content)
+// 			if err != nil {
+// 				t.Errorf("failed to split content: %v", err)
+// 			}
+// 			if len(chunks) != tc.expectedChunks {
+// 				t.Errorf("incorrect number of chunks: got %v, want %v", len(chunks), tc.expectedChunks)
+// 			}
+// 		})
+// 	}
+// }
+//
+// func setupDocuments(client WeaviateClient) ([]string, error) {
+// 	var documentIDs []string
+//
+// 	userDocuments := map[string][]string{
+// 		"testuser1": {
+// 			"test_doc_user1_01.txt",
+// 			// "test_doc_testuser1_02.txt",
+// 			// "test_doc_testuser1_03.txt",
+// 		},
+// 		// Add more users and their documents as needed
+// 	}
+//
+// 	for user, docs := range userDocuments {
+// 		for _, doc := range docs {
+// 			documentID := uuid.New().String()
+// 			documentIDs = append(documentIDs, documentID)
+//
+// 			content, err := readFileContent(doc)
+// 			if err != nil {
+// 				return nil, fmt.Errorf("failed to read file content for %s: %v", doc, err)
+// 			}
+//
+// 			// Assuming the document name in the UploadDocument function is the same as the filename
+// 			if err := client.UploadDocument(documentID, user, doc, content); err != nil {
+// 				return nil, fmt.Errorf("failed to upload document %s for user %s: %v", doc, user, err)
+// 			}
+// 		}
+// 	}
+//
+// 	return documentIDs, nil
+// }
+//
+// func teardownDocuments(client WeaviateClient, documentIDs []string) error {
+// 	for _, id := range documentIDs {
+// 		if err := client.DeleteDocument(id); err != nil {
+// 			return fmt.Errorf("failed to delete document with ID %s: %v", id, err)
+// 		}
+// 	}
+// 	return nil
+// }
+//
+// func TestSearchDocumentsByText(t *testing.T) {
+// 	weaviateClient, err := NewWeaviateClient()
+// 	if err != nil {
+// 		t.Fatalf("failed to create weaviate client: %v", err)
+// 	}
+//
+// 	// Keep track of uploaded document IDs for cleanup
+// 	documentIDs, err := setupDocuments(weaviateClient)
+// 	if err != nil {
+// 		t.Fatalf("setup failed: %v", err)
+// 	}
+//
+// 	defer func() {
+// 		if err := teardownDocuments(weaviateClient, documentIDs); err != nil {
+// 			t.Errorf("teardown failed: %v", err)
+// 		}
+// 	}()
+//
+// }
 
 //
 // 	// Define a query and limit for the test
