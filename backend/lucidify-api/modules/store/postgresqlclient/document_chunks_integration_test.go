@@ -81,11 +81,11 @@ func TestChunkFunctions(t *testing.T) {
 			t.Errorf("Failed to delete test chunks: %v", err)
 		}
 
-		// Also delete the test document
-		err = store.DeleteDocument(doc.UserID, doc.DocumentName)
-		if err != nil {
-			t.Errorf("Failed to delete test document: %v", err)
-		}
+		// // Also delete the test document
+		// err = store.DeleteDocument(doc.UserID, doc.DocumentName)
+		// if err != nil {
+		// 	t.Errorf("Failed to delete test document: %v", err)
+		// }
 
 		err = store.DeleteUserInUsersTable("document_chunks_integration_test_user_id")
 		if err != nil {

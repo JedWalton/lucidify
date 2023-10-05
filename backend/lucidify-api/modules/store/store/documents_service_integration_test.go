@@ -5,8 +5,11 @@ package store
 import (
 	"log"
 	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 	"os"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func createTestUserInDb() string {
@@ -75,8 +78,15 @@ func TestSplitContentIntoChunks(t *testing.T) {
 				t.Errorf("failed to read file content: %v", err)
 			}
 
+			document := storemodels.Document{
+				DocumentUUID: uuid.New(),
+				UserID:       "TestStoreIntegrationTestUserUUID",
+				DocumentName: "test_document_name",
+				Content:      content,
+			}
+
 			// Use the function to split the content
-			chunks, err := splitContentIntoChunks(content)
+			chunks, err := splitContentIntoChunks(document)
 			if err != nil {
 				t.Errorf("failed to split content: %v", err)
 			}

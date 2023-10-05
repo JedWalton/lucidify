@@ -5,14 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 )
 
 type DocumentService interface {
-	// UploadDocument(userID, name, content string) (*postgresqlclient.Document, error)
+	UploadDocument(userID, name, content string) (*storemodels.Document, error)
 	// GetDocument(userID, name string) (*postgresqlclient.Document, error)
 	// GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
 	// DeleteDocument(userID, name, documentUUID string) error
@@ -31,45 +33,52 @@ func NewDocumentService(
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
-// func (d *DocumentServiceImpl) UploadDocument(
-// 	userID, name, content string) (*postgresqlclient.Document, error) {
-//
-// 	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
-// 	if err != nil {
-// 		return document, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
-// 	}
-//
-// 	const maxRetries = 3
-// 	const retryDelay = time.Second * 2
-// 	err = d.weaviateDB.UploadDocument(document.DocumentUUID.String(), userID, name, content)
-// 	if err != nil {
-// 		// Attempt to rollback the PostgreSQL upload.
-// 		var delErr error
-// 		for i := 0; i < maxRetries; i++ {
-// 			delErr = d.postgresqlDB.DeleteDocument(userID, name)
-// 			if delErr == nil {
-// 				break
-// 			}
-// 			// Sleep before retrying
-// 			time.Sleep(retryDelay)
-// 		}
-//
-// 		if delErr != nil {
-// 			return document, fmt.Errorf("failed to upload document to Weaviate: %w; "+
-// 				"failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
-// 		}
-// 		return document, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
-// 	}
-//
-// 	return document, nil
-// }
+func (d *DocumentServiceImpl) UploadDocument(
+	userID, name, content string) (*storemodels.Document, error) {
+	//
+	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
+	if err != nil {
+		return document, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
+	}
 
-func splitContentIntoChunks(content string) ([]string, error) {
+	// Split the content into chunks
+	chunks, err := splitContentIntoChunks(*document)
+	if err != nil {
+		return document, fmt.Errorf("failed to split content into chunks: %w", err)
+	}
+	log.Printf(chunks[len(chunks)-1].ChunkContent)
+
+	// const maxRetries = 3
+	// const retryDelay = time.Second * 2
+	// err = d.weaviateDB.UploadDocument(document.DocumentUUID.String(), userID, name, content)
+	// if err != nil {
+	// 	// Attempt to rollback the PostgreSQL upload.
+	// 	var delErr error
+	// 	for i := 0; i < maxRetries; i++ {
+	// 		delErr = d.postgresqlDB.DeleteDocument(userID, name)
+	// 		if delErr == nil {
+	// 			break
+	// 		}
+	// 		// Sleep before retrying
+	// 		time.Sleep(retryDelay)
+	// 	}
+	//
+	// 	if delErr != nil {
+	// 		return document, fmt.Errorf("failed to upload document to Weaviate: %w; "+
+	// 			"failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
+	// 	}
+	// 	return document, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
+	// }
+
+	return document, nil
+}
+
+func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk, error) {
 	cfg := config.NewServerConfig()
 
 	url := cfg.AI_API_URL + "/split_text_to_chunks"
 	payload := map[string]string{
-		"text": content,
+		"text": document.Content,
 	}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -95,9 +104,19 @@ func splitContentIntoChunks(content string) ([]string, error) {
 		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
 	}
 
-	var chunks []string
-	if err := json.NewDecoder(resp.Body).Decode(&chunks); err != nil {
+	var chunkContents []string
+	if err := json.NewDecoder(resp.Body).Decode(&chunkContents); err != nil {
 		return nil, err
+	}
+
+	var chunks []storemodels.Chunk
+	for index, content := range chunkContents {
+		chunk := storemodels.Chunk{
+			DocumentID:   document.DocumentUUID,
+			ChunkContent: content,
+			ChunkIndex:   index,
+		}
+		chunks = append(chunks, chunk)
 	}
 
 	return chunks, nil
