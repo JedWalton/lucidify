@@ -3,8 +3,10 @@ package weaviateclient
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/store/storemodels"
 
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
 	"github.com/weaviate/weaviate/entities/models"
@@ -12,6 +14,7 @@ import (
 
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
+	UploadChunk(storemodels.Chunk) error
 	// UploadDocument(documentID, userID, name, content string) error
 	// GetDocument(documentID string) (*Document, error)
 	// UpdateDocument(documentID, userID, name, content string) error
@@ -23,10 +26,13 @@ type WeaviateClientImpl struct {
 	client *weaviate.Client
 }
 
-type Document struct {
-	UserID       string `json:"userId"`
-	DocumentName string `json:"documentName"`
-	Content      string `json:"content"`
+func classExists(client *weaviate.Client, className string) bool {
+	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
+	if err != nil {
+		return false
+	}
+	log.Printf("%v", schema)
+	return true
 }
 
 func NewWeaviateClient() (WeaviateClient, error) {
@@ -101,6 +107,33 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
+	if w.client == nil {
+		return errors.New("Weaviate client is not initialized")
+	}
+
+	// Convert the chunk to a format suitable for Weaviate
+	chunkData := map[string]interface{}{
+		"chunkId":      chunk.ChunkID.String(), // Convert UUID to string
+		"documentId":   chunk.DocumentID.String(),
+		"chunkContent": chunk.ChunkContent,
+		"chunkIndex":   chunk.ChunkIndex,
+	}
+
+	// Use the Weaviate client to upload the chunk
+	_, err := w.client.Data().Creator().
+		WithID(chunk.ChunkID.String()). // Use chunk's UUID as ID
+		WithClassName("Documents").     // Assuming the class name for chunks is "DocumentChunks"
+		WithProperties(chunkData).
+		Do(context.Background())
+
+	if err != nil {
+		return fmt.Errorf("failed to upload chunk: %w", err)
+	}
+
+	return nil
 }
 
 //	func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
@@ -313,15 +346,6 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 //
 // 	return err
 // }
-
-func classExists(client *weaviate.Client, className string) bool {
-	schema, err := client.Schema().ClassGetter().WithClassName(className).Do(context.Background())
-	if err != nil {
-		return false
-	}
-	log.Printf("%v", schema)
-	return true
-}
 
 // func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error) {
 // 	className := "Documents"

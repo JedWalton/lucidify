@@ -3,7 +3,10 @@
 package weaviateclient
 
 import (
+	"lucidify-api/modules/store/storemodels"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestWeaviateClient(t *testing.T) {
@@ -11,7 +14,7 @@ func TestWeaviateClient(t *testing.T) {
 	// if err != nil {
 	// 	t.Fatalf("failed to create weaviate client: %v", err)
 	// }
-
+	//
 	// Test uploading a document
 	// documentID := uuid.New().String()
 	// err = weaviateClient.UploadDocument(documentID, "testuser", "testdoc", "test content")
@@ -19,6 +22,43 @@ func TestWeaviateClient(t *testing.T) {
 	// 	t.Errorf("failed to upload document: %v", err)
 	// }
 }
+
+func TestUploadChunk(t *testing.T) {
+	weaviateClient, err := NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("failed to create weaviate client: %v", err)
+	}
+
+	documentID := uuid.New()
+	// Create a sample DocumentChunk
+	chunk := storemodels.Chunk{
+		// Fill in the necessary fields for the chunk
+		// For example:
+		DocumentID:   documentID,
+		ChunkID:      uuid.New(),
+		ChunkIndex:   0,
+		ChunkContent: "Test chunk content",
+	}
+
+	// Call the UploadChunk function
+	err = weaviateClient.UploadChunk(chunk)
+	if err == nil {
+		t.Fatalf("expected UploadChunk to fail, but it didn't")
+	}
+
+	// Optionally, you can check for a specific error message or type if you know what to expect.
+	// For example:
+	// if err.Error() != "expected error message" {
+	//     t.Fatalf("unexpected error: %v", err)
+	// }
+}
+
+// Test uploading a document
+// documentID := uuid.New().String()
+// err = weaviateClient.UploadDocument(documentID, "testuser", "testdoc", "test content")
+// if err != nil {
+// 	t.Errorf("failed to upload document: %v", err)
+// }
 
 //		document, err := weaviateClient.GetDocument(documentID)
 //		if err != nil {

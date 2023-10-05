@@ -53,6 +53,7 @@ func readFileContent(filename string) (string, error) {
 	}
 	return string(contentBytes), nil
 }
+
 func TestSplitContentIntoChunks(t *testing.T) {
 	// Define a struct for test cases
 	type testCase struct {

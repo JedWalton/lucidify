@@ -1,18 +1,13 @@
 package postgresqlclient
 
 import (
-	"time"
+	"lucidify-api/modules/store/storemodels"
 
 	"github.com/google/uuid"
 )
 
 type Document struct {
-	DocumentUUID uuid.UUID `db:"id"`
-	UserID       string    `db:"user_id"`
-	DocumentName string    `db:"document_name"`
-	Content      string    `db:"content"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
+	storemodels.Document
 }
 
 func (s *PostgreSQL) UploadDocument(userID string, name, content string) (*Document, error) {
@@ -55,8 +50,8 @@ func (s *PostgreSQL) GetDocument(userID string, name string) (*Document, error) 
 	return doc, nil
 }
 
-func (s *PostgreSQL) GetDocumentByUUID(documentUUID string) (*Document, error) {
-	doc := &Document{}
+func (s *PostgreSQL) GetDocumentByUUID(documentUUID string) (*storemodels.Document, error) {
+	doc := &storemodels.Document{}
 	query := `SELECT id, user_id, document_name, content, created_at, updated_at 
 	          FROM documents 
 	          WHERE id = $1`
