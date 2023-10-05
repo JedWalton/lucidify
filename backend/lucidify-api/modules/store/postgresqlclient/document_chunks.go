@@ -45,3 +45,24 @@ func (s *PostgreSQL) DeleteAllChunksByDocumentID(documentID uuid.UUID) error {
 
 	return tx.Commit()
 }
+
+func (s *PostgreSQL) GetChunksByDocumentID(documentID uuid.UUID) ([]storemodels.Chunk, error) {
+	query := `SELECT document_id, chunk_content, chunk_index FROM document_chunks WHERE document_id = $1`
+	rows, err := s.db.Query(query, documentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chunks []storemodels.Chunk
+	for rows.Next() {
+		var chunk storemodels.Chunk
+		err = rows.Scan(&chunk.DocumentID, &chunk.ChunkContent, &chunk.ChunkIndex)
+		if err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, chunk)
+	}
+
+	return chunks, nil
+}

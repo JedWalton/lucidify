@@ -33,7 +33,6 @@ func TestChunkFunctions(t *testing.T) {
 		t.Errorf("Failed to create user: %v", err)
 	}
 
-	// Create a document first
 	doc := &storemodels.Document{
 		UserID:       "document_chunks_integration_test_user_id",
 		DocumentName: "test_document_name",
@@ -45,7 +44,6 @@ func TestChunkFunctions(t *testing.T) {
 		t.Errorf("Failed to upload test document: %v", err)
 	}
 
-	// Create sample chunks
 	chunks := []storemodels.Chunk{
 		{
 			DocumentID:   insertedDoc.DocumentUUID,
@@ -59,16 +57,25 @@ func TestChunkFunctions(t *testing.T) {
 		},
 	}
 
-	// Test UploadChunks
 	err = store.UploadChunks(chunks)
 	if err != nil {
 		t.Errorf("Failed to upload chunks: %v", err)
 	}
 
-	// ... rest of your test ...
+	err = store.DeleteAllChunksByDocumentID(insertedDoc.DocumentUUID)
+	if err != nil {
+		t.Errorf("Failed to delete chunks by document ID: %v", err)
+	}
+
+	retrievedChunks, err := store.GetChunksByDocumentID(insertedDoc.DocumentUUID)
+	if err != nil {
+		t.Errorf("Failed to retrieve chunks by document ID: %v", err)
+	}
+	if len(retrievedChunks) != 0 {
+		t.Errorf("Expected no chunks, but got %d", len(retrievedChunks))
+	}
 
 	t.Cleanup(func() {
-		// Cleanup: Delete the chunks and any other resources you've created for the test
 		err = store.DeleteAllChunksByDocumentID(insertedDoc.DocumentUUID)
 		if err != nil {
 			t.Errorf("Failed to delete test chunks: %v", err)
