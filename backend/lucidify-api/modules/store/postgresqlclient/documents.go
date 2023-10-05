@@ -6,6 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// Extract interface here for these functions that has a PostgreSQL.
+// Then make these extent the documents interface rather than PostgreSQL interface.
+
 type Document struct {
 	storemodels.Document
 }
@@ -147,3 +150,5 @@ func (s *PostgreSQL) UpdateDocumentContent(documentID uuid.UUID, newContent stri
 
 	return tx.Commit()
 }
+
+// Impl Delete all documents by user ID
