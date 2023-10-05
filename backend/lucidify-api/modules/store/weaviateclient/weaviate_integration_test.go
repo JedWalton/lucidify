@@ -9,20 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestWeaviateClient(t *testing.T) {
-	// weaviateClient, err := NewWeaviateClient()
-	// if err != nil {
-	// 	t.Fatalf("failed to create weaviate client: %v", err)
-	// }
-	//
-	// Test uploading a document
-	// documentID := uuid.New().String()
-	// err = weaviateClient.UploadDocument(documentID, "testuser", "testdoc", "test content")
-	// if err != nil {
-	// 	t.Errorf("failed to upload document: %v", err)
-	// }
-}
-
 func TestUploadChunk(t *testing.T) {
 	weaviateClient, err := NewWeaviateClient()
 	if err != nil {
@@ -32,25 +18,45 @@ func TestUploadChunk(t *testing.T) {
 	documentID := uuid.New()
 	// Create a sample DocumentChunk
 	chunk := storemodels.Chunk{
-		// Fill in the necessary fields for the chunk
-		// For example:
-		DocumentID:   documentID,
 		ChunkID:      uuid.New(),
-		ChunkIndex:   0,
+		UserID:       uuid.New(),
+		DocumentID:   documentID,
 		ChunkContent: "Test chunk content",
+		ChunkIndex:   0,
 	}
 
-	// Call the UploadChunk function
 	err = weaviateClient.UploadChunk(chunk)
-	if err == nil {
-		t.Fatalf("expected UploadChunk to fail, but it didn't")
+	if err != nil {
+		t.Fatalf("UploadChunk failed: %v", err)
+	}
+}
+
+func TestDeleteChunk(t *testing.T) {
+	weaviateClient, err := NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("failed to create weaviate client: %v", err)
 	}
 
-	// Optionally, you can check for a specific error message or type if you know what to expect.
-	// For example:
-	// if err.Error() != "expected error message" {
-	//     t.Fatalf("unexpected error: %v", err)
-	// }
+	documentID := uuid.New()
+	userID := uuid.New()
+
+	chunk := storemodels.Chunk{
+		ChunkID:      uuid.New(),
+		UserID:       userID,
+		DocumentID:   documentID,
+		ChunkContent: "Test chunk content 0",
+		ChunkIndex:   0,
+	}
+
+	err = weaviateClient.UploadChunk(chunk)
+	if err != nil {
+		t.Fatalf("UploadChunk chunk0 failed: %v", err)
+	}
+
+	err = weaviateClient.DeleteChunk(chunk.ChunkID)
+	if err != nil {
+		t.Fatalf("DeleteAllChunksByDocumentID failed: %v", err)
+	}
 }
 
 // Test uploading a document

@@ -8,6 +8,7 @@ import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/storemodels"
 
+	"github.com/google/uuid"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
 	"github.com/weaviate/weaviate/entities/models"
 )
@@ -15,6 +16,7 @@ import (
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
 	UploadChunk(storemodels.Chunk) error
+	DeleteChunk(chunkID uuid.UUID) error
 	// UploadDocument(documentID, userID, name, content string) error
 	// GetDocument(documentID string) (*Document, error)
 	// UpdateDocument(documentID, userID, name, content string) error
@@ -91,7 +93,7 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 				Name:        "userId",
 			},
 			{
-				DataType:    []string{"int"},
+				DataType:    []string{"string"},
 				Description: "Unique identifier of the chunk within the document",
 				Name:        "chunkId",
 			},
@@ -116,10 +118,10 @@ func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
 
 	// Convert the chunk to a format suitable for Weaviate
 	chunkData := map[string]interface{}{
-		"chunkId":      chunk.ChunkID.String(), // Convert UUID to string
 		"documentId":   chunk.DocumentID.String(),
+		"userId":       chunk.UserID.String(),
+		"chunkId":      chunk.ChunkID.String(), // Convert UUID to string
 		"chunkContent": chunk.ChunkContent,
-		"chunkIndex":   chunk.ChunkIndex,
 	}
 
 	// Use the Weaviate client to upload the chunk
@@ -134,6 +136,20 @@ func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
 	}
 
 	return nil
+}
+
+func (w *WeaviateClientImpl) DeleteAllChunksByDocumentID(documentID string) error {
+	return fmt.Errorf("This is not implemented as weaviate does not support non "+
+		"index deleting: %w. This func exists in document_service.", errors.New("not implemented"))
+}
+
+func (w *WeaviateClientImpl) DeleteChunk(chunkID uuid.UUID) error {
+	err := w.client.Data().Deleter().
+		WithClassName("Documents").
+		WithID(chunkID.String()).
+		Do(context.Background())
+
+	return err
 }
 
 //	func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
@@ -333,15 +349,6 @@ func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
 // 		WithID(documentID).
 // 		WithClassName("Documents").
 // 		WithProperties(document).
-// 		Do(context.Background())
-//
-// 	return err
-// }
-
-// func (w *WeaviateClientImpl) DeleteDocument(documentID string) error {
-// 	err := w.client.Data().Deleter().
-// 		WithClassName("Documents").
-// 		WithID(documentID).
 // 		Do(context.Background())
 //
 // 	return err
