@@ -5,7 +5,7 @@ package store
 import (
 	"log"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/weaviateclient"
+	"os"
 	"testing"
 )
 
@@ -46,32 +46,72 @@ func createTestUserInDb() string {
 	return user.UserID
 }
 
+func readFileContent(filename string) (string, error) {
+	contentBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+	return string(contentBytes), nil
+}
+func TestSplitContentIntoChunks(t *testing.T) {
+	// Define a struct for test cases
+	type testCase struct {
+		filename       string
+		expectedChunks int
+	}
+
+	// Create a slice of test cases
+	testCases := []testCase{
+		{"test_doc_user1_01.txt", 4},
+		{"test_doc_cats.txt", 4},
+		{"test_doc_vector_databases.txt", 4},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.filename, func(t *testing.T) {
+			content, err := readFileContent(tc.filename)
+			if err != nil {
+				t.Errorf("failed to read file content: %v", err)
+			}
+
+			// Use the function to split the content
+			chunks, err := splitContentIntoChunks(content)
+			if err != nil {
+				t.Errorf("failed to split content: %v", err)
+			}
+			if len(chunks) != tc.expectedChunks {
+				t.Errorf("incorrect number of chunks: got %v, want %v", len(chunks), tc.expectedChunks)
+			}
+		})
+	}
+}
+
 func TestUploadDocumentIntegration(t *testing.T) {
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
-	if err != nil {
-		t.Fatalf("failed to initialize PostgreSQL client: %v", err)
-	}
-
-	// Initialize the Weaviate client
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Fatalf("failed to initialize Weaviate client: %v", err)
-	}
-
-	// Initialize the DocumentService
-	documentService := NewDocumentService(postgresqlDB, weaviateDB)
-
-	// Define test document parameters
-	userID := createTestUserInDb()
-	name := "test-document-name"
-	content := "test-document-content"
-
-	// Attempt to upload the document
-	document, err := documentService.UploadDocument(userID, name, content)
-	if err != nil {
-		t.Fatalf("failed to upload document: %v", err)
-	}
-	log.Printf("document: %+v", document)
+	// postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+	// if err != nil {
+	// 	t.Fatalf("failed to initialize PostgreSQL client: %v", err)
+	// }
+	//
+	// // Initialize the Weaviate client
+	// weaviateDB, err := weaviateclient.NewWeaviateClient()
+	// if err != nil {
+	// 	t.Fatalf("failed to initialize Weaviate client: %v", err)
+	// }
+	//
+	// // Initialize the DocumentService
+	// documentService := NewDocumentService(postgresqlDB, weaviateDB)
+	//
+	// // Define test document parameters
+	// userID := createTestUserInDb()
+	// name := "test-document-name"
+	// content := "test-document-content"
+	//
+	// // Attempt to upload the document
+	// document, err := documentService.UploadDocument(userID, name, content)
+	// if err != nil {
+	// 	t.Fatalf("failed to upload document: %v", err)
+	// }
+	// log.Printf("document: %+v", document)
 
 	// Verify that the document was uploaded to PostgreSQL
 	// doc, err := postgresqlDB.GetDocument(userID, name)

@@ -1,14 +1,18 @@
 package store
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/weaviateclient"
-	"time"
+	"net/http"
 )
 
 type DocumentService interface {
-	UploadDocument(userID, name, content string) (*postgresqlclient.Document, error)
+	// UploadDocument(userID, name, content string) (*postgresqlclient.Document, error)
 	// GetDocument(userID, name string) (*postgresqlclient.Document, error)
 	// GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
 	// DeleteDocument(userID, name, documentUUID string) error
@@ -27,37 +31,76 @@ func NewDocumentService(
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
-func (d *DocumentServiceImpl) UploadDocument(
-	userID, name, content string) (*postgresqlclient.Document, error) {
+// func (d *DocumentServiceImpl) UploadDocument(
+// 	userID, name, content string) (*postgresqlclient.Document, error) {
+//
+// 	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
+// 	if err != nil {
+// 		return document, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
+// 	}
+//
+// 	const maxRetries = 3
+// 	const retryDelay = time.Second * 2
+// 	err = d.weaviateDB.UploadDocument(document.DocumentUUID.String(), userID, name, content)
+// 	if err != nil {
+// 		// Attempt to rollback the PostgreSQL upload.
+// 		var delErr error
+// 		for i := 0; i < maxRetries; i++ {
+// 			delErr = d.postgresqlDB.DeleteDocument(userID, name)
+// 			if delErr == nil {
+// 				break
+// 			}
+// 			// Sleep before retrying
+// 			time.Sleep(retryDelay)
+// 		}
+//
+// 		if delErr != nil {
+// 			return document, fmt.Errorf("failed to upload document to Weaviate: %w; "+
+// 				"failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
+// 		}
+// 		return document, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
+// 	}
+//
+// 	return document, nil
+// }
 
-	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
+func splitContentIntoChunks(content string) ([]string, error) {
+	cfg := config.NewServerConfig()
+
+	url := cfg.AI_API_URL + "/split_text_to_chunks"
+	payload := map[string]string{
+		"text": content,
+	}
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return document, fmt.Errorf("failed to upload document to PostgreSQL: %w", err)
+		return nil, err
 	}
 
-	const maxRetries = 3
-	const retryDelay = time.Second * 2
-	err = d.weaviateDB.UploadDocument(document.DocumentUUID.String(), userID, name, content)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		// Attempt to rollback the PostgreSQL upload.
-		var delErr error
-		for i := 0; i < maxRetries; i++ {
-			delErr = d.postgresqlDB.DeleteDocument(userID, name)
-			if delErr == nil {
-				break
-			}
-			// Sleep before retrying
-			time.Sleep(retryDelay)
-		}
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-AI-API-KEY", cfg.X_AI_API_KEY)
 
-		if delErr != nil {
-			return document, fmt.Errorf("failed to upload document to Weaviate: %w; "+
-				"failed to delete document from PostgreSQL after %d retries: %v", err, maxRetries, delErr)
-		}
-		return document, fmt.Errorf("failed to upload document to Weaviate: %w; document deleted from PostgreSQL", err)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
 	}
 
-	return document, nil
+	var chunks []string
+	if err := json.NewDecoder(resp.Body).Decode(&chunks); err != nil {
+		return nil, err
+	}
+
+	return chunks, nil
 }
 
 // func (d *DocumentServiceImpl) GetDocument(userID, name string) (*postgresqlclient.Document, error) {

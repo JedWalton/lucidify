@@ -1,15 +1,10 @@
 package weaviateclient
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"log"
 	"lucidify-api/modules/config"
-	"net/http"
 
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
 	"github.com/weaviate/weaviate/entities/models"
@@ -17,7 +12,7 @@ import (
 
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
-	UploadDocument(documentID, userID, name, content string) error
+	// UploadDocument(documentID, userID, name, content string) error
 	// GetDocument(documentID string) (*Document, error)
 	// UpdateDocument(documentID, userID, name, content string) error
 	// DeleteDocument(documentID string) error
@@ -90,29 +85,14 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 				Name:        "userId",
 			},
 			{
-				DataType:    []string{"string"},
-				Description: "Name of the document",
-				Name:        "documentName",
-			},
-			{
-				DataType:    []string{"text"},
-				Description: "A chunk of the document content",
-				Name:        "chunk",
-			},
-			{
 				DataType:    []string{"int"},
 				Description: "Unique identifier of the chunk within the document",
 				Name:        "chunkId",
 			},
 			{
-				DataType:    []string{"date"},
-				Description: "Creation timestamp of the document",
-				Name:        "createdAt",
-			},
-			{
-				DataType:    []string{"date"},
-				Description: "Update timestamp of the document",
-				Name:        "updatedAt",
+				DataType:    []string{"text"},
+				Description: "A chunk of the document content",
+				Name:        "chunkContent",
 			},
 		},
 	}
@@ -156,74 +136,74 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 // 	return chunks
 // }
 
-func splitContentIntoChunks(content string) ([]string, error) {
-	cfg := config.NewServerConfig()
+// func splitContentIntoChunks(content string) ([]string, error) {
+// 	cfg := config.NewServerConfig()
+//
+// 	url := cfg.AI_API_URL + "/split_text_to_chunks"
+// 	payload := map[string]string{
+// 		"text": content,
+// 	}
+// 	jsonPayload, err := json.Marshal(payload)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("X-AI-API-KEY", cfg.X_AI_API_KEY)
+//
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusOK {
+// 		body, _ := io.ReadAll(resp.Body)
+// 		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
+// 	}
+//
+// 	var chunks []string
+// 	if err := json.NewDecoder(resp.Body).Decode(&chunks); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return chunks, nil
+// }
 
-	url := cfg.AI_API_URL + "/split_text_to_chunks"
-	payload := map[string]string{
-		"text": content,
-	}
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-AI-API-KEY", cfg.X_AI_API_KEY)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
-	}
-
-	var chunks []string
-	if err := json.NewDecoder(resp.Body).Decode(&chunks); err != nil {
-		return nil, err
-	}
-
-	return chunks, nil
-}
-
-func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
-
-	chunks, err := splitContentIntoChunks(content)
-	if err != nil {
-		return err
-	}
-
-	for i, chunk := range chunks {
-		document := map[string]interface{}{
-			"documentId":   documentID,
-			"userId":       userID,
-			"documentName": name,
-			"chunk":        chunk,
-			"chunkId":      i,
-		}
-
-		_, err := w.client.Data().Creator().
-			// WithID(documentID).
-			WithClassName("Documents").
-			WithProperties(document).
-			Do(context.Background())
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
+// func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
+// 	// func (w *WeaviateClientImpl) UploadDocument(chunks storemodels.Chunk) error {
+//
+// 	chunks, err := splitContentIntoChunks(content)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	for i, chunk := range chunks {
+// 		document := map[string]interface{}{
+// 			"documentId": documentID,
+// 			"userId":     userID,
+// 			"chunk":      chunk,
+// 			"chunkId":    i,
+// 		}
+//
+// 		_, err := w.client.Data().Creator().
+// 			// WithID(documentID).
+// 			WithClassName("Documents").
+// 			WithProperties(document).
+// 			Do(context.Background())
+//
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+//
+// 	return nil
+// }
 
 // func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
 // 	objects, err := w.client.Data().ObjectsGetter().
