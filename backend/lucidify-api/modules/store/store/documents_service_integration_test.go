@@ -105,7 +105,6 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to initialize PostgreSQL: %v", err)
 	}
-	// defer store.db.close() // Assuming you have a Close method to cleanup
 
 	// Initialize Weaviate for tests
 	weaviateClient, err := weaviateclient.NewWeaviateClient()
@@ -113,11 +112,6 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Fatalf("Failed to create Weaviate client: %v", err)
 	}
 
-	// Create an instance of DocumentServiceImpl
-	// service := &DocumentServiceImpl{
-	// 	postgresqlDB: *db,
-	// 	weaviateDB:   weaviateClient,
-	// }
 	documentService := NewDocumentService(db, weaviateClient)
 
 	// Test data
@@ -145,25 +139,22 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 
 	// 2. Call the function
-	document, err := documentService.UploadDocument(user.UserID, name, content)
+	document, cleanupTasks, err := documentService.UploadDocument(user.UserID, name, content)
 	if err != nil {
 		t.Fatalf("Failed to upload document: %v", err)
 	}
 
 	// 3. Verify
-	// Verify that the document is in the test database
 	doc, err := db.GetDocumentByUUID(document.DocumentUUID)
 	if err != nil || doc == nil {
 		t.Error("Document was not uploaded to PostgreSQL")
 	}
 
-	// Verify that the chunks are in the test database
 	chunks, err := db.GetChunksOfDocument(document)
 	if err != nil || len(chunks) == 0 {
 		t.Error("Chunks were not uploaded to PostgreSQL")
 	}
 
-	// Verify that the chunks are in Weaviate
 	chunksFromWeaviate, err := weaviateClient.GetChunks(chunks)
 	if err != nil || len(chunksFromWeaviate) == 0 {
 		t.Error("Chunks were not uploaded to Weaviate")
@@ -175,17 +166,15 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		}
 	}
 
-	// // This might require a method in your Weaviate client to check for chunk existence
-	// if !weaviateClient.ChunksExistForDocument(document.DocumentUUID) {
-	// 	t.Error("Chunks were not uploaded to Weaviate")
-	// }
+	// 4. Cleanup
+	// Execute cleanup tasks after all checks
+	for _, task := range cleanupTasks {
+		if err := task(); err != nil {
+			t.Errorf("Failed to execute cleanup task: %v", err)
+		}
+	}
 
-	// 4. Cleanup is handled by defer statements
 	t.Cleanup(func() {
-		// err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
-		// if err != nil {
-		// 	t.Errorf("failed to delete test document: %v", err)
-		// }
 		err = db.DeleteUserInUsersTable(user.UserID)
 		if err != nil {
 			t.Errorf("failed to delete test user: %v", err)
