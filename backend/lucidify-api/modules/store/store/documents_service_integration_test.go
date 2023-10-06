@@ -6,6 +6,7 @@ import (
 	"log"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/storemodels"
+	"lucidify-api/modules/store/weaviateclient"
 	"os"
 	"testing"
 
@@ -98,39 +99,120 @@ func TestSplitContentIntoChunks(t *testing.T) {
 }
 
 func TestUploadDocumentIntegration(t *testing.T) {
-	// postgresqlDB, err := postgresqlclient.NewPostgreSQL()
-	// if err != nil {
-	// 	t.Fatalf("failed to initialize PostgreSQL client: %v", err)
-	// }
-	//
-	// // Initialize the Weaviate client
-	// weaviateDB, err := weaviateclient.NewWeaviateClient()
-	// if err != nil {
-	// 	t.Fatalf("failed to initialize Weaviate client: %v", err)
-	// }
-	//
-	// // Initialize the DocumentService
-	// documentService := NewDocumentService(postgresqlDB, weaviateDB)
-	//
-	// // Define test document parameters
-	// userID := createTestUserInDb()
-	// name := "test-document-name"
-	// content := "test-document-content"
-	//
-	// // Attempt to upload the document
-	// document, err := documentService.UploadDocument(userID, name, content)
-	// if err != nil {
-	// 	t.Fatalf("failed to upload document: %v", err)
-	// }
-	// log.Printf("document: %+v", document)
+	// 1. Setup
+	// Initialize PostgreSQL for tests
+	db, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		t.Fatalf("Failed to initialize PostgreSQL: %v", err)
+	}
+	// defer store.db.close() // Assuming you have a Close method to cleanup
 
-	// Verify that the document was uploaded to PostgreSQL
-	// doc, err := postgresqlDB.GetDocument(userID, name)
+	// Initialize Weaviate for tests
+	weaviateClient, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("Failed to create Weaviate client: %v", err)
+	}
+
+	// Create an instance of DocumentServiceImpl
+	service := &DocumentServiceImpl{
+		postgresqlDB: *db,
+		weaviateDB:   weaviateClient,
+	}
+
+	// Test data
+	name := "test-document-name"
+	content := "This is a test document content."
+
+	user := postgresqlclient.User{
+		UserID:           "documents_service_integration_test_user_id",
+		ExternalID:       "documents_service_external_ID",
+		Username:         "TestDocumentsServiceIntegrationTableUsername",
+		PasswordEnabled:  true,
+		Email:            "TestDocumentsService@example.com",
+		FirstName:        "TestDocumentsCreateUserInUsersTableCreateTest",
+		LastName:         "TestDocumentsCreateUserInUsersTableUser",
+		ImageURL:         "https://TestCreateUserInUsersTable.com/image.jpg",
+		ProfileImageURL:  "https://TestCreateUserInUsersTable.com/profile.jpg",
+		TwoFactorEnabled: false,
+		CreatedAt:        1654012591514,
+		UpdatedAt:        1654012591514,
+	}
+
+	err = service.postgresqlDB.CreateUserInUsersTable(user)
+	if err != nil {
+		t.Errorf("Failed to create user: %v", err)
+	}
+
+	// 2. Call the function
+	_, err = service.UploadDocument(user.UserID, name, content)
+	if err != nil {
+		t.Fatalf("Failed to upload document: %v", err)
+	}
+
+	// 3. Verify
+	// Verify that the document is in the test database
+	// doc, err := db.GetDocumentByUUID(document.DocumentUUID)
 	// if err != nil || doc == nil {
-	// 	t.Fatalf("failed to retrieve document from PostgreSQL: %v", err)
+	// 	t.Error("Document was not uploaded to PostgreSQL")
 	// }
 
+	// Verify that the chunks are in the test database
+	// if !db.ChunksExistForDocument(document.DocumentUUID) {
+	// 	t.Error("Chunks were not uploaded to PostgreSQL")
+	// }
+	//
+	// // Verify that the chunks are in Weaviate
+	// // This might require a method in your Weaviate client to check for chunk existence
+	// if !weaviateClient.ChunksExistForDocument(document.DocumentUUID) {
+	// 	t.Error("Chunks were not uploaded to Weaviate")
+	// }
+
+	// 4. Cleanup is handled by defer statements
+	// t.Cleanup(func() {
+	// 	err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
+	// 	if err != nil {
+	// 		t.Errorf("failed to delete test document: %v", err)
+	// 	}
+	// 	err = postgresqlDB.DeleteUserInUsersTable(userID)
+	// 	if err != nil {
+	// 		t.Errorf("failed to delete test user: %v", err)
+	// 	}
+	// })
 }
+
+// postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+// if err != nil {
+// 	t.Fatalf("failed to initialize PostgreSQL client: %v", err)
+// }
+//
+// // Initialize the Weaviate client
+// weaviateDB, err := weaviateclient.NewWeaviateClient()
+// if err != nil {
+// 	t.Fatalf("failed to initialize Weaviate client: %v", err)
+// }
+//
+// // Initialize the DocumentService
+// documentService := NewDocumentService(postgresqlDB, weaviateDB)
+//
+// // Define test document parameters
+// userID := createTestUserInDb()
+// name := "test-document-name"
+// content := "test-document-content"
+//
+// // Attempt to upload the document
+// document, err := documentService.UploadDocument(userID, name, content)
+// if err != nil {
+// 	t.Fatalf("failed to upload document: %v", err)
+// }
+// log.Printf("document: %+v", document)
+
+// Verify that the document was uploaded to PostgreSQL
+// doc, err := postgresqlDB.GetDocument(userID, name)
+// if err != nil || doc == nil {
+// 	t.Fatalf("failed to retrieve document from PostgreSQL: %v", err)
+// }
+
+// }
 
 // 	// Verify that the document was uploaded to Weaviate
 // 	doc2, err := weaviateDB.GetDocument(document.DocumentUUID.String())

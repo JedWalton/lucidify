@@ -17,6 +17,7 @@ type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
 	UploadChunk(storemodels.Chunk) error
 	DeleteChunk(chunkID uuid.UUID) error
+	DeleteChunks([]storemodels.Chunk) error
 	// UploadDocument(documentID, userID, name, content string) error
 	// GetDocument(documentID string) (*Document, error)
 	// UpdateDocument(documentID, userID, name, content string) error
@@ -150,6 +151,16 @@ func (w *WeaviateClientImpl) DeleteChunk(chunkID uuid.UUID) error {
 		Do(context.Background())
 
 	return err
+}
+
+func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels.Chunk) error {
+	for _, chunk := range chunks {
+		err := w.DeleteChunk(chunk.ChunkID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 //	func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {

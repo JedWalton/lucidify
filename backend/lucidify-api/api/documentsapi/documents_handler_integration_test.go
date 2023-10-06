@@ -10,6 +10,7 @@ import (
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
 	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -249,7 +250,7 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	}
 
 	// Unmarshal the response body into a Document object
-	var respDocument postgresqlclient2.Document
+	var respDocument storemodels.Document
 	err = json.Unmarshal(respBody, &respDocument)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -367,7 +368,7 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []postgresqlclient2.Document
+	var respDocuments []storemodels.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -494,7 +495,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []postgresqlclient2.Document
+	var respDocuments []storemodels.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
