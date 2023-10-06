@@ -32,50 +32,6 @@ func NewDocumentService(
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
-// func (d *DocumentServiceImpl) UploadDocument(
-//
-//	userID, name, content string) (*storemodels.Document, error) {
-//	//
-//	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
-//	if err != nil {
-//		return document, fmt.Errorf("Upload failed at upload document to PostgreSQL: %w", err)
-//	}
-//
-//	// Split the content into chunks
-//	chunks, err := splitContentIntoChunks(*document)
-//	if err != nil {
-//		return document, fmt.Errorf("Upload failed at split content into chunks: %w", err)
-//	}
-//
-//	// Upload the chunks to PostgreSQL
-//	err = d.postgresqlDB.UploadChunks(chunks)
-//	if err != nil {
-//		err = d.postgresqlDB.DeleteDocument(userID, name)
-//		if err != nil {
-//			return document, fmt.Errorf("Error, cleanup failed at delete document: %w", err)
-//		}
-//		err = d.postgresqlDB.DeleteAllChunksByDocumentID(document.DocumentUUID)
-//		if err != nil {
-//			return document, fmt.Errorf("Error, cleanup failed at delete chunks: %w", err)
-//		}
-//
-//		return document, fmt.Errorf("Upload failed at upload chunks to weaviate: %w", err)
-//	}
-//
-//	// const maxRetries = 3
-//	// const retryDelay = time.Second * 2
-//	for _, chunk := range chunks {
-//		// Upload the chunk to weaviateDB
-//		err = d.weaviateDB.UploadChunk(chunk)
-//		if err != nil {
-//			d.weaviateDB.DeleteChunks(chunks)
-//			err = d.weaviateDB.DeleteChunks(chunks)
-//			if err != nil {
-//				return document, fmt.Errorf("Error, cleanup failed at delete chunks: %w", err)
-//			}
-//			break
-//		}
-//	}
 func (d *DocumentServiceImpl) UploadDocument(
 	userID, name, content string) (*storemodels.Document, error) {
 

@@ -116,15 +116,17 @@ func TestStoreFunctions(t *testing.T) {
 	// 	t.Errorf("Expected updated content '%s', got '%s'", newContent, updatedDoc.Content)
 	// }
 	//
-	// t.Cleanup(func() {
-	// 	err = store.DeleteUserInUsersTable("documents_integration_test_user_id")
-	// 	if err != nil {
-	// 		t.Errorf("Failed to delete test user: %v", err)
-	// 	}
-	//
-	// 	err = store.DeleteDocument("documents_integration_test_user_id", "test_doc")
-	// 	if err != nil {
-	// 		t.Errorf("Failed to delete test document: %v", err)
-	// 	}
-	// })
+	t.Cleanup(func() {
+		// Delete the test document
+		err = store.DeleteDocument("documents_integration_test_user_id", "test_doc")
+		if err != nil {
+			t.Errorf("Failed to delete test document: %v", err)
+		}
+
+		// Delete the test user
+		err = store.DeleteUserInUsersTable("documents_integration_test_user_id")
+		if err != nil {
+			t.Errorf("Failed to delete test user: %v", err)
+		}
+	})
 }

@@ -166,12 +166,12 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	// Verify that the chunks are in Weaviate
 	chunksFromWeaviate, err := weaviateClient.GetChunks(chunks)
 	if err != nil || len(chunksFromWeaviate) == 0 {
-		t.Error("Chunks were not uploaded to Weaviate, properly")
+		t.Error("Chunks were not uploaded to Weaviate")
 	}
 
 	for i, chunk := range chunksFromWeaviate {
 		if chunk.ChunkContent != chunks[i].ChunkContent {
-			t.Error("Chunks were not uploaded to Weaviate")
+			t.Error("Chunks are inconsistent before and after uploading chunks to weaviate")
 		}
 	}
 
