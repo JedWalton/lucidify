@@ -84,15 +84,15 @@ func (d *DocumentServiceImpl) UploadDocument(
 		return document, fmt.Errorf("Upload failed at upload document to PostgreSQL: %w", err)
 	}
 
-	// chunks, err := splitContentIntoChunks(*document)
-	// if err != nil {
-	// 	return document, fmt.Errorf("Upload failed at split content into chunks: %w", err)
-	// }
-	//
-	// err = d.postgresqlDB.UploadChunks(chunks)
-	// if err != nil {
-	// 	return document, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
-	// }
+	chunks, err := splitContentIntoChunks(*document)
+	if err != nil {
+		return document, fmt.Errorf("Upload failed at split content into chunks: %w", err)
+	}
+
+	err = d.postgresqlDB.UploadChunks(chunks)
+	if err != nil {
+		return document, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
+	}
 	// cleanupTasks = append(cleanupTasks, func() error {
 	// 	return d.postgresqlDB.DeleteAllChunksByDocumentID(document.DocumentUUID)
 	// })
