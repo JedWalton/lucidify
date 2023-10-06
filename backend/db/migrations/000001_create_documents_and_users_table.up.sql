@@ -42,4 +42,3 @@ CREATE TABLE document_chunks (
 
 -- Index on document_id for the document_chunks table
 CREATE INDEX idx_document_chunks_document_id ON document_chunks(document_id);
-

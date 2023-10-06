@@ -19,7 +19,7 @@ func TestUploadChunk(t *testing.T) {
 	// Create a sample DocumentChunk
 	chunk := storemodels.Chunk{
 		ChunkID:      uuid.New(),
-		UserID:       uuid.New(),
+		UserID:       uuid.New().String(),
 		DocumentID:   documentID,
 		ChunkContent: "Test chunk content",
 		ChunkIndex:   0,
@@ -42,7 +42,7 @@ func TestDeleteChunk(t *testing.T) {
 
 	chunk := storemodels.Chunk{
 		ChunkID:      uuid.New(),
-		UserID:       userID,
+		UserID:       userID.String(),
 		DocumentID:   documentID,
 		ChunkContent: "Test chunk content 0",
 		ChunkIndex:   0,

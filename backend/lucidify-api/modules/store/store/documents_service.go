@@ -89,10 +89,16 @@ func (d *DocumentServiceImpl) UploadDocument(
 		return document, fmt.Errorf("Upload failed at split content into chunks: %w", err)
 	}
 
-	err = d.postgresqlDB.UploadChunks(chunks)
+	chunksWithChunkID, err := d.postgresqlDB.UploadChunks(chunks)
 	if err != nil {
 		return document, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
 	}
+
+	err = d.weaviateDB.UploadChunks(chunksWithChunkID)
+	if err != nil {
+		return document, fmt.Errorf("Upload failed at upload chunks to weaviate: %w", err)
+	}
+
 	// cleanupTasks = append(cleanupTasks, func() error {
 	// 	return d.postgresqlDB.DeleteAllChunksByDocumentID(document.DocumentUUID)
 	// })
@@ -149,6 +155,7 @@ func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk,
 	var chunks []storemodels.Chunk
 	for index, content := range chunkContents {
 		chunk := storemodels.Chunk{
+			UserID:       document.UserID,
 			DocumentID:   document.DocumentUUID,
 			ChunkContent: content,
 			ChunkIndex:   index,

@@ -16,8 +16,10 @@ import (
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
 	UploadChunk(storemodels.Chunk) error
+	UploadChunks([]storemodels.Chunk) error
 	DeleteChunk(chunkID uuid.UUID) error
 	DeleteChunks([]storemodels.Chunk) error
+	GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error)
 	// UploadDocument(documentID, userID, name, content string) error
 	// GetDocument(documentID string) (*Document, error)
 	// UpdateDocument(documentID, userID, name, content string) error
@@ -103,6 +105,11 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 				Description: "A chunk of the document content",
 				Name:        "chunkContent",
 			},
+			{
+				DataType:    []string{"int"},
+				Description: "Index of the chunk in the document",
+				Name:        "chunkIndex",
+			},
 		},
 	}
 
@@ -110,6 +117,16 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (w *WeaviateClientImpl) UploadChunks(chunks []storemodels.Chunk) error {
+	for _, chunk := range chunks {
+		err := w.UploadChunk(chunk)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
@@ -120,9 +137,10 @@ func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
 	// Convert the chunk to a format suitable for Weaviate
 	chunkData := map[string]interface{}{
 		"documentId":   chunk.DocumentID.String(),
-		"userId":       chunk.UserID.String(),
+		"userId":       chunk.UserID,
 		"chunkId":      chunk.ChunkID.String(), // Convert UUID to string
 		"chunkContent": chunk.ChunkContent,
+		"chunkIndex":   chunk.ChunkIndex,
 	}
 
 	// Use the Weaviate client to upload the chunk
@@ -235,35 +253,74 @@ func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels.Chunk) error {
 // 	return chunks, nil
 // }
 
-// func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
-// 	// func (w *WeaviateClientImpl) UploadDocument(chunks storemodels.Chunk) error {
+//	func (w *WeaviateClientImpl) UploadDocument(documentID, userID, name, content string) error {
+//		// func (w *WeaviateClientImpl) UploadDocument(chunks storemodels.Chunk) error {
 //
-// 	chunks, err := splitContentIntoChunks(content)
-// 	if err != nil {
-// 		return err
-// 	}
+//		chunks, err := splitContentIntoChunks(content)
+//		if err != nil {
+//			return err
+//		}
 //
-// 	for i, chunk := range chunks {
-// 		document := map[string]interface{}{
-// 			"documentId": documentID,
-// 			"userId":     userID,
-// 			"chunk":      chunk,
-// 			"chunkId":    i,
-// 		}
+//		for i, chunk := range chunks {
+//			document := map[string]interface{}{
+//				"documentId": documentID,
+//				"userId":     userID,
+//				"chunk":      chunk,
+//				"chunkId":    i,
+//			}
 //
-// 		_, err := w.client.Data().Creator().
-// 			// WithID(documentID).
-// 			WithClassName("Documents").
-// 			WithProperties(document).
-// 			Do(context.Background())
+//			_, err := w.client.Data().Creator().
+//				// WithID(documentID).
+//				WithClassName("Documents").
+//				WithProperties(document).
+//				Do(context.Background())
 //
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
+//			if err != nil {
+//				return err
+//			}
+//		}
 //
-// 	return nil
-// }
+//		return nil
+//	}
+func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error) {
+	var chunksFromWeaviate []storemodels.Chunk
+	for _, chunk := range chunksFromPostgresql {
+		objects, err := w.client.Data().ObjectsGetter().
+			WithClassName("Documents").
+			WithID(chunk.ChunkID.String()).
+			Do(context.Background())
+
+		if err != nil {
+			return nil, err
+		}
+
+		if len(objects) == 0 {
+			return nil, fmt.Errorf("no object found for chunk ID: %s", chunk.ChunkID.String())
+		}
+
+		fmt.Printf("objects: %+v\n", objects[0])
+
+		// Extract properties from the first object
+		properties := objects[0].Properties.(map[string]interface{})
+
+		chunkIndexValue, ok := properties["chunkIndex"].(float64)
+		if !ok {
+			return nil, fmt.Errorf("chunkIndex is not a float64 or is missing")
+		}
+
+		// Map the properties to your storemodels.Chunk struct
+		singleChunkFromWeaviate := storemodels.Chunk{
+			ChunkID:      uuid.MustParse(properties["chunkId"].(string)),
+			UserID:       properties["userId"].(string),
+			DocumentID:   uuid.MustParse(properties["documentId"].(string)),
+			ChunkContent: properties["chunkContent"].(string),
+			ChunkIndex:   int(chunkIndexValue),
+		}
+
+		chunksFromWeaviate = append(chunksFromWeaviate, singleChunkFromWeaviate)
+	}
+	return chunksFromWeaviate, nil
+}
 
 // func (w *WeaviateClientImpl) GetDocument(documentID string) (*Document, error) {
 // 	objects, err := w.client.Data().ObjectsGetter().

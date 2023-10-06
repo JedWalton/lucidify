@@ -57,9 +57,14 @@ func TestChunkFunctions(t *testing.T) {
 		},
 	}
 
-	err = store.UploadChunks(chunks)
+	uploadedChunks, err := store.UploadChunks(chunks)
 	if err != nil {
 		t.Errorf("Failed to upload chunks: %v", err)
+	}
+
+	uploadedChunk1 := uploadedChunks[0]
+	if uploadedChunk1.ChunkID.String() == "00000000-0000-0000-0000-000000000000" {
+		t.Errorf("Expected chunk ID to be set, but got %s", uploadedChunk1.ChunkID.String())
 	}
 
 	err = store.DeleteAllChunksByDocumentID(insertedDoc.DocumentUUID)
@@ -67,7 +72,7 @@ func TestChunkFunctions(t *testing.T) {
 		t.Errorf("Failed to delete chunks by document ID: %v", err)
 	}
 
-	retrievedChunks, err := store.GetChunksByDocumentID(insertedDoc.DocumentUUID)
+	retrievedChunks, err := store.GetChunksOfDocument(insertedDoc)
 	if err != nil {
 		t.Errorf("Failed to retrieve chunks by document ID: %v", err)
 	}
