@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/storemodels"
@@ -80,24 +79,10 @@ func NewDocumentService(
 func (d *DocumentServiceImpl) UploadDocument(
 	userID, name, content string) (*storemodels.Document, error) {
 
-	var cleanupTasks []func() error
-
-	defer func() {
-		for _, task := range cleanupTasks {
-			if err := task(); err != nil {
-				// Log the cleanup error or handle it appropriately.
-				log.Printf("Cleanup task failed: %v", err)
-			}
-		}
-	}()
-
 	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
 	if err != nil {
 		return document, fmt.Errorf("Upload failed at upload document to PostgreSQL: %w", err)
 	}
-	cleanupTasks = append(cleanupTasks, func() error {
-		return d.postgresqlDB.DeleteDocument(userID, name)
-	})
 
 	// chunks, err := splitContentIntoChunks(*document)
 	// if err != nil {

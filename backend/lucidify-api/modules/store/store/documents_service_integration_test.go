@@ -114,10 +114,11 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 
 	// Create an instance of DocumentServiceImpl
-	service := &DocumentServiceImpl{
-		postgresqlDB: *db,
-		weaviateDB:   weaviateClient,
-	}
+	// service := &DocumentServiceImpl{
+	// 	postgresqlDB: *db,
+	// 	weaviateDB:   weaviateClient,
+	// }
+	documentService := NewDocumentService(db, weaviateClient)
 
 	// Test data
 	name := "test-document-name"
@@ -138,23 +139,23 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		UpdatedAt:        1654012591514,
 	}
 
-	err = service.postgresqlDB.CreateUserInUsersTable(user)
+	err = db.CreateUserInUsersTable(user)
 	if err != nil {
 		t.Errorf("Failed to create user: %v", err)
 	}
 
 	// 2. Call the function
-	_, err = service.UploadDocument(user.UserID, name, content)
+	document, err := documentService.UploadDocument(user.UserID, name, content)
 	if err != nil {
 		t.Fatalf("Failed to upload document: %v", err)
 	}
 
 	// 3. Verify
 	// Verify that the document is in the test database
-	// doc, err := db.GetDocumentByUUID(document.DocumentUUID)
-	// if err != nil || doc == nil {
-	// 	t.Error("Document was not uploaded to PostgreSQL")
-	// }
+	doc, err := db.GetDocumentByUUID(document.DocumentUUID)
+	if err != nil || doc == nil {
+		t.Error("Document was not uploaded to PostgreSQL")
+	}
 
 	// Verify that the chunks are in the test database
 	// if !db.ChunksExistForDocument(document.DocumentUUID) {
@@ -168,16 +169,16 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	// }
 
 	// 4. Cleanup is handled by defer statements
-	// t.Cleanup(func() {
-	// 	err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
-	// 	if err != nil {
-	// 		t.Errorf("failed to delete test document: %v", err)
-	// 	}
-	// 	err = postgresqlDB.DeleteUserInUsersTable(userID)
-	// 	if err != nil {
-	// 		t.Errorf("failed to delete test user: %v", err)
-	// 	}
-	// })
+	t.Cleanup(func() {
+		// err := documentService.DeleteDocument(userID, name, document.DocumentUUID.String())
+		// if err != nil {
+		// 	t.Errorf("failed to delete test document: %v", err)
+		// }
+		err = db.DeleteUserInUsersTable(user.UserID)
+		if err != nil {
+			t.Errorf("failed to delete test user: %v", err)
+		}
+	})
 }
 
 // postgresqlDB, err := postgresqlclient.NewPostgreSQL()
