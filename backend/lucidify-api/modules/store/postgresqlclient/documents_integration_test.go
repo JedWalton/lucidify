@@ -39,51 +39,51 @@ func TestStoreFunctions(t *testing.T) {
 	}
 	t.Logf("Uploaded document: %+v", doc)
 
-	// // Test GetDocument
-	// docGet, err := store.GetDocument("documents_integration_test_user_id", "test_doc")
-	// if err != nil {
-	// 	t.Errorf("Failed to get document: %v", err)
-	// }
-	// if docGet.Content != "test_content" {
-	// 	t.Errorf("Expected content 'test_content', got '%s'", docGet.Content)
-	// }
-	//
-	// // Test GetDocumentByUUID
-	// documentUUID := doc.DocumentUUID.String()
-	// docByUUID, err := store.GetDocumentByUUID(documentUUID)
-	// if err != nil {
-	// 	t.Errorf("Failed to get document by UUID: %v", err)
-	// }
-	// if docByUUID.DocumentUUID.String() != documentUUID {
-	// 	t.Errorf("Expected UUID '%s', got '%s'", documentUUID, docByUUID.DocumentUUID)
-	// }
-	// if docByUUID.Content != "test_content" {
-	// 	t.Errorf("Expected content 'test_content', got '%s'", docByUUID.Content)
-	// }
-	//
-	// // Test UpdateDocument
-	// err = store.UpdateDocument("documents_integration_test_user_id", "test_doc", "updated_content")
-	// if err != nil {
-	// 	t.Errorf("Failed to update document: %v", err)
-	// }
-	//
-	// updatedDoc, err := store.GetDocument("documents_integration_test_user_id", "test_doc")
-	// if err != nil {
-	// 	t.Errorf("Failed to get updated document: %v", err)
-	// }
-	// if updatedDoc.Content != "updated_content" {
-	// 	t.Errorf("Expected updated content 'updated_content', got '%s'", updatedDoc.Content)
-	// }
-	//
-	// // Test GetAllDocuments
-	// docs, err := store.GetAllDocuments("documents_integration_test_user_id")
-	// if err != nil {
-	// 	t.Errorf("Failed to get all documents: %v", err)
-	// }
-	// if len(docs) != 1 {
-	// 	t.Errorf("Expected 1 document, got %d", len(docs))
-	// }
-	//
+	// Test GetDocument
+	docGet, err := store.GetDocument("documents_integration_test_user_id", "test_doc")
+	if err != nil {
+		t.Errorf("Failed to get document: %v", err)
+	}
+	if docGet.Content != "test_content" {
+		t.Errorf("Expected content 'test_content', got '%s'", docGet.Content)
+	}
+
+	// Test GetDocumentByUUID
+	documentUUID := doc.DocumentUUID
+	docByUUID, err := store.GetDocumentByUUID(documentUUID)
+	if err != nil {
+		t.Errorf("Failed to get document by UUID: %v", err)
+	}
+	if docByUUID.DocumentUUID != documentUUID {
+		t.Errorf("Expected UUID '%s', got '%s'", documentUUID, docByUUID.DocumentUUID)
+	}
+	if docByUUID.Content != "test_content" {
+		t.Errorf("Expected content 'test_content', got '%s'", docByUUID.Content)
+	}
+
+	// Test UpdateDocument
+	err = store.UpdateDocument("documents_integration_test_user_id", "test_doc", "updated_content")
+	if err != nil {
+		t.Errorf("Failed to update document: %v", err)
+	}
+
+	updatedDoc, err := store.GetDocument("documents_integration_test_user_id", "test_doc")
+	if err != nil {
+		t.Errorf("Failed to get updated document: %v", err)
+	}
+	if updatedDoc.Content != "updated_content" {
+		t.Errorf("Expected updated content 'updated_content', got '%s'", updatedDoc.Content)
+	}
+
+	// Test GetAllDocuments
+	docs, err := store.GetAllDocuments("documents_integration_test_user_id")
+	if err != nil {
+		t.Errorf("Failed to get all documents: %v", err)
+	}
+	if len(docs) != 1 {
+		t.Errorf("Expected 1 document, got %d", len(docs))
+	}
+
 	// // Test UpdateDocumentName
 	// newDocumentName := "new_test_doc"
 	// err = store.UpdateDocumentName(doc.DocumentUUID, newDocumentName)
