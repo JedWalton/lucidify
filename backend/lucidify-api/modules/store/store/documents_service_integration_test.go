@@ -158,9 +158,10 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 
 	// Verify that the chunks are in the test database
-	// if !db.ChunksExistForDocument(document.DocumentUUID) {
-	// 	t.Error("Chunks were not uploaded to PostgreSQL")
-	// }
+	chunks, err := db.GetChunksByDocumentID(document.DocumentUUID)
+	if err != nil || len(chunks) == 0 {
+		t.Error("Chunks were not uploaded to PostgreSQL")
+	}
 	//
 	// // Verify that the chunks are in Weaviate
 	// // This might require a method in your Weaviate client to check for chunk existence
