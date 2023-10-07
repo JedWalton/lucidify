@@ -117,8 +117,6 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	// Test data
 	name := "test-document-name"
 	content := "This is a test document content."
-	// name2 := "test-document-name2"
-	// content2 := "This is a test document content2."
 
 	user := postgresqlclient.User{
 		UserID:           "documents_service_integration_test_user_id",
@@ -227,18 +225,28 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Error("Chunks not deleted from Weaviate after user deleted.")
 	}
 
-	// _, err = documentService.UploadDocument(user.UserID, name2, content2)
-	// if err != nil {
-	// 	t.Fatalf("Failed to upload document: %v", err)
-	// }
+	err = db.CreateUserInUsersTable(user)
+	if err != nil {
+		t.Errorf("Failed to create user: %v", err)
+	}
 
-	// allDocs, err := documentService.GetAllDocuments(user.UserID)
-	// if err != nil || len(allDocs) != 2 {
-	// 	t.Error("Document was not uploaded to PostgreSQL")
-	// }
-	// if document2.DocumentName != name2 || document2.Content != content2 {
-	// 	t.Error("Document was not uploaded to PostgreSQL")
-	// }
+	name2 := "test-document-name2"
+	content2 := "This is a test document content2."
+
+	document, err = documentService.UploadDocument(user.UserID, name, content)
+	if err != nil {
+		t.Fatalf("Failed to upload document: %v", err)
+	}
+
+	document, err = documentService.UploadDocument(user.UserID, name2, content2)
+	if err != nil {
+		t.Fatalf("Failed to upload document: %v", err)
+	}
+
+	allDocs, err := documentService.GetAllDocuments(user.UserID)
+	if err != nil || len(allDocs) != 2 {
+		t.Error("Document was not uploaded to PostgreSQL")
+	}
 
 	// 4. Cleanup
 	// Execute cleanup tasks after all checks

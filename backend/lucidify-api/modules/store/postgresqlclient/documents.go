@@ -1,6 +1,7 @@
 package postgresqlclient
 
 import (
+	"errors"
 	"lucidify-api/modules/store/storemodels"
 
 	"github.com/google/uuid"
@@ -65,7 +66,30 @@ func (s *PostgreSQL) GetDocumentByUUID(documentUUID uuid.UUID) (*storemodels.Doc
 	return doc, nil
 }
 
+//	func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, error) {
+//		var documents []storemodels.Document
+//		query := `SELECT document_id, user_id, document_name, content, created_at, updated_at
+//		          FROM documents WHERE user_id = $1`
+//		rows, err := s.db.Query(query, userID)
+//		if err != nil {
+//			return nil, err
+//		}
+//		defer rows.Close()
+//		for rows.Next() {
+//			var doc storemodels.Document
+//			err := rows.Scan(&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
+//			if err != nil {
+//				return nil, err
+//			}
+//			documents = append(documents, doc)
+//		}
+//		return documents, nil
+//	}
 func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, error) {
+	if s.db == nil {
+		return nil, errors.New("database connection is nil")
+	}
+
 	var documents []storemodels.Document
 	query := `SELECT document_id, user_id, document_name, content, created_at, updated_at 
 	          FROM documents WHERE user_id = $1`
@@ -74,6 +98,7 @@ func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, err
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var doc storemodels.Document
 		err := rows.Scan(&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
@@ -82,6 +107,19 @@ func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, err
 		}
 		documents = append(documents, doc)
 	}
+
+	// Check for errors from the rows.Next() loop.
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Optionally handle the case where there are no documents.
+	if len(documents) == 0 {
+		// You can return a custom error if you want to handle this case specifically.
+		// return nil, errors.New("no documents found for the given userID")
+		// Or just return the empty slice without error.
+	}
+
 	return documents, nil
 }
 
