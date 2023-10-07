@@ -13,9 +13,9 @@ import (
 )
 
 type DocumentService interface {
-	UploadDocument(userID, name, content string) (*storemodels.Document, []func() error, error)
-	// GetDocument(userID, name string) (*postgresqlclient.Document, error)
-	// GetAllDocuments(userID string) ([]postgresqlclient.Document, error)
+	UploadDocument(userID, name, content string) (*storemodels.Document, error)
+	GetDocument(userID, name string) (*storemodels.Document, error)
+	GetAllDocuments(userID string) ([]storemodels.Document, error)
 	// DeleteDocument(userID, name, documentUUID string) error
 	// UpdateDocumentName(documentUUID, name string) error
 	// UpdateDocumentContent(documentUUID, content string) error
@@ -32,24 +32,75 @@ func NewDocumentService(
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
+// func (d *DocumentServiceImpl) UploadDocument(
+//
+//		userID, name, content string) (*storemodels.Document, []func() error, error) {
+//
+//		var cleanupTasks []func() error
+//
+//		document, err := d.postgresqlDB.UploadDocument(userID, name, content)
+//		if err != nil {
+//			return document, cleanupTasks, fmt.Errorf("Upload failed at upload document to PostgreSQL: %w", err)
+//		}
+//
+//		chunks, err := splitContentIntoChunks(*document)
+//		if err != nil {
+//			return document, cleanupTasks, fmt.Errorf("Upload failed at split content into chunks: %w", err)
+//		}
+//
+//		chunksWithChunkID, err := d.postgresqlDB.UploadChunks(chunks)
+//		if err != nil {
+//			return document, cleanupTasks, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
+//		}
+//
+//		// Append a cleanup task for the uploaded chunks in PostgreSQL
+//		cleanupTasks = append(cleanupTasks, func() error {
+//			return d.postgresqlDB.DeleteAllChunksByDocumentID(document.DocumentUUID)
+//		})
+//
+//		err = d.weaviateDB.UploadChunks(chunksWithChunkID)
+//		if err != nil {
+//			return document, cleanupTasks, fmt.Errorf("Upload failed at upload chunks to weaviate: %w", err)
+//		}
+//
+//		// Append a cleanup task for the uploaded chunks in Weaviate
+//		cleanupTasks = append(cleanupTasks, func() error {
+//			return d.weaviateDB.DeleteChunks(chunksWithChunkID)
+//		})
+//
+//		return document, cleanupTasks, nil
+//	}
 func (d *DocumentServiceImpl) UploadDocument(
-	userID, name, content string) (*storemodels.Document, []func() error, error) {
+	userID, name, content string) (*storemodels.Document, error) {
 
 	var cleanupTasks []func() error
+	var cleanupRequired bool
+	defer func() {
+		if cleanupRequired {
+			for _, task := range cleanupTasks {
+				if err := task(); err != nil {
+					// Log the cleanup error or handle it as needed
+				}
+			}
+		}
+	}()
 
 	document, err := d.postgresqlDB.UploadDocument(userID, name, content)
 	if err != nil {
-		return document, cleanupTasks, fmt.Errorf("Upload failed at upload document to PostgreSQL: %w", err)
+		cleanupRequired = true
+		return document, fmt.Errorf("Upload failed at upload document to PostgreSQL: %w", err)
 	}
 
 	chunks, err := splitContentIntoChunks(*document)
 	if err != nil {
-		return document, cleanupTasks, fmt.Errorf("Upload failed at split content into chunks: %w", err)
+		cleanupRequired = true
+		return document, fmt.Errorf("Upload failed at split content into chunks: %w", err)
 	}
 
 	chunksWithChunkID, err := d.postgresqlDB.UploadChunks(chunks)
 	if err != nil {
-		return document, cleanupTasks, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
+		cleanupRequired = true
+		return document, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
 	}
 
 	// Append a cleanup task for the uploaded chunks in PostgreSQL
@@ -59,7 +110,8 @@ func (d *DocumentServiceImpl) UploadDocument(
 
 	err = d.weaviateDB.UploadChunks(chunksWithChunkID)
 	if err != nil {
-		return document, cleanupTasks, fmt.Errorf("Upload failed at upload chunks to weaviate: %w", err)
+		cleanupRequired = true
+		return document, fmt.Errorf("Upload failed at upload chunks to weaviate: %w", err)
 	}
 
 	// Append a cleanup task for the uploaded chunks in Weaviate
@@ -67,7 +119,7 @@ func (d *DocumentServiceImpl) UploadDocument(
 		return d.weaviateDB.DeleteChunks(chunksWithChunkID)
 	})
 
-	return document, cleanupTasks, nil
+	return document, nil
 }
 
 func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk, error) {
@@ -120,13 +172,14 @@ func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk,
 	return chunks, nil
 }
 
-// func (d *DocumentServiceImpl) GetDocument(userID, name string) (*postgresqlclient.Document, error) {
-// 	return d.postgresqlDB.GetDocument(userID, name)
-// }
-//
-// func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]postgresqlclient.Document, error) {
-// 	return d.postgresqlDB.GetAllDocuments(userID)
-// }
+func (d *DocumentServiceImpl) GetDocument(userID, name string) (*storemodels.Document, error) {
+	return d.postgresqlDB.GetDocument(userID, name)
+}
+
+func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Document, error) {
+	return d.postgresqlDB.GetAllDocuments(userID)
+}
+
 //
 // func (d *DocumentServiceImpl) DeleteDocument(userID, name, documentUUID string) error {
 // 	err := d.postgresqlDB.DeleteDocument(userID, name)
