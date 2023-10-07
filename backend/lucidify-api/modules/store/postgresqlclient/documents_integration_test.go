@@ -84,38 +84,18 @@ func TestStoreFunctions(t *testing.T) {
 		t.Errorf("Expected 1 document, got %d", len(docs))
 	}
 
-	// // Test UpdateDocumentName
-	// newDocumentName := "new_test_doc"
-	// err = store.UpdateDocumentName(doc.DocumentUUID, newDocumentName)
-	// if err != nil {
-	// 	t.Errorf("Failed to update document name: %v", err)
-	// }
-	//
-	// // Verify that the document name was updated
-	// updatedDoc, err = store.GetDocument("documents_integration_test_user_id", newDocumentName)
-	// if err != nil {
-	// 	t.Errorf("Failed to get document with new name: %v", err)
-	// }
-	// if updatedDoc.DocumentName != newDocumentName {
-	// 	t.Errorf("Expected updated document name '%s', got '%s'", newDocumentName, updatedDoc.DocumentName)
-	// }
-	//
-	// // Test UpdateDocumentContent
-	// newContent := "new_updated_content"
-	// err = store.UpdateDocumentContent(updatedDoc.DocumentUUID, newContent)
-	// if err != nil {
-	// 	t.Errorf("Failed to update document content: %v", err)
-	// }
-	//
-	// // Verify that the document content was updated
-	// updatedDoc, err = store.GetDocument("documents_integration_test_user_id", newDocumentName)
-	// if err != nil {
-	// 	t.Errorf("Failed to get document with new content: %v", err)
-	// }
-	// if updatedDoc.Content != newContent {
-	// 	t.Errorf("Expected updated content '%s', got '%s'", newContent, updatedDoc.Content)
-	// }
-	//
+	// Test DeleteDocumentByUUID
+	err = store.DeleteDocumentByUUID(updatedDoc.DocumentUUID)
+	if err != nil {
+		t.Errorf("Failed to delete document by UUID: %v", err)
+	}
+
+	// Verify that the document was deleted
+	docByUUID, err = store.GetDocumentByUUID(documentUUID)
+	if err == nil || docByUUID != nil {
+		t.Errorf("Document should have been deleted, but was still retrievable by UUID")
+	}
+
 	t.Cleanup(func() {
 		// Delete the test document
 		err = store.DeleteDocument("documents_integration_test_user_id", "test_doc")

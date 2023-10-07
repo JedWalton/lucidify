@@ -18,27 +18,32 @@ CREATE TABLE users (
 -- Enable the uuid-ossp extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Documents table
 CREATE TABLE documents (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL REFERENCES users(user_id) ON DELETE CASCADE, -- Changed data type to VARCHAR(255)
+    document_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     document_name VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, document_name) -- Composite unique constraint remains unchanged
+    UNIQUE(user_id, document_name),
+    UNIQUE(user_id, document_id)  -- Add this line
 );
 
 -- Index on user_id for the documents table remains unchanged
 CREATE INDEX idx_documents_user_id ON documents(user_id);
 
--- Chunks table
+-- Chunks table with user_id FK
 CREATE TABLE document_chunks (
     chunk_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    document_id UUID NOT NULL REFERENCES documents(document_id) ON DELETE CASCADE,
     chunk_content TEXT NOT NULL,
-    chunk_index INT NOT NULL -- To keep track of the order of chunks for a document
+    chunk_index INT NOT NULL, -- To keep track of the order of chunks for a document
+    FOREIGN KEY (user_id, document_id) REFERENCES documents(user_id, document_id) ON DELETE CASCADE
 );
 
 -- Index on document_id for the document_chunks table
 CREATE INDEX idx_document_chunks_document_id ON document_chunks(document_id);
+-- Index on user_id for the document_chunks table
+CREATE INDEX idx_document_chunks_user_id ON document_chunks(user_id);
+

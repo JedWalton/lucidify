@@ -22,10 +22,9 @@ func (s *PostgreSQL) UploadDocument(userID string, name, content string) (*store
 	}
 	defer tx.Rollback()
 
-	// Use the RETURNING clause to return all fields of the inserted row
 	query := `INSERT INTO documents (user_id, document_name, content) 
 	          VALUES ($1, $2, $3) 
-	          RETURNING id, user_id, document_name, content, created_at, updated_at`
+	          RETURNING document_id, user_id, document_name, content, created_at, updated_at`
 	err = tx.QueryRow(query, userID, name, content).Scan(
 		&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 	if err != nil {
@@ -42,7 +41,7 @@ func (s *PostgreSQL) UploadDocument(userID string, name, content string) (*store
 
 func (s *PostgreSQL) GetDocument(userID string, name string) (*storemodels.Document, error) {
 	doc := &storemodels.Document{}
-	query := `SELECT id, user_id, document_name, content, created_at, updated_at
+	query := `SELECT document_id, user_id, document_name, content, created_at, updated_at
 	          FROM documents
 	          WHERE user_id = $1 AND document_name = $2`
 	err := s.db.QueryRow(query, userID, name).Scan(
@@ -55,10 +54,10 @@ func (s *PostgreSQL) GetDocument(userID string, name string) (*storemodels.Docum
 
 func (s *PostgreSQL) GetDocumentByUUID(documentUUID uuid.UUID) (*storemodels.Document, error) {
 	doc := &storemodels.Document{}
-	query := `SELECT id, user_id, document_name, content, created_at, updated_at
+	query := `SELECT document_id, user_id, document_name, content, created_at, updated_at
 	          FROM documents
-	          WHERE id = $1`
-	err := s.db.QueryRow(query, documentUUID.String()).Scan(
+	          WHERE document_id = $1`
+	err := s.db.QueryRow(query, documentUUID).Scan(
 		&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -68,7 +67,8 @@ func (s *PostgreSQL) GetDocumentByUUID(documentUUID uuid.UUID) (*storemodels.Doc
 
 func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, error) {
 	var documents []storemodels.Document
-	query := `SELECT user_id, document_name, content, created_at, updated_at FROM documents WHERE user_id = $1`
+	query := `SELECT document_id, user_id, document_name, content, created_at, updated_at 
+	          FROM documents WHERE user_id = $1`
 	rows, err := s.db.Query(query, userID)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, err
 	defer rows.Close()
 	for rows.Next() {
 		var doc storemodels.Document
-		err := rows.Scan(&doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
+		err := rows.Scan(&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -94,6 +94,22 @@ func (s *PostgreSQL) DeleteDocument(userID string, name string) error {
 
 	query := `DELETE FROM documents WHERE user_id = $1 AND document_name = $2`
 	_, err = tx.Exec(query, userID, name)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *PostgreSQL) DeleteDocumentByUUID(documentUUID uuid.UUID) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `DELETE FROM documents WHERE document_id = $1`
+	_, err = tx.Exec(query, documentUUID.String())
 	if err != nil {
 		return err
 	}
