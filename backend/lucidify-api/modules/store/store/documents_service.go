@@ -157,7 +157,7 @@ func (d *DocumentServiceImpl) UploadDocument(
 	_, err = d.postgresqlDB.UploadChunks(chunks)
 	if err != nil {
 		cleanupTasks = append(cleanupTasks, func() error {
-			return d.postgresqlDB.DeleteAllChunksByDocumentID(document.DocumentUUID)
+			return d.postgresqlDB.DeleteDocumentByUUID(document.DocumentUUID)
 		})
 		return document, fmt.Errorf("Upload failed at upload chunks to PostgreSQL: %w", err)
 	}

@@ -1,6 +1,7 @@
 package postgresqlclient
 
 import (
+	"errors"
 	"lucidify-api/modules/store/storemodels"
 
 	"github.com/google/uuid"
@@ -54,6 +55,9 @@ func (s *PostgreSQL) DeleteAllChunksByDocumentID(documentID uuid.UUID) error {
 }
 
 func (s *PostgreSQL) GetChunksOfDocument(document *storemodels.Document) ([]storemodels.Chunk, error) {
+	if document == nil {
+		return nil, errors.New("provided document is nil")
+	}
 	// Include user_id in the SELECT statement
 	query := `SELECT chunk_id, user_id, document_id, chunk_content, chunk_index FROM document_chunks WHERE user_id = $1 AND document_id = $2`
 	rows, err := s.db.Query(query, document.UserID, document.DocumentUUID)
