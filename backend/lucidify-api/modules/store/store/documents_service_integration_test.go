@@ -18,15 +18,15 @@ func createTestUserInDb() string {
 
 	// the user id registered by the jwt token must exist in the local database
 	user := postgresqlclient.User{
-		UserID:           "TestStoreIntegrationTestUUID",
-		ExternalID:       "TestStoreIntegrationTest",
-		Username:         "TestStoreIntegrationTest",
+		UserID:           "TestDocumentsServiceIntegrationTestUUID",
+		ExternalID:       "TestDocumentsServiceIntegrationTestExternalID",
+		Username:         "TestDocumentsServiceIntegrationTestUsername",
 		PasswordEnabled:  true,
-		Email:            "TestStoreIntegrationTest@example.com",
-		FirstName:        "TestStoreIntegrationTestFirstName",
-		LastName:         "TestStoreIntegrationTestLastName",
-		ImageURL:         "https://TestStoreIntegrationTestURL.com/image.jpg",
-		ProfileImageURL:  "https://TestStoreIntegrationTestProfileURL.com/profile.jpg",
+		Email:            "TestDocumentServiceIntTest@gmail.com",
+		FirstName:        "TestDocumentsServiceIntegrationTestFirstName",
+		LastName:         "TestDocumentsServiceIntegrationTestLastName",
+		ImageURL:         "https://TestDocumentsServiceIntegrationTestURL.com/image.jpg",
+		ProfileImageURL:  "https://TestDocumentServiceTestProfileURL.com/profile.jpg",
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
@@ -141,23 +141,22 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 
 	// 2. Call the function
-	// document, err := documentService.UploadDocument(user.UserID, name, content)
-	_, err = documentService.UploadDocument(user.UserID, name, content)
+	document, err := documentService.UploadDocument(user.UserID, name, content)
 	if err != nil {
 		t.Fatalf("Failed to upload document: %v", err)
 	}
 
 	// // 3. Verify
-	// doc, err := db.GetDocumentByUUID(document.DocumentUUID)
-	// if err != nil || doc == nil {
-	// 	t.Error("Document was not uploaded to PostgreSQL")
-	// }
-	//
-	// chunks, err := db.GetChunksOfDocument(document)
-	// if err != nil || len(chunks) == 0 {
-	// 	t.Error("Chunks were not uploaded to PostgreSQL")
-	// }
-	//
+	doc, err := db.GetDocumentByUUID(document.DocumentUUID)
+	if err != nil || doc == nil {
+		t.Error("Document was not uploaded to PostgreSQL")
+	}
+
+	chunks, err := db.GetChunksOfDocument(document)
+	if err != nil || len(chunks) == 0 {
+		t.Error("Chunks were not uploaded to PostgreSQL")
+	}
+
 	// chunksFromWeaviate, err := weaviateClient.GetChunks(chunks)
 	// if err != nil || len(chunksFromWeaviate) == 0 {
 	// 	t.Error("Chunks were not uploaded to Weaviate")
@@ -190,12 +189,12 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	//
 	// // 4. Cleanup
 	// // Execute cleanup tasks after all checks
-	// t.Cleanup(func() {
-	// 	err = db.DeleteUserInUsersTable(user.UserID)
-	// 	if err != nil {
-	// 		t.Errorf("failed to delete test user: %v", err)
-	// 	}
-	// })
+	t.Cleanup(func() {
+		err = db.DeleteUserInUsersTable(user.UserID)
+		if err != nil {
+			t.Errorf("failed to delete test user: %v", err)
+		}
+	})
 }
 
 // postgresqlDB, err := postgresqlclient.NewPostgreSQL()
