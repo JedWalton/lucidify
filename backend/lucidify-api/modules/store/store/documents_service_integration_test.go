@@ -146,7 +146,7 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Fatalf("Failed to upload document: %v", err)
 	}
 
-	// // 3. Verify
+	// // 3. Verify upload
 	doc, err := db.GetDocumentByUUID(document.DocumentUUID)
 	if err != nil || doc == nil {
 		t.Error("Document was not uploaded to PostgreSQL")
@@ -167,6 +167,22 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Error("Chunks were not uploaded to PostgreSQL")
 	}
 
+	chunksFromWeaviate, err := weaviateClient.GetChunks(chunks)
+	if err != nil || len(chunksFromWeaviate) != 0 {
+		t.Error("Chunks were not uploaded to Weaviate")
+	}
+
+	for i, chunk := range chunksFromWeaviate {
+		if chunk.ChunkID != chunks[i].ChunkID {
+			t.Error("Chunks are inconsistent before and after uploading chunks to weaviate")
+		}
+	}
+	for i, chunk := range chunksFromWeaviate {
+		if chunk.ChunkContent != chunks[i].ChunkContent {
+			t.Error("Chunks are inconsistent before and after uploading chunks to weaviate")
+		}
+	}
+
 	document, err = documentService.UploadDocument(user.UserID, name, content)
 	if err != nil {
 		t.Fatalf("Failed to upload document: %v", err)
@@ -181,6 +197,11 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Error("Chunks were not uploaded to PostgreSQL")
 	}
 
+	chunksFromWeaviate, err = weaviateClient.GetChunks(chunks)
+	if err != nil || len(chunksFromWeaviate) == 0 {
+		t.Error("Chunks were not uploaded to Weaviate")
+	}
+
 	err = db.DeleteUserInUsersTable(user.UserID)
 	if err != nil {
 		t.Errorf("failed to delete test user: %v", err)
@@ -191,26 +212,14 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 	chunks, err = db.GetChunksOfDocument(doc)
 	if err == nil || len(chunks) != 0 {
-		t.Error("Chunks not deleted PostgreSQL")
+		t.Error("Chunks not deleted PostgreSQL after user deleted")
 	}
 
-	// chunksFromWeaviate, err := weaviateClient.GetChunks(chunks)
-	// if err != nil || len(chunksFromWeaviate) == 0 {
-	// 	t.Error("Chunks were not uploaded to Weaviate")
-	// }
-	//
-	// for i, chunk := range chunksFromWeaviate {
-	// 	if chunk.ChunkContent != chunks[i].ChunkContent {
-	// 		t.Error("Chunks are inconsistent before and after uploading chunks to weaviate")
-	// 	}
-	// }
-	//
-	// // 4. Test GetDocument
-	// docGet, err := documentService.GetDocument(user.UserID, name)
-	// if err != nil || docGet == nil || docGet.DocumentName != name || docGet.Content != content {
-	// 	t.Error("Document was not uploaded to PostgreSQL")
-	// }
-	//
+	chunksFromWeaviate, err = weaviateClient.GetChunks(chunks)
+	if err != nil || len(chunksFromWeaviate) != 0 {
+		t.Error("Chunks were not uploaded to Weaviate")
+	}
+
 	// document2, err := documentService.UploadDocument(user.UserID, name2, content2)
 	// if err != nil {
 	// 	t.Fatalf("Failed to upload document: %v", err)
@@ -223,9 +232,9 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	// if document2.DocumentName != name2 || document2.Content != content2 {
 	// 	t.Error("Document was not uploaded to PostgreSQL")
 	// }
-	//
-	// // 4. Cleanup
-	// // Execute cleanup tasks after all checks
+
+	// 4. Cleanup
+	// Execute cleanup tasks after all checks
 	t.Cleanup(func() {
 		err = db.DeleteUserInUsersTable(user.UserID)
 		if err != nil {
