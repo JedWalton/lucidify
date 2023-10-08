@@ -155,15 +155,32 @@ func (s *PostgreSQL) DeleteDocumentByUUID(documentUUID uuid.UUID) error {
 	return tx.Commit()
 }
 
-func (s *PostgreSQL) UpdateDocument(userID string, name, content string) error {
+// func (s *PostgreSQL) UpdateDocument(userID string, name, content string) error {
+// 	tx, err := s.db.Begin()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer tx.Rollback()
+//
+// 	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND document_name = $3`
+// 	_, err = tx.Exec(query, content, userID, name)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	return tx.Commit()
+// }
+
+func (s *PostgreSQL) UpdateDocumentContent(documentID uuid.UUID, newContent string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND document_name = $3`
-	_, err = tx.Exec(query, content, userID, name)
+	// Update the content using the document ID (UUID) in the WHERE clause
+	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE document_id = $2`
+	_, err = tx.Exec(query, newContent, documentID)
 	if err != nil {
 		return err
 	}
@@ -171,23 +188,23 @@ func (s *PostgreSQL) UpdateDocument(userID string, name, content string) error {
 	return tx.Commit()
 }
 
-//
-// func (s *PostgreSQL) UpdateDocumentName(documentID uuid.UUID, newDocumentName string) error {
-// 	tx, err := s.db.Begin()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer tx.Rollback()
-//
-// 	// Update the document_name using the document ID (UUID) in the WHERE clause
-// 	query := `UPDATE documents SET document_name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
-// 	_, err = tx.Exec(query, newDocumentName, documentID)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	return tx.Commit()
-// }
+func (s *PostgreSQL) UpdateDocumentName(documentID uuid.UUID, newDocumentName string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Update the document_name using the document ID (UUID) in the WHERE clause
+	query := `UPDATE documents SET document_name = $1, updated_at = CURRENT_TIMESTAMP WHERE document_id = $2`
+	_, err = tx.Exec(query, newDocumentName, documentID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 //
 // func (s *PostgreSQL) UpdateDocumentContent(documentID uuid.UUID, newContent string) error {
 // 	tx, err := s.db.Begin()

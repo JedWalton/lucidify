@@ -157,11 +157,6 @@ func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
 	return nil
 }
 
-func (w *WeaviateClientImpl) DeleteAllChunksByDocumentID(documentID string) error {
-	return fmt.Errorf("This is not implemented as weaviate does not support non "+
-		"index deleting: %w. This func exists in document_service.", errors.New("not implemented"))
-}
-
 func (w *WeaviateClientImpl) DeleteChunk(chunkID uuid.UUID) error {
 	err := w.client.Data().Deleter().
 		WithClassName("Documents").

@@ -79,3 +79,27 @@ func (s *PostgreSQL) GetChunksOfDocument(document *storemodels.Document) ([]stor
 
 	return chunks, nil
 }
+
+func (s *PostgreSQL) GetChunksOfDocumentByDocumentID(documentID uuid.UUID) ([]storemodels.Chunk, error) {
+	// Modify the SELECT statement to retrieve all fields of the chunks
+	query := `SELECT chunk_id, user_id, document_id, chunk_content, chunk_index 
+	          FROM document_chunks WHERE document_id = $1`
+	rows, err := s.db.Query(query, documentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chunks []storemodels.Chunk
+	for rows.Next() {
+		var chunk storemodels.Chunk
+		// Scan all the fields into the Chunk struct
+		err = rows.Scan(&chunk.ChunkID, &chunk.UserID, &chunk.DocumentID, &chunk.ChunkContent, &chunk.ChunkIndex)
+		if err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, chunk)
+	}
+
+	return chunks, nil
+}
