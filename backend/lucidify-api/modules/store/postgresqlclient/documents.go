@@ -7,13 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Extract interface here for these functions that has a PostgreSQL.
-// Then make these extent the documents interface rather than PostgreSQL interface.
-
-// type Document struct {
-// 	storemodels.Document
-// }
-
 func (s *PostgreSQL) UploadDocument(userID string, name, content string) (*storemodels.Document, error) {
 	doc := &storemodels.Document{}
 
@@ -155,22 +148,6 @@ func (s *PostgreSQL) DeleteDocumentByUUID(documentUUID uuid.UUID) error {
 	return tx.Commit()
 }
 
-// func (s *PostgreSQL) UpdateDocument(userID string, name, content string) error {
-// 	tx, err := s.db.Begin()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer tx.Rollback()
-//
-// 	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND document_name = $3`
-// 	_, err = tx.Exec(query, content, userID, name)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	return tx.Commit()
-// }
-
 func (s *PostgreSQL) UpdateDocumentContent(documentID uuid.UUID, newContent string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -204,23 +181,3 @@ func (s *PostgreSQL) UpdateDocumentName(documentID uuid.UUID, newDocumentName st
 
 	return tx.Commit()
 }
-
-//
-// func (s *PostgreSQL) UpdateDocumentContent(documentID uuid.UUID, newContent string) error {
-// 	tx, err := s.db.Begin()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer tx.Rollback()
-//
-// 	// Update the content using the document ID (UUID) in the WHERE clause
-// 	query := `UPDATE documents SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
-// 	_, err = tx.Exec(query, newContent, documentID)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	return tx.Commit()
-// }
-
-// Impl Delete all documents by user ID
