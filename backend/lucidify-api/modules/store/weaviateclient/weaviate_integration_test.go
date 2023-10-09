@@ -3,6 +3,7 @@
 package weaviateclient
 
 import (
+	"fmt"
 	"lucidify-api/modules/store/storemodels"
 	"testing"
 
@@ -59,140 +60,233 @@ func TestDeleteChunk(t *testing.T) {
 	}
 }
 
-// Test uploading a document
-// documentID := uuid.New().String()
-// err = weaviateClient.UploadDocument(documentID, "testuser", "testdoc", "test content")
-// if err != nil {
-// 	t.Errorf("failed to upload document: %v", err)
-// }
+func getTestChunks() []storemodels.Chunk {
+	documentID := uuid.New()
+	userID := uuid.New()
+	var chunks []storemodels.Chunk
+	chunk0 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     userID.String(),
+		DocumentID: documentID,
+		ChunkContent: "Cats, with their graceful movements and independent nature, have been revered" +
+			" and adored by many civilizations throughout history. In ancient Egypt, they" +
+			" were considered sacred and were even associated with the goddess Bastet, who" +
+			" was depicted as a lioness or a woman with the head of a lioness. Cats were" +
+			" believed to have protective qualities, and harming one was considered a grave" +
+			" offense. Their sleek and mysterious demeanor earned them a special place in the" +
+			" hearts of the Egyptians, a sentiment that has persisted to modern times.",
+		ChunkIndex: 0,
+	}
+	chunks = append(chunks, chunk0)
 
-//		document, err := weaviateClient.GetDocument(documentID)
-//		if err != nil {
-//			t.Errorf("failed to get document: %v", err)
-//		}
-//		t.Logf("document: %+v", document)
-//		if document.UserID != "testuser" {
-//			t.Errorf("document owner is incorrect: %v", document.UserID)
-//		}
-//		if document.DocumentName != "testdoc" {
-//			t.Errorf("document name is incorrect: %v", document.DocumentName)
-//		}
-//		if document.Content != "test content" {
-//			t.Errorf("document content is incorrect: %v", document.Content)
-//		}
-//
-//		// Test updating a document content
-//		err = weaviateClient.UpdateDocument(documentID, "testuser", "testdoc", "updated test content")
-//		if err != nil {
-//			t.Errorf("failed to update document: %v", err)
-//		}
-//		document, err = weaviateClient.GetDocument(documentID)
-//		if document.Content != "updated test content" {
-//			t.Errorf("document content is incorrect: %v", document.Content)
-//		}
-//		if document.DocumentName != "testdoc" {
-//			t.Errorf("document name is incorrect: %v", document.DocumentName)
-//		}
-//		if document.UserID != "testuser" {
-//			t.Errorf("document owner is incorrect: %v", document.UserID)
-//		}
-//
-//		// Test updating a document name
-//		err = weaviateClient.UpdateDocument(documentID, "testuser", "updated testdoc name", "updated test content")
-//		if err != nil {
-//			t.Errorf("failed to update document: %v", err)
-//		}
-//		document, err = weaviateClient.GetDocument(documentID)
-//		if document.Content != "updated test content" {
-//			t.Errorf("document content is incorrect: %v", document.Content)
-//		}
-//		if document.DocumentName != "updated testdoc name" {
-//			t.Errorf("document name is incorrect: %v", document.DocumentName)
-//		}
-//		if document.UserID != "testuser" {
-//			t.Errorf("document owner is incorrect: %v", document.UserID)
-//		}
-//
-//		// Test deleting a document
-//		err = weaviateClient.DeleteDocument(documentID)
-//		if err != nil {
-//			t.Errorf("failed to delete document: %v", err)
-//		}
-//
-//		_, err = weaviateClient.GetDocument(documentID)
-//		if err == nil {
-//			t.Errorf("document was not deleted")
-//		}
-//	}
-//
-// // Helper function to read the content of a file and return it as a string
+	chunk1 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     userID.String(),
+		DocumentID: documentID,
+		ChunkContent: "One of the most captivating features of a cat is its eyes. With large, round" +
+			" pupils that can expand and contract based on the amount of light, a cat's eyes" +
+			" are a marvel of evolution. This feature allows them to have excellent night" +
+			" vision, making them adept hunters even in low-light conditions. The reflective" +
+			" layer behind their retinas, known as the tapetum lucidum, gives their eyes a" +
+			" distinctive glow in the dark and further enhances their ability to see at" +
+			" night.",
+		ChunkIndex: 1,
+	}
+	chunks = append(chunks, chunk1)
+
+	chunk2 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     userID.String(),
+		DocumentID: documentID,
+		ChunkContent: "Cats are known for their grooming habits. They spend a significant amount of" +
+			" time each day cleaning their fur with their rough tongues. This not only keeps" +
+			" them clean but also helps regulate their body temperature. The act of grooming" +
+			" also has a calming effect on cats, and it's not uncommon to see them grooming" +
+			" themselves or other cats as a sign of affection and bonding. This meticulous" +
+			" cleaning ritual also aids in reducing scent, making them stealthier hunters.",
+		ChunkIndex: 2,
+	}
+	chunks = append(chunks, chunk2)
+
+	chunk3 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     userID.String(),
+		DocumentID: documentID,
+		ChunkContent: "The purring of a cat is a sound that many find soothing and comforting. While" +
+			" it's commonly associated with contentment, cats also purr when they are in" +
+			" pain, anxious, or even when they're near death. The exact mechanism and purpose" +
+			" of purring remain a subject of research and speculation. Some theories suggest" +
+			" that purring has healing properties, as the vibrations can stimulate the" +
+			" production of certain growth factors that aid in wound healing.",
+		ChunkIndex: 3,
+	}
+	chunks = append(chunks, chunk3)
+
+	chunk4 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     userID.String(),
+		DocumentID: documentID,
+		ChunkContent: "Domestic cats, despite being pampered pets in many households, still retain" +
+			" many of their wild instincts. Their tendency to \"hunt\" toys, pounce on moving" +
+			" objects, or even their habit of bringing back prey to their owners are all" +
+			" remnants of their wild ancestry. These behaviors are deeply ingrained and serve" +
+			" as a reminder that beneath their cuddly exterior lies a skilled predator, honed" +
+			" by millions of years of evolution.",
+		ChunkIndex: 4,
+	}
+	chunks = append(chunks, chunk4)
+
+	secondUserID := uuid.New()
+	secondDocumentID := uuid.New()
+
+	chunk5 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     secondUserID.String(),
+		DocumentID: secondDocumentID,
+		ChunkContent: "Introduction to Dogs: Dogs, often referred to as \"man's best friend,\" have been" +
+			" companions to humans for thousands of years. Originating from wild wolves," +
+			" these loyal creatures have been domesticated and bred for various roles" +
+			" throughout history, from hunting and herding to companionship. Their keen" +
+			" senses, especially their sense of smell, combined with their innate" +
+			" intelligence, make them invaluable partners in numerous tasks. Today, dogs are" +
+			" found in countless households worldwide, providing joy, comfort, and sometimes" +
+			" even protection to their human families.",
+		ChunkIndex: 0,
+	}
+	chunks = append(chunks, chunk5)
+
+	chunk6 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     secondUserID.String(),
+		DocumentID: secondDocumentID,
+		ChunkContent: "Diverse Breeds: The world of dogs is incredibly diverse, with over 340" +
+			" recognized breeds, each with its unique characteristics, temperament, and" +
+			" appearance. From the tiny Chihuahua to the majestic Great Dane, dogs come in" +
+			" all shapes and sizes. Some breeds, like the Border Collie, are known for their" +
+			" intelligence and agility, while others, such as the Saint Bernard, are" +
+			" celebrated for their strength and gentle nature. This vast diversity ensures" +
+			" that there's a perfect dog breed for almost every individual and lifestyle.",
+		ChunkIndex: 1,
+	}
+	chunks = append(chunks, chunk6)
+
+	chunk7 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     secondUserID.String(),
+		DocumentID: secondDocumentID,
+		ChunkContent: "Roles and Responsibilities: Beyond being mere pets, dogs play various roles in" +
+			" human societies. Service dogs assist individuals with disabilities, guiding the" +
+			" visually impaired or alerting those with hearing loss. Therapy dogs provide" +
+			" emotional support in hospitals, schools, and nursing homes, offering comfort to" +
+			" those in need. Working dogs, like police K9 units or search and rescue teams," +
+			" perform critical tasks that save lives. However, with these roles comes the" +
+			" responsibility for owners to provide proper training, care, and attention to" +
+			" their canine companions.",
+		ChunkIndex: 2,
+	}
+	chunks = append(chunks, chunk7)
+
+	chunk8 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     secondUserID.String(),
+		DocumentID: secondDocumentID,
+		ChunkContent: "Health and Care: Just like humans, dogs have specific health and care needs" +
+			" that owners must address. Regular veterinary check-ups, vaccinations, and a" +
+			" balanced diet are essential for a dog's well-being. Grooming, depending on the" +
+			" breed, can range from daily brushing to occasional baths. Exercise is crucial" +
+			" for a dog's physical and mental health, with daily walks and playtime being" +
+			" beneficial. Additionally, training and socialization from a young age ensure" +
+			" that dogs are well-behaved and can interact positively with other animals and" +
+			" people.",
+		ChunkIndex: 3,
+	}
+	chunks = append(chunks, chunk8)
+
+	chunk9 := storemodels.Chunk{
+		ChunkID:    uuid.New(),
+		UserID:     secondUserID.String(),
+		DocumentID: secondDocumentID,
+		ChunkContent: "The Bond Between Humans and Dogs: The relationship between humans and dogs is" +
+			" profound and multifaceted. Dogs offer unconditional love, loyalty, and" +
+			" companionship, often becoming integral members of the family. In return, humans" +
+			" provide care, shelter, and affection. Numerous studies have shown that owning a" +
+			" dog can reduce stress, increase physical activity, and bring joy to their" +
+			" owners. This symbiotic relationship, built on mutual trust and respect," +
+			" showcases the incredible bond that has existed between our two species for" +
+			" millennia.",
+		ChunkIndex: 4,
+	}
+	chunks = append(chunks, chunk9)
+
+	return chunks
+}
+
+func TestSearchDocumentsByText(t *testing.T) {
+	weaviateClient, err := NewWeaviateClient()
+	if err != nil {
+		t.Fatalf("failed to create weaviate client: %v", err)
+	}
+
+	fmt.Println("Woop woop that's the sound of the beez")
+
+	// Keep track of uploaded document IDs for cleanup
+	testChunks := getTestChunks()
+	if err != nil {
+		t.Errorf("setup failed: %v", err)
+	}
+	err = weaviateClient.UploadChunks(testChunks)
+	if err != nil {
+		t.Errorf("UploadChunks failed: %v", err)
+	}
+
+	defer func() {
+		if err := weaviateClient.DeleteChunks(testChunks); err != nil {
+			t.Errorf("teardown failed: %v", err)
+		}
+	}()
+	// Define a query and limit for the test
+	top_k := 3
+	userID := testChunks[0].UserID
+
+	concepts := []string{"small animal that goes meow sometimes"}
+
+	result, err := weaviateClient.SearchDocumentsByText(top_k, userID, concepts)
+
+	if result != nil && result.Data != nil {
+		getData, ok := result.Data["Get"].(map[string]interface{})
+		if !ok {
+			t.Errorf("unexpected format for 'Get' data")
+		}
+
+		documents, ok := getData["Documents"].([]interface{})
+		if !ok {
+			t.Errorf("unexpected format for 'Documents' data")
+		}
+
+		for _, document := range documents {
+			docMap, ok := document.(map[string]interface{})
+			if !ok {
+				t.Errorf("unexpected format for 'document' data")
+			}
+
+			// documentName := docMap["documentName"].(string)
+			documentId := docMap["documentId"].(string)
+			chunkContent := docMap["chunkContent"].(string)
+			chunkId := docMap["chunkId"].(string)
+			additional := docMap["_additional"].(map[string]interface{})
+			certainty := additional["certainty"].(float64)
+			distance := additional["distance"].(float64)
+
+			fmt.Printf("DocumentId: %s\n", documentId)
+			fmt.Printf("Content: %s\n", chunkContent)
+			fmt.Printf("Chunk ID: %s\n", chunkId)
+			fmt.Printf("Certainty: %f\n", certainty)
+			fmt.Printf("Distance: %f\n", distance)
+		}
+	}
+}
 
 //
-// func setupDocuments(client WeaviateClient) ([]string, error) {
-// 	var documentIDs []string
-//
-// 	userDocuments := map[string][]string{
-// 		"testuser1": {
-// 			"test_doc_user1_01.txt",
-// 			// "test_doc_testuser1_02.txt",
-// 			// "test_doc_testuser1_03.txt",
-// 		},
-// 		// Add more users and their documents as needed
-// 	}
-//
-// 	for user, docs := range userDocuments {
-// 		for _, doc := range docs {
-// 			documentID := uuid.New().String()
-// 			documentIDs = append(documentIDs, documentID)
-//
-// 			content, err := readFileContent(doc)
-// 			if err != nil {
-// 				return nil, fmt.Errorf("failed to read file content for %s: %v", doc, err)
-// 			}
-//
-// 			// Assuming the document name in the UploadDocument function is the same as the filename
-// 			if err := client.UploadDocument(documentID, user, doc, content); err != nil {
-// 				return nil, fmt.Errorf("failed to upload document %s for user %s: %v", doc, user, err)
-// 			}
-// 		}
-// 	}
-//
-// 	return documentIDs, nil
-// }
-//
-// func teardownDocuments(client WeaviateClient, documentIDs []string) error {
-// 	for _, id := range documentIDs {
-// 		if err := client.DeleteDocument(id); err != nil {
-// 			return fmt.Errorf("failed to delete document with ID %s: %v", id, err)
-// 		}
-// 	}
-// 	return nil
-// }
-//
-// func TestSearchDocumentsByText(t *testing.T) {
-// 	weaviateClient, err := NewWeaviateClient()
-// 	if err != nil {
-// 		t.Fatalf("failed to create weaviate client: %v", err)
-// 	}
-//
-// 	// Keep track of uploaded document IDs for cleanup
-// 	documentIDs, err := setupDocuments(weaviateClient)
-// 	if err != nil {
-// 		t.Fatalf("setup failed: %v", err)
-// 	}
-//
-// 	defer func() {
-// 		if err := teardownDocuments(weaviateClient, documentIDs); err != nil {
-// 			t.Errorf("teardown failed: %v", err)
-// 		}
-// 	}()
-//
-// }
-
-//
-// 	// Define a query and limit for the test
-// 	top_k := 3
-// 	userID := "testuser1"
 //
 // 	concepts := []string{"small animal that goes meow sometimes"}
 // 	// Call the SearchDocumentsByText function
