@@ -561,7 +561,6 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 //		})
 //	}
 func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
-
 	cfg := config.NewServerConfig()
 	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
 	if err != nil {
@@ -583,10 +582,6 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
 
 	createTestUserInDb()
-
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -635,69 +630,150 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	})
 }
 
-//
-// func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
-// 	testconfig := config.NewServerConfig()
-// 	db, err := postgresqlclient2.NewPostgreSQL()
-// 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
-// 	createTestUserInDb()
-//
-// 	if err != nil {
-// 		t.Errorf("Failed to create Clerk client: %v", err)
-// 	}
-// 	cfg := &config.ServerConfig{}
-//
-// 	// Create a test server
-// 	mux := http.NewServeMux()
-// 	SetupRoutes(cfg, mux, db, clerkInstance)
-// 	server := httptest.NewServer(mux)
-// 	defer server.Close()
-//
-// 	// Obtain a JWT token from Clerk
-// 	jwtToken := testconfig.TestJWTSessionToken + "invalid"
-//
-// 	_, err = db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
-// 	if err != nil {
-// 		t.Errorf("Failed to upload document: %v", err)
-// 	}
-//
-// 	// Send a POST request to the server with the JWT token
-// 	document := map[string]string{
-// 		"document_name": "Test Document",
-// 	}
-// 	body, _ := json.Marshal(document)
-// 	req, _ := http.NewRequest(http.MethodDelete, server.URL+"/documents/deletedocument", bytes.NewBuffer(body))
-// 	req.Header.Set("Authorization", "Bearer "+jwtToken)
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		t.Errorf("Failed to send request: %v", err)
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	// Check the response
-// 	if resp.StatusCode != http.StatusBadRequest {
-// 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-// 	}
-//
-// 	documentFromDb, err := db.GetDocument(testconfig.TestUserID, "Test Document")
-// 	if err != nil {
-// 		t.Errorf("Failed to get document: %v", err)
-// 	}
-//
-// 	documentFromDbContent := documentFromDb.Content
-// 	if documentFromDbContent != "Test Content" {
-// 		t.Errorf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
-// 	}
-//
-// 	// Cleanup the database
-// 	t.Cleanup(func() {
-// 		testconfig := config.NewServerConfig()
-// 		UserID := testconfig.TestUserID
-// 		db.DeleteUserInUsersTable(UserID)
-// 		db.DeleteDocument(UserID, "Test Document")
-// 	})
-// }
+func TestDocumentsDeleteDocumentHandlerNotMyDocumentIntegration(t *testing.T) {
+	cfg := config.NewServerConfig()
+	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	// Setup the real environment
+	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
+	if err != nil {
+		t.Errorf("Failed to create Clerk client: %v", err)
+	}
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Errorf("Failed to create Weaviate client: %v", err)
+	}
+	err = createTestUserInDb()
+	if err != nil {
+		t.Errorf("Failed to create test user in db: %v", err)
+	}
+	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	createTestUserInDb()
+	createASecondTestUserInDb()
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := cfg.TestJWTSessionToken
+
+	document, err := postgresqlDB.UploadDocument("userid_testuserid2", "Test Document", "Test Content")
+	if err != nil {
+		t.Errorf("Failed to upload document: %v", err)
+	}
+
+	// Send a POST request to the server with the JWT token
+	documentBodyRaw := map[string]string{
+		"documentID": document.DocumentUUID.String(),
+	}
+	body, _ := json.Marshal(documentBodyRaw)
+	req, _ := http.NewRequest(http.MethodDelete, server.URL+"/documents/deletedocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode == http.StatusOK {
+		t.Errorf("Expected status code to not be ok. %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	_, err = postgresqlDB.GetDocument("userid_testuserid2", "Test Document")
+	if err != nil {
+		t.Errorf("Should have not failed to get document as document should have not been deleted: %v", err)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+		postgresqlDB.DeleteDocument(UserID, "Test Document")
+	})
+}
+
+func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
+	cfg := config.NewServerConfig()
+	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	// Setup the real environment
+	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
+	if err != nil {
+		t.Errorf("Failed to create Clerk client: %v", err)
+	}
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Errorf("Failed to create Weaviate client: %v", err)
+	}
+	err = createTestUserInDb()
+	if err != nil {
+		t.Errorf("Failed to create test user in db: %v", err)
+	}
+	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := cfg.TestJWTSessionToken + "invalid"
+
+	_, err = postgresqlDB.UploadDocument(cfg.TestUserID, "Test Document", "Test Content")
+	if err != nil {
+		t.Errorf("Failed to upload document: %v", err)
+	}
+
+	// Send a POST request to the server with the JWT token
+	document := map[string]string{
+		"document_name": "Test Document",
+	}
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodDelete, server.URL+"/documents/deletedocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	documentFromDb, err := postgresqlDB.GetDocument(cfg.TestUserID, "Test Document")
+	if err != nil {
+		t.Errorf("Failed to get document: %v", err)
+	}
+
+	documentFromDbContent := documentFromDb.Content
+	if documentFromDbContent != "Test Content" {
+		t.Errorf("Expected document content %s, got %s", "Test Content", documentFromDbContent)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+		postgresqlDB.DeleteDocument(UserID, "Test Document")
+	})
+}
+
 //
 // func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 // 	testconfig := config.NewServerConfig()

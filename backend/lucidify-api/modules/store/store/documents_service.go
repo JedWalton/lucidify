@@ -146,7 +146,7 @@ func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Docu
 	return d.postgresqlDB.GetAllDocuments(userID)
 }
 
-func documentBelongsToUserID(documentID uuid.UUID) (bool, error) {
+func documentBelongsToUserID(userID string, documentID uuid.UUID) (bool, error) {
 	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		return false, err
@@ -159,14 +159,14 @@ func documentBelongsToUserID(documentID uuid.UUID) (bool, error) {
 	if document == nil {
 		return false, fmt.Errorf("Document does not exist")
 	}
-	if document.UserID != document.UserID {
+	if document.UserID != userID {
 		return false, fmt.Errorf("Document does not belong to user")
 	}
 	return true, nil
 }
 
 func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID) error {
-	belongs, err := documentBelongsToUserID(documentID)
+	belongs, err := documentBelongsToUserID(userID, documentID)
 	if err != nil {
 		return err
 	}
