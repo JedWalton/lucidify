@@ -92,16 +92,17 @@ func TestChunkFunctions(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
+		// Note, deleting user in users table will delete all associated records
+		// of documents and chunks.
 		err = store.DeleteAllChunksByDocumentID(insertedDoc.DocumentUUID)
 		if err != nil {
 			t.Errorf("Failed to delete test chunks: %v", err)
 		}
 
-		// Uncomment if you want to delete the test document
-		// err = store.DeleteDocument(doc.UserID, doc.DocumentName)
-		// if err != nil {
-		// 	t.Errorf("Failed to delete test document: %v", err)
-		// }
+		err = store.DeleteDocument(doc.UserID, doc.DocumentName)
+		if err != nil {
+			t.Errorf("Failed to delete test document: %v", err)
+		}
 
 		err = store.DeleteUserInUsersTable(user.UserID)
 		if err != nil {
