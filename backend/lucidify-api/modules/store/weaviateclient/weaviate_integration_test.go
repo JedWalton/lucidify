@@ -10,10 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestUploadChunk(t *testing.T) {
+func TestUploadDeleteChunk(t *testing.T) {
 	weaviateClient, err := NewWeaviateClient()
 	if err != nil {
-		t.Fatalf("failed to create weaviate client: %v", err)
+		t.Errorf("failed to create weaviate client: %v", err)
 	}
 
 	documentID := uuid.New()
@@ -28,35 +28,71 @@ func TestUploadChunk(t *testing.T) {
 
 	err = weaviateClient.UploadChunk(chunk)
 	if err != nil {
-		t.Fatalf("UploadChunk failed: %v", err)
+		t.Errorf("UploadChunk failed: %v", err)
+	}
+	err = weaviateClient.UploadChunk(chunk)
+	if err == nil {
+		t.Errorf("UploadChunk should have failed due to duplication: %v", err)
+	}
+	err = weaviateClient.DeleteChunk(chunk.ChunkID)
+	if err != nil {
+		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
+	}
+	err = weaviateClient.UploadChunk(chunk)
+	if err != nil {
+		t.Errorf("re-UploadChunk failed proceeding DeleteChunk: %v", err)
+	}
+	err = weaviateClient.DeleteChunk(chunk.ChunkID)
+	if err != nil {
+		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
 	}
 }
 
-func TestDeleteChunk(t *testing.T) {
+func TestUploadDeleteChunks(t *testing.T) {
 	weaviateClient, err := NewWeaviateClient()
 	if err != nil {
 		t.Fatalf("failed to create weaviate client: %v", err)
 	}
 
 	documentID := uuid.New()
-	userID := uuid.New()
+	userID := uuid.New().String()
+	var chunks []storemodels.Chunk
 
-	chunk := storemodels.Chunk{
+	// Create a sample DocumentChunk
+	chunk0 := storemodels.Chunk{
 		ChunkID:      uuid.New(),
-		UserID:       userID.String(),
+		UserID:       userID,
 		DocumentID:   documentID,
-		ChunkContent: "Test chunk content 0",
+		ChunkContent: "Test chunk content",
 		ChunkIndex:   0,
 	}
+	chunks = append(chunks, chunk0)
 
-	err = weaviateClient.UploadChunk(chunk)
-	if err != nil {
-		t.Fatalf("UploadChunk chunk0 failed: %v", err)
+	// Create a sample DocumentChunk
+	chunk1 := storemodels.Chunk{
+		ChunkID:      uuid.New(),
+		UserID:       userID,
+		DocumentID:   documentID,
+		ChunkContent: "Test chunk content",
+		ChunkIndex:   1,
 	}
+	chunks = append(chunks, chunk1)
 
-	err = weaviateClient.DeleteChunk(chunk.ChunkID)
+	err = weaviateClient.UploadChunks(chunks)
 	if err != nil {
-		t.Fatalf("DeleteAllChunksByDocumentID failed: %v", err)
+		t.Errorf("UploadChunks failed: %v", err)
+	}
+	err = weaviateClient.UploadChunks(chunks)
+	if err == nil {
+		t.Errorf("UploadChunks should have failed due to duplication: %v", err)
+	}
+	err = weaviateClient.DeleteChunks(chunks)
+	if err != nil {
+		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
+	}
+	err = weaviateClient.UploadChunks(chunks)
+	if err != nil {
+		t.Errorf("re-UploadChunks failed proceeding DeleteChunk: %v", err)
 	}
 }
 
