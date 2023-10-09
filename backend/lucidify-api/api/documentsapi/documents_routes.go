@@ -13,7 +13,7 @@ func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentServic
 	mux = SetupDocumentsUploadHandler(config, mux, documentService, client)
 	mux = SetupDocumentsGetDocumentHandler(config, mux, documentService, client)
 	mux = SetupDocumentsGetAllDocumentHandler(config, mux, documentService, client)
-	// mux = SetupDocumentsDeleteDocumentHandler(config, mux, storeInstance, client)
+	mux = SetupDocumentsDeleteDocumentHandler(config, mux, documentService, client)
 	// mux = SetupDocumentsUpdateDocumentHandler(config, mux, storeInstance, client)
 	//
 	return mux
@@ -61,20 +61,20 @@ func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.
 	return mux
 }
 
-//
-// func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
-//
-// 	handler := DocumentsDeleteDocumentHandler(storeInstance, client)
-//
-// 	injectActiveSession := clerk.WithSession(client)
-//
-// 	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
-// 	handler = middleware.Logging(handler)
-//
-// 	mux.Handle("/documents/deletedocument", injectActiveSession(handler))
-//
-// 	return mux
-// }
+func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+
+	handler := DocumentsDeleteDocumentHandler(documentService, client)
+
+	injectActiveSession := clerk.WithSession(client)
+
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
+
+	mux.Handle("/documents/deletedocument", injectActiveSession(handler))
+
+	return mux
+}
+
 //
 // func SetupDocumentsUpdateDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 //

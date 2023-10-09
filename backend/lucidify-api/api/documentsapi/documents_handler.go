@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
+	"github.com/google/uuid"
 )
 
 func DocumentsUploadHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
@@ -140,46 +141,46 @@ func DocumentsGetAllDocumentsHandler(documentService store.DocumentService, cler
 	}
 }
 
-//
-// func DocumentsDeleteDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method != http.MethodDelete {
-// 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 			return
-// 		}
-//
-// 		ctx := r.Context()
-//
-// 		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-// 		if !ok {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			w.Write([]byte("Unauthorized"))
-// 			return
-// 		}
-//
-// 		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		var reqBody map[string]string
-// 		decoder := json.NewDecoder(r.Body)
-// 		err = decoder.Decode(&reqBody)
-// 		if err != nil {
-// 			http.Error(w, "Bad request", http.StatusBadRequest)
-// 			return
-// 		}
-// 		document_name := reqBody["document_name"]
-//
-// 		err = db.DeleteDocument(user.ID, document_name)
-// 		if err != nil {
-// 			http.Error(w, "Internal server error. Unable to delete document", http.StatusInternalServerError)
-// 			return
-// 		}
-//
-// 		w.Header().Set("Content-Type", "application/json")
-// 	}
-// }
+func DocumentsDeleteDocumentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		ctx := r.Context()
+
+		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
+
+		var reqBody map[string]string
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		documentID := reqBody["documentID"]
+
+		err = documentService.DeleteDocument(user.ID, uuid.MustParse(documentID))
+		if err != nil {
+			http.Error(w, "Internal server error. Unable to delete document", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+	}
+}
+
 //
 // func DocumentsUpdateDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 // 	return func(w http.ResponseWriter, r *http.Request) {

@@ -19,7 +19,7 @@ type DocumentService interface {
 	UploadDocument(userID, name, content string) (*storemodels.Document, error)
 	GetDocument(userID, name string) (*storemodels.Document, error)
 	GetAllDocuments(userID string) ([]storemodels.Document, error)
-	DeleteDocument(documentID uuid.UUID) error
+	DeleteDocument(userID string, documentID uuid.UUID) error
 	UpdateDocumentName(documentID uuid.UUID, name string) error
 	UpdateDocumentContent(documentUUID uuid.UUID, content string) error
 }
@@ -80,7 +80,7 @@ func (d *DocumentServiceImpl) UploadDocument(
 	if err != nil {
 		shouldCleanup = true
 		cleanupTasks = append(cleanupTasks, func() error {
-			return d.DeleteDocument(document.DocumentUUID)
+			return d.DeleteDocument(document.UserID, document.DocumentUUID)
 		})
 		return document, fmt.Errorf("Upload failed at upload chunks to weaviate: %w", err)
 	}
@@ -146,8 +146,35 @@ func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Docu
 	return d.postgresqlDB.GetAllDocuments(userID)
 }
 
-func (d *DocumentServiceImpl) DeleteDocument(documentUUID uuid.UUID) error {
-	chunks, err := d.postgresqlDB.GetChunksOfDocumentByDocumentID(documentUUID)
+func documentBelongsToUserID(documentID uuid.UUID) (bool, error) {
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		return false, err
+	}
+	document, err := postgresqlDB.GetDocumentByUUID(documentID)
+	if err != nil {
+		log.Printf("Failed to get document by UUID from PostgreSQL: %v", err)
+		return false, err
+	}
+	if document == nil {
+		return false, fmt.Errorf("Document does not exist")
+	}
+	if document.UserID != document.UserID {
+		return false, fmt.Errorf("Document does not belong to user")
+	}
+	return true, nil
+}
+
+func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID) error {
+	belongs, err := documentBelongsToUserID(documentID)
+	if err != nil {
+		return err
+	}
+	if !belongs {
+		return fmt.Errorf("Document does not belong to user")
+	}
+
+	chunks, err := d.postgresqlDB.GetChunksOfDocumentByDocumentID(documentID)
 	if err != nil {
 		return fmt.Errorf("Failed to get chunks of document: %w", err)
 	}
@@ -155,7 +182,7 @@ func (d *DocumentServiceImpl) DeleteDocument(documentUUID uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("Failed to delete chunks from Weaviate: %w", err)
 	}
-	err = d.postgresqlDB.DeleteDocumentByUUID(documentUUID)
+	err = d.postgresqlDB.DeleteDocumentByUUID(documentID)
 	if err != nil {
 		log.Printf("Failed to delete document from PostgreSQL: %v", err)
 	}
