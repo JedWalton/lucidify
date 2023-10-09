@@ -273,7 +273,7 @@ func TestSearchDocumentsByText(t *testing.T) {
 			documentId := docMap["documentId"].(string)
 			chunkId := docMap["chunkId"].(string)
 			chunkContent := docMap["chunkContent"].(string)
-			chunkIndex := docMap["chunkIndex"].(int)
+			chunkIndex := docMap["chunkIndex"].(float64)
 			additional := docMap["_additional"].(map[string]interface{})
 			certainty := additional["certainty"].(float64)
 			distance := additional["distance"].(float64)
@@ -281,7 +281,7 @@ func TestSearchDocumentsByText(t *testing.T) {
 			fmt.Printf("DocumentId: %s\n", documentId)
 			fmt.Printf("chunkId: %s\n", chunkId)
 			fmt.Printf("chunkContent: %s\n", chunkContent)
-			fmt.Printf("chunkIndex: %v\n", chunkIndex)
+			fmt.Printf("chunkIndex: %f\n", chunkIndex)
 			fmt.Printf("Certainty: %f\n", certainty)
 			fmt.Printf("Distance: %f\n", distance)
 		}
