@@ -258,28 +258,30 @@ func TestSearchDocumentsByText(t *testing.T) {
 			t.Errorf("unexpected format for 'Get' data")
 		}
 
-		documents, ok := getData["Documents"].([]interface{})
+		unprocessedChunks, ok := getData["Documents"].([]interface{})
 		if !ok {
 			t.Errorf("unexpected format for 'Documents' data")
 		}
 
-		for _, document := range documents {
-			docMap, ok := document.(map[string]interface{})
+		for _, chunk := range unprocessedChunks {
+			docMap, ok := chunk.(map[string]interface{})
 			if !ok {
 				t.Errorf("unexpected format for 'document' data")
 			}
 
 			// documentName := docMap["documentName"].(string)
 			documentId := docMap["documentId"].(string)
-			chunkContent := docMap["chunkContent"].(string)
 			chunkId := docMap["chunkId"].(string)
+			chunkContent := docMap["chunkContent"].(string)
+			chunkIndex := docMap["chunkIndex"].(int)
 			additional := docMap["_additional"].(map[string]interface{})
 			certainty := additional["certainty"].(float64)
 			distance := additional["distance"].(float64)
 
 			fmt.Printf("DocumentId: %s\n", documentId)
-			fmt.Printf("Content: %s\n", chunkContent)
-			fmt.Printf("Chunk ID: %s\n", chunkId)
+			fmt.Printf("chunkId: %s\n", chunkId)
+			fmt.Printf("chunkContent: %s\n", chunkContent)
+			fmt.Printf("chunkIndex: %v\n", chunkIndex)
 			fmt.Printf("Certainty: %f\n", certainty)
 			fmt.Printf("Distance: %f\n", distance)
 		}

@@ -218,8 +218,9 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, con
 	className := "Documents"
 
 	documentId := graphql.Field{Name: "documentId"}
-	chunkContent := graphql.Field{Name: "chunkContent"}
 	chunkId := graphql.Field{Name: "chunkId"}
+	chunkContent := graphql.Field{Name: "chunkContent"}
+	chunkIndex := graphql.Field{Name: "chunkIndex"}
 	_additional := graphql.Field{
 		Name: "_additional", Fields: []graphql.Field{
 			{Name: "certainty"}, // only supported if distance==cosine
@@ -252,7 +253,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, con
 
 	result, err := w.client.GraphQL().Get().
 		WithClassName(className).
-		WithFields(documentId, chunkContent, chunkId, _additional).
+		WithFields(documentId, chunkId, chunkContent, chunkIndex, _additional).
 		WithNearText(nearText).
 		WithLimit(limit).
 		WithWhere(whereFilter).
