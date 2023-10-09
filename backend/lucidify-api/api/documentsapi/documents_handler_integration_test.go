@@ -96,13 +96,13 @@ func createASecondTestUserInDb() string {
 }
 
 func TestDocumentsUploadHandlerIntegration(t *testing.T) {
-	testconfig := config.NewServerConfig()
+	cfg := config.NewServerConfig()
 	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
 	if err != nil {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
 	if err != nil {
 		t.Errorf("Failed to create Clerk client: %v", err)
 	}
@@ -116,8 +116,6 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	}
 	documentsService := store.NewDocumentService(postgresqlDB, weaviateDB)
 
-	cfg := &config.ServerConfig{}
-
 	// Create a test server
 	mux := http.NewServeMux()
 	SetupRoutes(cfg, mux, documentsService, clerkInstance)
@@ -125,7 +123,7 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	defer server.Close()
 
 	// Obtain a JWT token from Clerk
-	jwtToken := testconfig.TestJWTSessionToken
+	jwtToken := cfg.TestJWTSessionToken
 
 	// Send a POST request to the server with the JWT token
 	document := map[string]string{
@@ -147,7 +145,7 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 
-	documentFromDb, err := postgresqlDB.GetDocument(testconfig.TestUserID, "Test Document")
+	documentFromDb, err := postgresqlDB.GetDocument(cfg.TestUserID, "Test Document")
 	if err != nil {
 		t.Errorf("Failed to get document: %v", err)
 	}
@@ -216,16 +214,6 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 //		})
 //	}
 func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
-	// testconfig := config.NewServerConfig()
-	// db, err := postgresqlclient2.NewPostgreSQL()
-	//
-	// clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
-	// if err != nil {
-	// 	t.Errorf("Failed to create Clerk client: %v", err)
-	// }
-	//
-	// createTestUserInDb()
-	// cfg := &config.ServerConfig{}
 	cfg := config.NewServerConfig()
 	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
 	if err != nil {
