@@ -262,43 +262,21 @@ func TestSearchDocumentsByText(t *testing.T) {
 	for _, chunk := range result {
 		fmt.Printf("Chunk: %+v\n", chunk)
 	}
-}
 
-//
-//
-// 	concepts := []string{"small animal that goes meow sometimes"}
-// 	// Call the SearchDocumentsByText function
-// 	result, err := weaviateClient.SearchDocumentsByText(top_k, userID, concepts)
-//
-// 	if result != nil && result.Data != nil {
-// 		getData, ok := result.Data["Get"].(map[string]interface{})
-// 		if !ok {
-// 			t.Fatalf("unexpected format for 'Get' data")
-// 		}
-//
-// 		documents, ok := getData["Documents"].([]interface{})
-// 		if !ok {
-// 			t.Fatalf("unexpected format for 'Documents' data")
-// 		}
-//
-// 		for _, document := range documents {
-// 			docMap, ok := document.(map[string]interface{})
-// 			if !ok {
-// 				t.Fatalf("unexpected format for 'document' data")
-// 			}
-//
-// 			documentName := docMap["documentName"].(string)
-// 			content := docMap["content"].(string)
-// 			additional := docMap["_additional"].(map[string]interface{})
-// 			certainty := additional["certainty"].(float64)
-// 			distance := additional["distance"].(float64)
-//
-// 			fmt.Printf("Document Name: %s\n", documentName)
-// 			fmt.Printf("Content: %s\n", content)
-// 			fmt.Printf("Certainty: %f\n", certainty)
-// 			fmt.Printf("Distance: %f\n", distance)
-// 		}
-// 	}
-//
-// 	t.Fatalf("SearchDocumentsByText %v", result)
-// }
+	secondUserID := testChunks[5].UserID
+	concepts = []string{"small animal that goes meow sometimes"}
+
+	result, err = weaviateClient.SearchDocumentsByText(top_k, secondUserID, concepts)
+	if err != nil {
+		t.Errorf("SearchDocumentsByText failed: %v", err)
+	}
+
+	for _, chunk := range result {
+		if chunk.UserID != secondUserID {
+			t.Errorf("Should not have returned user1 chunks")
+		}
+	}
+	for _, chunk := range result {
+		fmt.Printf("Chunk: %+v\n", chunk)
+	}
+}
