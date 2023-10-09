@@ -22,7 +22,7 @@ type WeaviateClient interface {
 	DeleteChunk(chunkID uuid.UUID) error
 	DeleteChunks([]storemodels.Chunk) error
 	GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error)
-	SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error)
+	SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error)
 }
 
 type WeaviateClientImpl struct {
@@ -214,7 +214,7 @@ func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels.Chunk)
 	return chunksFromWeaviate, nil
 }
 
-func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) (*models.GraphQLResponse, error) {
+func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error) {
 	className := "Documents"
 
 	documentId := graphql.Field{Name: "documentId"}
@@ -262,5 +262,47 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, con
 	if err != nil {
 		panic(err)
 	}
-	return result, nil
+
+	var chunks []storemodels.ChunkFromVectorSearch
+
+	if result != nil && result.Data != nil {
+		getData, ok := result.Data["Get"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("unexpected format for 'Get' data")
+		}
+
+		unprocessedChunks, ok := getData["Documents"].([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("unexpected format for 'Documents' data")
+		}
+
+		for _, chunk := range unprocessedChunks {
+			docMap, ok := chunk.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("unexpected format for chunk data")
+			}
+
+			// documentName := docMap["documentName"].(string)
+			documentId := docMap["documentId"].(string)
+			chunkId := docMap["chunkId"].(string)
+			chunkContent := docMap["chunkContent"].(string)
+			chunkIndex := docMap["chunkIndex"].(float64)
+			additional := docMap["_additional"].(map[string]interface{})
+			certainty := additional["certainty"].(float64)
+			distance := additional["distance"].(float64)
+
+			chunkFromVectorSearch := storemodels.ChunkFromVectorSearch{
+				ChunkID:      uuid.MustParse(chunkId),
+				UserID:       userID,
+				DocumentID:   uuid.MustParse(documentId),
+				ChunkContent: chunkContent,
+				ChunkIndex:   int(chunkIndex),
+				Certainty:    certainty,
+				Distance:     distance,
+			}
+			chunks = append(chunks, chunkFromVectorSearch)
+		}
+	}
+
+	return chunks, nil
 }

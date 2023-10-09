@@ -251,40 +251,16 @@ func TestSearchDocumentsByText(t *testing.T) {
 	concepts := []string{"small animal that goes meow sometimes"}
 
 	result, err := weaviateClient.SearchDocumentsByText(top_k, userID, concepts)
+	if err != nil {
+		t.Errorf("SearchDocumentsByText failed: %v", err)
+	}
 
-	if result != nil && result.Data != nil {
-		getData, ok := result.Data["Get"].(map[string]interface{})
-		if !ok {
-			t.Errorf("unexpected format for 'Get' data")
-		}
+	if len(result) != top_k {
+		t.Errorf("incorrect number of results: got %v, want %v", len(result), top_k)
+	}
 
-		unprocessedChunks, ok := getData["Documents"].([]interface{})
-		if !ok {
-			t.Errorf("unexpected format for 'Documents' data")
-		}
-
-		for _, chunk := range unprocessedChunks {
-			docMap, ok := chunk.(map[string]interface{})
-			if !ok {
-				t.Errorf("unexpected format for 'document' data")
-			}
-
-			// documentName := docMap["documentName"].(string)
-			documentId := docMap["documentId"].(string)
-			chunkId := docMap["chunkId"].(string)
-			chunkContent := docMap["chunkContent"].(string)
-			chunkIndex := docMap["chunkIndex"].(float64)
-			additional := docMap["_additional"].(map[string]interface{})
-			certainty := additional["certainty"].(float64)
-			distance := additional["distance"].(float64)
-
-			fmt.Printf("DocumentId: %s\n", documentId)
-			fmt.Printf("chunkId: %s\n", chunkId)
-			fmt.Printf("chunkContent: %s\n", chunkContent)
-			fmt.Printf("chunkIndex: %f\n", chunkIndex)
-			fmt.Printf("Certainty: %f\n", certainty)
-			fmt.Printf("Distance: %f\n", distance)
-		}
+	for _, chunk := range result {
+		fmt.Printf("Chunk: %+v\n", chunk)
 	}
 }
 
