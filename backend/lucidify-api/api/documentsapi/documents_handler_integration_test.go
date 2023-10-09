@@ -5,11 +5,13 @@ package documentsapi
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
 	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/store"
+	"lucidify-api/modules/store/storemodels"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 	"net/http/httptest"
@@ -164,125 +166,144 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	})
 }
 
-// func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
-// 	testconfig := config.NewServerConfig()
-// 	db, err := postgresqlclient2.NewPostgreSQL()
-// 	// Setup the real environment
-// 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
-// 	createTestUserInDb()
+//	func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
+//		testconfig := config.NewServerConfig()
+//		db, err := postgresqlclient2.NewPostgreSQL()
+//		// Setup the real environment
+//		clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+//		createTestUserInDb()
 //
-// 	if err != nil {
-// 		t.Errorf("Failed to create Clerk client: %v", err)
-// 	}
-// 	cfg := &config.ServerConfig{}
+//		if err != nil {
+//			t.Errorf("Failed to create Clerk client: %v", err)
+//		}
+//		cfg := &config.ServerConfig{}
 //
-// 	// Create a test server
-// 	mux := http.NewServeMux()
-// 	SetupRoutes(cfg, mux, db, clerkInstance)
-// 	server := httptest.NewServer(mux)
-// 	defer server.Close()
+//		// Create a test server
+//		mux := http.NewServeMux()
+//		SetupRoutes(cfg, mux, db, clerkInstance)
+//		server := httptest.NewServer(mux)
+//		defer server.Close()
 //
-// 	// Obtain a JWT token from Clerk
-// 	jwtToken := testconfig.TestJWTSessionToken + "invalid"
+//		// Obtain a JWT token from Clerk
+//		jwtToken := testconfig.TestJWTSessionToken + "invalid"
 //
-// 	// Send a POST request to the server with the JWT token
-// 	document := map[string]string{
-// 		"document_name": "Test Document",
-// 		"content":       "Test Content",
-// 	}
-// 	body, _ := json.Marshal(document)
-// 	req, _ := http.NewRequest(http.MethodPost, server.URL+"/documents/upload", bytes.NewBuffer(body))
-// 	req.Header.Set("Authorization", "Bearer "+jwtToken)
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		t.Errorf("Failed to send request: %v", err)
-// 	}
-// 	defer resp.Body.Close()
+//		// Send a POST request to the server with the JWT token
+//		document := map[string]string{
+//			"document_name": "Test Document",
+//			"content":       "Test Content",
+//		}
+//		body, _ := json.Marshal(document)
+//		req, _ := http.NewRequest(http.MethodPost, server.URL+"/documents/upload", bytes.NewBuffer(body))
+//		req.Header.Set("Authorization", "Bearer "+jwtToken)
+//		client := &http.Client{}
+//		resp, err := client.Do(req)
+//		if err != nil {
+//			t.Errorf("Failed to send request: %v", err)
+//		}
+//		defer resp.Body.Close()
 //
-// 	// Check the response
-// 	if resp.StatusCode == http.StatusOK {
-// 		t.Errorf("Expected status code not OK, got %d", resp.StatusCode)
-// 	}
+//		// Check the response
+//		if resp.StatusCode == http.StatusOK {
+//			t.Errorf("Expected status code not OK, got %d", resp.StatusCode)
+//		}
 //
-// 	// Cleanup the database
-// 	t.Cleanup(func() {
-// 		testconfig := config.NewServerConfig()
-// 		UserID := testconfig.TestUserID
-// 		db.DeleteUserInUsersTable(UserID)
-// 		db.DeleteDocument(UserID, "Test Document")
-// 	})
-// }
-//
-// func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
-// 	testconfig := config.NewServerConfig()
-// 	db, err := postgresqlclient2.NewPostgreSQL()
-//
-// 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
-// 	if err != nil {
-// 		t.Errorf("Failed to create Clerk client: %v", err)
-// 	}
-//
-// 	createTestUserInDb()
-// 	cfg := &config.ServerConfig{}
-//
-// 	// Create a test server
-// 	mux := http.NewServeMux()
-// 	SetupRoutes(cfg, mux, db, clerkInstance)
-// 	server := httptest.NewServer(mux)
-// 	defer server.Close()
-//
-// 	jwtToken := testconfig.TestJWTSessionToken
-//
-// 	document := map[string]string{
-// 		"document_name": "Test Document",
-// 		"content":       "Test Content",
-// 	}
-//
-// 	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
-//
-// 	body, _ := json.Marshal(document)
-// 	req, _ := http.NewRequest(http.MethodGet, server.URL+"/documents/getdocument", bytes.NewBuffer(body))
-// 	req.Header.Set("Authorization", "Bearer "+jwtToken)
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		t.Errorf("Failed to send request: %v", err)
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	// Check the response
-// 	if resp.StatusCode != http.StatusOK {
-// 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-// 	}
-//
-// 	// Please implement the rest of this integration test to check it returns the correct document
-// 	// Read the response body
-// 	respBody, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		t.Errorf("Failed to read response body: %v", err)
-// 	}
-//
-// 	// Unmarshal the response body into a Document object
-// 	var respDocument storemodels.Document
-// 	err = json.Unmarshal(respBody, &respDocument)
-// 	if err != nil {
-// 		t.Errorf("Failed to unmarshal response body: %v", err)
-// 	}
-//
-// 	// Check if the returned document is correct
-// 	if respDocument.DocumentName != document["document_name"] || respDocument.Content != document["content"] {
-// 		t.Errorf("Returned document does not match the expected document")
-// 	}
-//
-// 	// Cleanup the database
-// 	t.Cleanup(func() {
-// 		testconfig := config.NewServerConfig()
-// 		UserID := testconfig.TestUserID
-// 		db.DeleteUserInUsersTable(UserID)
-// 		db.DeleteDocument(UserID, "Test Document")
-// 	})
-// }
+//		// Cleanup the database
+//		t.Cleanup(func() {
+//			testconfig := config.NewServerConfig()
+//			UserID := testconfig.TestUserID
+//			db.DeleteUserInUsersTable(UserID)
+//			db.DeleteDocument(UserID, "Test Document")
+//		})
+//	}
+func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
+	// testconfig := config.NewServerConfig()
+	// db, err := postgresqlclient2.NewPostgreSQL()
+	//
+	// clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
+	// if err != nil {
+	// 	t.Errorf("Failed to create Clerk client: %v", err)
+	// }
+	//
+	// createTestUserInDb()
+	// cfg := &config.ServerConfig{}
+	cfg := config.NewServerConfig()
+	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	// Setup the real environment
+	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
+	if err != nil {
+		t.Errorf("Failed to create Clerk client: %v", err)
+	}
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Errorf("Failed to create Weaviate client: %v", err)
+	}
+	err = createTestUserInDb()
+	if err != nil {
+		t.Errorf("Failed to create test user in db: %v", err)
+	}
+	documentsService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, documentsService, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := cfg.TestJWTSessionToken
+
+	document := map[string]string{
+		"document_name": "Test Document",
+		"content":       "Test Content",
+	}
+
+	postgresqlDB.UploadDocument(cfg.TestUserID, "Test Document", "Test Content")
+
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodGet, server.URL+"/documents/getdocument", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Please implement the rest of this integration test to check it returns the correct document
+	// Read the response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+
+	// Unmarshal the response body into a Document object
+	var respDocument storemodels.Document
+	err = json.Unmarshal(respBody, &respDocument)
+	if err != nil {
+		t.Errorf("Failed to unmarshal response body: %v", err)
+	}
+
+	// Check if the returned document is correct
+	if respDocument.DocumentName != document["document_name"] || respDocument.Content != document["content"] {
+		t.Errorf("Returned document does not match the expected document")
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+		postgresqlDB.DeleteDocument(UserID, "Test Document")
+	})
+}
+
 //
 // func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 // 	testconfig := config.NewServerConfig()

@@ -9,9 +9,9 @@ import (
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentsService store.DocumentService, client clerk.Client) *http.ServeMux {
-	mux = SetupDocumentsUploadHandler(config, mux, documentsService, client)
-	// mux = SetupDocumentsGetDocumentHandler(config, mux, storeInstance, client)
+func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+	mux = SetupDocumentsUploadHandler(config, mux, documentService, client)
+	mux = SetupDocumentsGetDocumentHandler(config, mux, documentService, client)
 	// mux = SetupDocumentsGetAllDocumentHandler(config, mux, storeInstance, client)
 	// mux = SetupDocumentsDeleteDocumentHandler(config, mux, storeInstance, client)
 	// mux = SetupDocumentsUpdateDocumentHandler(config, mux, storeInstance, client)
@@ -19,9 +19,9 @@ func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentsServi
 	return mux
 }
 
-func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux, documentsService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
 
-	handler := DocumentsUploadHandler(documentsService, client)
+	handler := DocumentsUploadHandler(documentService, client)
 
 	injectActiveSession := clerk.WithSession(client)
 
@@ -33,19 +33,20 @@ func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux
 	return mux
 }
 
-// func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
-//
-// 	handler := DocumentsGetDocumentHandler(storeInstance, client)
-//
-// 	injectActiveSession := clerk.WithSession(client)
-//
-// 	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
-// 	handler = middleware.Logging(handler)
-//
-// 	mux.Handle("/documents/getdocument", injectActiveSession(handler))
-//
-// 	return mux
-// }
+func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+
+	handler := DocumentsGetDocumentHandler(documentService, client)
+
+	injectActiveSession := clerk.WithSession(client)
+
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
+
+	mux.Handle("/documents/getdocument", injectActiveSession(handler))
+
+	return mux
+}
+
 //
 // func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, storeInstance *postgresqlclient.PostgreSQL, client clerk.Client) *http.ServeMux {
 //

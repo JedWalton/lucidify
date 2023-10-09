@@ -51,54 +51,55 @@ func DocumentsUploadHandler(documentService store.DocumentService, clerkInstance
 	}
 }
 
-// func DocumentsGetDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method != http.MethodGet {
-// 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 			return
-// 		}
-//
-// 		ctx := r.Context()
-//
-// 		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-// 		if !ok {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			w.Write([]byte("Unauthorized"))
-// 			return
-// 		}
-//
-// 		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		var reqBody map[string]string
-// 		decoder := json.NewDecoder(r.Body)
-// 		err = decoder.Decode(&reqBody)
-// 		if err != nil {
-// 			http.Error(w, "Bad request", http.StatusBadRequest)
-// 			return
-// 		}
-// 		document_name := reqBody["document_name"]
-//
-// 		document, err := db.GetDocument(user.ID, document_name)
-// 		if err != nil {
-// 			http.Error(w, "Internal server error. Unable to get document", http.StatusInternalServerError)
-// 			return
-// 		}
-//
-// 		// Set the Content-Type to application/json
-// 		w.Header().Set("Content-Type", "application/json")
-//
-// 		// Encode the document as JSON and write it to the response writer
-// 		encoder := json.NewEncoder(w)
-// 		err = encoder.Encode(document)
-// 		if err != nil {
-// 			http.Error(w, "Internal server error. Unable to encode document as JSON", http.StatusInternalServerError)
-// 			return
-// 		}
-// 	}
-// }
+func DocumentsGetDocumentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		ctx := r.Context()
+
+		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
+
+		var reqBody map[string]string
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		document_name := reqBody["document_name"]
+
+		document, err := documentService.GetDocument(user.ID, document_name)
+		if err != nil {
+			http.Error(w, "Internal server error. Unable to get document", http.StatusInternalServerError)
+			return
+		}
+
+		// Set the Content-Type to application/json
+		w.Header().Set("Content-Type", "application/json")
+
+		// Encode the document as JSON and write it to the response writer
+		encoder := json.NewEncoder(w)
+		err = encoder.Encode(document)
+		if err != nil {
+			http.Error(w, "Internal server error. Unable to encode document as JSON", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 //
 // func DocumentsGetAllDocumentsHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
 // 	return func(w http.ResponseWriter, r *http.Request) {
