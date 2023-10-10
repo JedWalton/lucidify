@@ -57,7 +57,7 @@ func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.
 	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
-	mux.Handle("/documents/getalldocuments", injectActiveSession(handler))
+	mux.Handle("/documents/get_all_documents", injectActiveSession(handler))
 
 	return mux
 }
