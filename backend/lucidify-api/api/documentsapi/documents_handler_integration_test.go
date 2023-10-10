@@ -9,21 +9,23 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
-	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/storemodels"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
 func createTestUserInDb() error {
 	testconfig := config.NewServerConfig()
-	db, err := postgresqlclient2.NewPostgreSQL()
+	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient2.User{
+	user := postgresqlclient.User{
 		UserID:           testconfig.TestUserID,
 		ExternalID:       "TestCreateUserInUsersTableExternalIDDocuments",
 		Username:         "TestCreateUserInUsersTableUsernameDocuments",
@@ -58,10 +60,10 @@ func createTestUserInDb() error {
 	return nil
 }
 func createASecondTestUserInDb() string {
-	db, err := postgresqlclient2.NewPostgreSQL()
+	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient2.User{
+	user := postgresqlclient.User{
 		UserID:           "userid_testuserid2",
 		ExternalID:       "TestCreateSecondUserInUsersTableExternalID",
 		Username:         "TestCreateSecondUserInUsersTableUsername",
@@ -95,30 +97,58 @@ func createASecondTestUserInDb() string {
 	return user.UserID
 }
 
-func TestDocumentsUploadHandlerIntegration(t *testing.T) {
+type TestSetup struct {
+	Config          *config.ServerConfig
+	PostgresqlDB    *postgresqlclient.PostgreSQL
+	ClerkInstance   clerk.Client
+	WeaviateDB      weaviateclient.WeaviateClient
+	DocumentService store.DocumentService
+}
+
+func SetupTestEnvironment(t *testing.T) *TestSetup {
 	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
+
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
+		t.Fatalf("Failed to create test postgresqlclient: %v", err)
 	}
-	// Setup the real environment
+
 	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
 	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
+		t.Fatalf("Failed to create Clerk client: %v", err)
 	}
+
 	weaviateDB, err := weaviateclient.NewWeaviateClient()
 	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
+		t.Fatalf("Failed to create Weaviate client: %v", err)
 	}
+
 	err = createTestUserInDb()
 	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
+		t.Fatalf("Failed to create test user in db: %v", err)
 	}
-	documentsService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	return &TestSetup{
+		Config:          cfg,
+		PostgresqlDB:    postgresqlDB,
+		ClerkInstance:   clerkInstance,
+		WeaviateDB:      weaviateDB,
+		DocumentService: documentService,
+	}
+}
+
+func TestDocumentsUploadHandlerIntegration(t *testing.T) {
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentsService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkInstance)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -165,29 +195,15 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 }
 
 func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentsService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentsService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkInstance)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -224,25 +240,11 @@ func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 }
 
 func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -303,25 +305,11 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 }
 
 func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -363,25 +351,11 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 }
 
 func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -443,25 +417,11 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 }
 
 func TestDocumentsGetAllDocumentsHandlerUnauthorizedIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -498,25 +458,11 @@ func TestDocumentsGetAllDocumentsHandlerUnauthorizedIntegration(t *testing.T) {
 }
 
 func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	UserID2 := createASecondTestUserInDb()
 
@@ -581,25 +527,11 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 }
 
 func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	createTestUserInDb()
 
@@ -651,25 +583,11 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 }
 
 func TestDocumentsDeleteDocumentHandlerNotMyDocumentIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
-	if err != nil {
-		t.Errorf("Failed to create test user in db: %v", err)
-	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
 
 	createASecondTestUserInDb()
 
@@ -721,25 +639,16 @@ func TestDocumentsDeleteDocumentHandlerNotMyDocumentIntegration(t *testing.T) {
 }
 
 func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
+
+	err := createTestUserInDb()
 	if err != nil {
 		t.Errorf("Failed to create test user in db: %v", err)
 	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -794,25 +703,16 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 }
 
 func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
+
+	err := createTestUserInDb()
 	if err != nil {
 		t.Errorf("Failed to create test user in db: %v", err)
 	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -892,25 +792,16 @@ func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
 }
 
 func TestDocumentsUpdateDocumentHandlerUnauthenticatedIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
+
+	err := createTestUserInDb()
 	if err != nil {
 		t.Errorf("Failed to create test user in db: %v", err)
 	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
 
 	// Create a test server
 	mux := http.NewServeMux()
@@ -982,25 +873,16 @@ func TestDocumentsUpdateDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 }
 
 func TestDocumentsUpdateDocumentNotMyDocumentHandlerIntegration(t *testing.T) {
-	cfg := config.NewServerConfig()
-	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
-	// Setup the real environment
-	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
-	if err != nil {
-		t.Errorf("Failed to create Clerk client: %v", err)
-	}
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
-	if err != nil {
-		t.Errorf("Failed to create Weaviate client: %v", err)
-	}
-	err = createTestUserInDb()
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	documentService := setup.DocumentService
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
+
+	err := createTestUserInDb()
 	if err != nil {
 		t.Errorf("Failed to create test user in db: %v", err)
 	}
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
 
 	// Create a test server
 	mux := http.NewServeMux()
