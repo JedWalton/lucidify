@@ -18,6 +18,7 @@ import (
 type DocumentService interface {
 	UploadDocument(userID, name, content string) (*storemodels.Document, error)
 	GetDocument(userID, name string) (*storemodels.Document, error)
+	GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels.Document, error)
 	GetAllDocuments(userID string) ([]storemodels.Document, error)
 	DeleteDocument(userID string, documentID uuid.UUID) error
 	UpdateDocumentName(userID string, documentID uuid.UUID, name string) error
@@ -138,14 +139,6 @@ func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk,
 	return chunks, nil
 }
 
-func (d *DocumentServiceImpl) GetDocument(userID, name string) (*storemodels.Document, error) {
-	return d.postgresqlDB.GetDocument(userID, name)
-}
-
-func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Document, error) {
-	return d.postgresqlDB.GetAllDocuments(userID)
-}
-
 func documentBelongsToUserID(userID string, documentID uuid.UUID) (bool, error) {
 	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
@@ -165,13 +158,44 @@ func documentBelongsToUserID(userID string, documentID uuid.UUID) (bool, error) 
 	return true, nil
 }
 
-func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID) error {
+func (d *DocumentServiceImpl) ensureDocumentBelongsToUser(userID string, documentID uuid.UUID) error {
 	belongs, err := documentBelongsToUserID(userID, documentID)
 	if err != nil {
 		return err
 	}
 	if !belongs {
-		return fmt.Errorf("Document does not belong to user")
+		return fmt.Errorf("No document with this ID exists")
+	}
+	return nil
+}
+
+func (d *DocumentServiceImpl) GetDocument(userID, name string) (*storemodels.Document, error) {
+	doc, err := d.postgresqlDB.GetDocument(userID, name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := d.ensureDocumentBelongsToUser(userID, doc.DocumentUUID); err != nil {
+		return nil, err
+	}
+
+	return d.postgresqlDB.GetDocument(userID, name)
+}
+
+func (d *DocumentServiceImpl) GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels.Document, error) {
+	if err := d.ensureDocumentBelongsToUser(userID, documentID); err != nil {
+		return nil, err
+	}
+	return d.postgresqlDB.GetDocumentByUUID(documentID)
+}
+
+func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Document, error) {
+	return d.postgresqlDB.GetAllDocuments(userID)
+}
+
+func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID) error {
+	if err := d.ensureDocumentBelongsToUser(userID, documentID); err != nil {
+		return err
 	}
 
 	chunks, err := d.postgresqlDB.GetChunksOfDocumentByDocumentID(documentID)
@@ -190,30 +214,18 @@ func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID
 }
 
 func (d *DocumentServiceImpl) UpdateDocumentName(userID string, documentID uuid.UUID, name string) error {
-	belongs, err := documentBelongsToUserID(userID, documentID)
-	if err != nil {
+	if err := d.ensureDocumentBelongsToUser(userID, documentID); err != nil {
 		return err
 	}
-	if !belongs {
-		return fmt.Errorf("Document does not belong to user")
-	}
 
-	err = d.postgresqlDB.UpdateDocumentName(documentID, name)
-	if err != nil {
-		return fmt.Errorf("Failed to update document name in PostgreSQL: %w", err)
-	}
-
-	return nil
+	return d.postgresqlDB.UpdateDocumentName(documentID, name)
 }
 
 func (d *DocumentServiceImpl) UpdateDocumentContent(userID string, documentID uuid.UUID, content string) error {
-	belongs, err := documentBelongsToUserID(userID, documentID)
-	if err != nil {
+	if err := d.ensureDocumentBelongsToUser(userID, documentID); err != nil {
 		return err
 	}
-	if !belongs {
-		return fmt.Errorf("Document does not belong to user")
-	}
+
 	// First, get the document by UUID to ensure it exists and to get the current content.
 	documentBeforeUpdate, err := d.postgresqlDB.GetDocumentByUUID(documentID)
 	if err != nil {
