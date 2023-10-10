@@ -225,3 +225,47 @@ func DocumentsUpdateDocumentNameHandler(documentService store.DocumentService, c
 		w.Header().Set("Content-Type", "application/json")
 	}
 }
+
+func DocumentsUpdateDocumentContentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		ctx := r.Context()
+
+		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
+
+		var reqBody map[string]string
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+
+		documentID := reqBody["documentID"]
+		newDocumentContent := reqBody["new_document_content"]
+
+		fmt.Println(documentID)
+
+		err = documentService.UpdateDocumentContent(user.ID, uuid.MustParse(documentID), newDocumentContent)
+		if err != nil {
+			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+	}
+}

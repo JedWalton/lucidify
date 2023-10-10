@@ -14,8 +14,9 @@ func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentServic
 	mux = SetupDocumentsGetDocumentHandler(config, mux, documentService, client)
 	mux = SetupDocumentsGetAllDocumentHandler(config, mux, documentService, client)
 	mux = SetupDocumentsDeleteDocumentHandler(config, mux, documentService, client)
-	mux = SetupDocumentsUpdateDocumentHandler(config, mux, documentService, client)
-	//
+	mux = SetupDocumentsUpdateDocumentNameHandler(config, mux, documentService, client)
+	mux = SetupDocumentsUpdateDocumentContentHandler(config, mux, documentService, client)
+
 	return mux
 }
 
@@ -75,7 +76,7 @@ func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.
 	return mux
 }
 
-func SetupDocumentsUpdateDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUpdateDocumentNameHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsUpdateDocumentNameHandler(documentService, client)
 
@@ -85,6 +86,20 @@ func SetupDocumentsUpdateDocumentHandler(config *config.ServerConfig, mux *http.
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/update_document_name", injectActiveSession(handler))
+
+	return mux
+}
+
+func SetupDocumentsUpdateDocumentContentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+
+	handler := DocumentsUpdateDocumentContentHandler(documentService, client)
+
+	injectActiveSession := clerk.WithSession(client)
+
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
+
+	mux.Handle("/documents/update_document_content", injectActiveSession(handler))
 
 	return mux
 }

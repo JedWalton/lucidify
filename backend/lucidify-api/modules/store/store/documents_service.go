@@ -21,7 +21,7 @@ type DocumentService interface {
 	GetAllDocuments(userID string) ([]storemodels.Document, error)
 	DeleteDocument(userID string, documentID uuid.UUID) error
 	UpdateDocumentName(userID string, documentID uuid.UUID, name string) error
-	UpdateDocumentContent(documentUUID uuid.UUID, content string) error
+	UpdateDocumentContent(userID string, documentUUID uuid.UUID, content string) error
 }
 
 type DocumentServiceImpl struct {
@@ -206,45 +206,28 @@ func (d *DocumentServiceImpl) UpdateDocumentName(userID string, documentID uuid.
 	return nil
 }
 
-func (d *DocumentServiceImpl) UpdateDocumentContent(documentID uuid.UUID, content string) error {
+func (d *DocumentServiceImpl) UpdateDocumentContent(userID string, documentID uuid.UUID, content string) error {
+	belongs, err := documentBelongsToUserID(userID, documentID)
+	if err != nil {
+		return err
+	}
+	if !belongs {
+		return fmt.Errorf("Document does not belong to user")
+	}
 	// First, get the document by UUID to ensure it exists and to get the current content.
-	documentBeforeChange, err := d.postgresqlDB.GetDocumentByUUID(documentID)
+	documentBeforeUpdate, err := d.postgresqlDB.GetDocumentByUUID(documentID)
 	if err != nil {
 		return fmt.Errorf("Failed to get document by UUID from PostgreSQL: %w", err)
 	}
 
-	// Delete the document chunks from PostgreSQL and Weaviate.
-	chunksPostgreSQL, err := d.postgresqlDB.GetChunksOfDocumentByDocumentID(documentID)
+	err = d.DeleteDocument(userID, documentID)
 	if err != nil {
-		return fmt.Errorf("Failed to get chunks of document from PostgreSQL: %w", err)
+		return fmt.Errorf("Failed to delete document: %w", err)
 	}
 
-	err = d.weaviateDB.DeleteChunks(chunksPostgreSQL)
+	_, err = d.UploadDocument(userID, documentBeforeUpdate.DocumentName, content)
 	if err != nil {
-		return fmt.Errorf("Failed to delete chunks from Weaviate: %w", err)
-	}
-
-	if err := d.postgresqlDB.DeleteAllChunksByDocumentID(documentID); err != nil {
-		return fmt.Errorf("Failed to delete chunks from PostgreSQL: %w", err)
-	}
-
-	// Split the new content into chunks.
-	documentWithNewContent := documentBeforeChange
-	documentWithNewContent.Content = content
-	splitChunksOfNewContent, err := splitContentIntoChunks(*documentWithNewContent)
-	if err != nil {
-		return fmt.Errorf("Failed to split new content into chunks: %w", err)
-	}
-
-	// Upload the new chunks to PostgreSQL and Weaviate.
-	chunksWithChunkID, err := d.postgresqlDB.UploadChunks(splitChunksOfNewContent)
-	if err != nil {
-		return fmt.Errorf("Failed to upload new chunks to PostgreSQL: %w", err)
-	}
-
-	err = d.weaviateDB.UploadChunks(chunksWithChunkID)
-	if err != nil {
-		return fmt.Errorf("Failed to upload new chunks to Weaviate: %w", err)
+		return fmt.Errorf("Failed to upload document: %w", err)
 	}
 
 	return nil
