@@ -774,65 +774,77 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	})
 }
 
-//
-// func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
-// 	testconfig := config.NewServerConfig()
-// 	db, err := postgresqlclient2.NewPostgreSQL()
-//
-// 	clerkInstance, err := clerkclient.NewClerkClient(testconfig.ClerkSecretKey)
-// 	if err != nil {
-// 		t.Errorf("Failed to create Clerk client: %v", err)
-// 	}
-//
-// 	createTestUserInDb()
-// 	cfg := &config.ServerConfig{}
-//
-// 	// Create a test server
-// 	mux := http.NewServeMux()
-// 	SetupRoutes(cfg, mux, db, clerkInstance)
-// 	server := httptest.NewServer(mux)
-// 	defer server.Close()
-//
-// 	jwtToken := testconfig.TestJWTSessionToken
-//
-// 	document := map[string]string{
-// 		"document_name": "Test Document",
-// 		"content":       "Test Content Updated",
-// 	}
-//
-// 	db.UploadDocument(testconfig.TestUserID, "Test Document", "Test Content")
-//
-// 	body, _ := json.Marshal(document)
-// 	req, _ := http.NewRequest(http.MethodPut, server.URL+"/documents/updatedocument", bytes.NewBuffer(body))
-// 	req.Header.Set("Authorization", "Bearer "+jwtToken)
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		t.Errorf("Failed to send request: %v", err)
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	// Check the response
-// 	if resp.StatusCode != http.StatusOK {
-// 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-// 	}
-//
-// 	document_response, err := db.GetDocument(testconfig.TestUserID, "Test Document")
-// 	if err != nil {
-// 		t.Errorf("Failed to get document: %v", err)
-// 	}
-// 	if document_response.Content != "Test Content Updated" {
-// 		t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
-// 	}
-//
-// 	// Cleanup the database
-// 	t.Cleanup(func() {
-// 		testconfig := config.NewServerConfig()
-// 		UserID := testconfig.TestUserID
-// 		db.DeleteUserInUsersTable(UserID)
-// 		db.DeleteDocument(UserID, "Test Document")
-// 	})
-// }
+func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
+	cfg := config.NewServerConfig()
+	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	// Setup the real environment
+	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
+	if err != nil {
+		t.Errorf("Failed to create Clerk client: %v", err)
+	}
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Errorf("Failed to create Weaviate client: %v", err)
+	}
+	err = createTestUserInDb()
+	if err != nil {
+		t.Errorf("Failed to create test user in db: %v", err)
+	}
+	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := cfg.TestJWTSessionToken
+
+	documentFromUpload, err := documentService.UploadDocument(cfg.TestUserID, "Test Document", "Test Content")
+
+	document := map[string]string{
+		"documentID":        documentFromUpload.DocumentUUID.String(),
+		"new_document_name": documentFromUpload.DocumentName + " Updated",
+	}
+
+	body, _ := json.Marshal(document)
+	req, _ := http.NewRequest(http.MethodPut, server.URL+"/documents/update_document_name", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	document_response, err := documentService.GetDocument(cfg.TestUserID, "Test Document Updated")
+	if err != nil {
+		t.Errorf("Failed to get document: %v", err)
+	}
+	if document_response.DocumentName != "Test Document Updated" {
+		t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
+	}
+	// if document_response.Content != "Test Content Updated" {
+	// 	t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
+	// }
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+		postgresqlDB.DeleteDocument(UserID, "Test Document")
+	})
+}
+
 //
 // func TestDocumentsUpdateDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 // 	testconfig := config.NewServerConfig()

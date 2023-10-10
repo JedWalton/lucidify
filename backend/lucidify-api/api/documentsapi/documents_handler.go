@@ -2,6 +2,7 @@ package documentsapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"lucidify-api/modules/store/store"
 	"net/http"
 
@@ -181,44 +182,46 @@ func DocumentsDeleteDocumentHandler(documentService store.DocumentService, clerk
 	}
 }
 
-//
-// func DocumentsUpdateDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method != http.MethodPut {
-// 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 			return
-// 		}
-//
-// 		ctx := r.Context()
-//
-// 		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-// 		if !ok {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			w.Write([]byte("Unauthorized"))
-// 			return
-// 		}
-//
-// 		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		var reqBody map[string]string
-// 		decoder := json.NewDecoder(r.Body)
-// 		err = decoder.Decode(&reqBody)
-// 		if err != nil {
-// 			http.Error(w, "Bad request", http.StatusBadRequest)
-// 			return
-// 		}
-// 		document_name := reqBody["document_name"]
-// 		content := reqBody["content"]
-//
-// 		err = db.UpdateDocument(user.ID, document_name, content)
-// 		if err != nil {
-// 			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
-// 			return
-// 		}
-//
-// 		w.Header().Set("Content-Type", "application/json")
-// 	}
-// }
+func DocumentsUpdateDocumentNameHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		ctx := r.Context()
+
+		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
+
+		var reqBody map[string]string
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+
+		documentID := reqBody["documentID"]
+		newDocumentName := reqBody["new_document_name"]
+
+		fmt.Println(documentID)
+
+		err = documentService.UpdateDocumentName(user.ID, uuid.MustParse(documentID), newDocumentName)
+		if err != nil {
+			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+	}
+}

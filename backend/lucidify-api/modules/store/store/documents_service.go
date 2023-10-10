@@ -20,7 +20,7 @@ type DocumentService interface {
 	GetDocument(userID, name string) (*storemodels.Document, error)
 	GetAllDocuments(userID string) ([]storemodels.Document, error)
 	DeleteDocument(userID string, documentID uuid.UUID) error
-	UpdateDocumentName(documentID uuid.UUID, name string) error
+	UpdateDocumentName(userID string, documentID uuid.UUID, name string) error
 	UpdateDocumentContent(documentUUID uuid.UUID, content string) error
 }
 
@@ -189,8 +189,16 @@ func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID
 	return nil
 }
 
-func (d *DocumentServiceImpl) UpdateDocumentName(documentID uuid.UUID, name string) error {
-	err := d.postgresqlDB.UpdateDocumentName(documentID, name)
+func (d *DocumentServiceImpl) UpdateDocumentName(userID string, documentID uuid.UUID, name string) error {
+	belongs, err := documentBelongsToUserID(userID, documentID)
+	if err != nil {
+		return err
+	}
+	if !belongs {
+		return fmt.Errorf("Document does not belong to user")
+	}
+
+	err = d.postgresqlDB.UpdateDocumentName(documentID, name)
 	if err != nil {
 		return fmt.Errorf("Failed to update document name in PostgreSQL: %w", err)
 	}
