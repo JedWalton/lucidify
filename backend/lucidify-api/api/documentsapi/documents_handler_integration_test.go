@@ -945,36 +945,34 @@ func TestDocumentsUpdateDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	if err != nil {
 		t.Errorf("Failed to get document: %v", err)
 	}
-	//
-	// documentUpdateContent := map[string]string{
-	// 	"documentID":           documentFromUpload.DocumentUUID.String(),
-	// 	"new_document_content": documentFromUpload.Content + " Updated",
-	// }
-	//
-	// body, _ = json.Marshal(documentUpdateContent)
-	// req, _ = http.NewRequest(http.MethodPut, server.URL+"/documents/update_document_content", bytes.NewBuffer(body))
-	// req.Header.Set("Authorization", "Bearer "+jwtToken)
-	// client = &http.Client{}
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	t.Errorf("Failed to send request: %v", err)
-	// }
-	// defer resp.Body.Close()
-	//
-	// if resp.StatusCode != http.StatusOK {
-	// 	t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-	// }
-	//
-	// document_response_updated_content, err := documentService.GetDocument(cfg.TestUserID, "Test Document Updated")
-	// if err != nil {
-	// 	t.Errorf("Failed to get document: %v", err)
-	// }
-	// if document_response_updated_content.Content != "Test Content Updated" {
-	// 	t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response_updated_content.Content)
-	// }
-	// if document_response_updated_content.DocumentName != "Test Document Updated" {
-	// 	t.Errorf("Expected document content %s, got %s", "Test Document Updated", document_response_updated_content.DocumentName)
-	// }
+
+	documentUpdateContent := map[string]string{
+		"documentID":           documentFromUpload.DocumentUUID.String(),
+		"new_document_content": documentFromUpload.Content + " Updated",
+	}
+
+	body, _ = json.Marshal(documentUpdateContent)
+	req, _ = http.NewRequest(http.MethodPut, server.URL+"/documents/update_document_content", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	document_response_updated_content, err := documentService.GetDocument(cfg.TestUserID, "Test Document Updated")
+	if err == nil {
+		t.Errorf("Should have failed to get document: %v", err)
+	}
+	document_response_updated_content, err = documentService.GetDocument(cfg.TestUserID, "Test Document")
+	if document_response_updated_content.Content == "Test Content Updated" {
+		t.Errorf("Expected document content %s, got %s", "Test Content", document_response_updated_content.Content)
+	}
 
 	// Cleanup the database
 	t.Cleanup(func() {
