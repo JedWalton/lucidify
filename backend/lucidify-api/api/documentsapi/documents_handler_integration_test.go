@@ -820,7 +820,6 @@ func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	// Check the response
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
@@ -832,9 +831,9 @@ func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
 	if document_response.DocumentName != "Test Document Updated" {
 		t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
 	}
-	// if document_response.Content != "Test Content Updated" {
-	// 	t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response.Content)
-	// }
+	if document_response.Content != "Test Content" {
+		t.Errorf("Expected document content %s, got %s", "Test Content", document_response.Content)
+	}
 
 	// Cleanup the database
 	t.Cleanup(func() {
