@@ -2,13 +2,15 @@ package documentsapi
 
 import (
 	"encoding/json"
-	"lucidify-api/modules/store/postgresqlclient"
+	"fmt"
+	"lucidify-api/modules/store/store"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
+	"github.com/google/uuid"
 )
 
-func DocumentsUploadHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUploadHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -41,7 +43,7 @@ func DocumentsUploadHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk
 		document_name := reqBody["document_name"]
 		content := reqBody["content"]
 
-		_, err = db.UploadDocument(user.ID, document_name, content)
+		_, err = documentService.UploadDocument(user.ID, document_name, content)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
@@ -51,7 +53,7 @@ func DocumentsUploadHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk
 	}
 }
 
-func DocumentsGetDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetDocumentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -81,7 +83,7 @@ func DocumentsGetDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance 
 		}
 		document_name := reqBody["document_name"]
 
-		document, err := db.GetDocument(user.ID, document_name)
+		document, err := documentService.GetDocument(user.ID, document_name)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to get document", http.StatusInternalServerError)
 			return
@@ -100,7 +102,7 @@ func DocumentsGetDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance 
 	}
 }
 
-func DocumentsGetAllDocumentsHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetAllDocumentsHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -121,7 +123,7 @@ func DocumentsGetAllDocumentsHandler(db *postgresqlclient.PostgreSQL, clerkInsta
 			panic(err)
 		}
 
-		document, err := db.GetAllDocuments(user.ID)
+		document, err := documentService.GetAllDocuments(user.ID)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to get document", http.StatusInternalServerError)
 			return
@@ -140,7 +142,7 @@ func DocumentsGetAllDocumentsHandler(db *postgresqlclient.PostgreSQL, clerkInsta
 	}
 }
 
-func DocumentsDeleteDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsDeleteDocumentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -168,9 +170,9 @@ func DocumentsDeleteDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstan
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
-		document_name := reqBody["document_name"]
+		documentID := reqBody["documentID"]
 
-		err = db.DeleteDocument(user.ID, document_name)
+		err = documentService.DeleteDocument(user.ID, uuid.MustParse(documentID))
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to delete document", http.StatusInternalServerError)
 			return
@@ -180,7 +182,7 @@ func DocumentsDeleteDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstan
 	}
 }
 
-func DocumentsUpdateDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUpdateDocumentNameHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -208,10 +210,57 @@ func DocumentsUpdateDocumentHandler(db *postgresqlclient.PostgreSQL, clerkInstan
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
-		document_name := reqBody["document_name"]
-		content := reqBody["content"]
 
-		err = db.UpdateDocument(user.ID, document_name, content)
+		documentID := reqBody["documentID"]
+		newDocumentName := reqBody["new_document_name"]
+
+		fmt.Println(documentID)
+
+		err = documentService.UpdateDocumentName(user.ID, uuid.MustParse(documentID), newDocumentName)
+		if err != nil {
+			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+	}
+}
+
+func DocumentsUpdateDocumentContentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		ctx := r.Context()
+
+		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
+
+		var reqBody map[string]string
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+
+		documentID := reqBody["documentID"]
+		newDocumentContent := reqBody["new_document_content"]
+
+		fmt.Println(documentID)
+
+		err = documentService.UpdateDocumentContent(user.ID, uuid.MustParse(documentID), newDocumentContent)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
 			return

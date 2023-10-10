@@ -5,6 +5,8 @@ import (
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/store"
+	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 )
 
@@ -23,12 +25,19 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	// weaviateInstance, err := weaviateclient.NewWeaviateClient()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	weaviateInstance, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	SetupRoutes(config, mux, storeInstance, clerkInstance)
+	documentsService := store.NewDocumentService(storeInstance, weaviateInstance)
+
+	SetupRoutes(
+		config,
+		mux,
+		storeInstance,
+		clerkInstance,
+		documentsService)
 
 	BasicLogging(config, mux)
 }

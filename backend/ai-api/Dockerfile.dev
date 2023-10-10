@@ -1,0 +1,12 @@
+# Dockerfile.dev
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Note: We're not copying your code here, it'll be mounted via docker-compose
+
+CMD ["python", "app.py"]
