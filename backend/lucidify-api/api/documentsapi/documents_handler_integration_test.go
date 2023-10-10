@@ -442,6 +442,61 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	})
 }
 
+func TestDocumentsGetAllDocumentsHandlerUnauthorizedIntegration(t *testing.T) {
+	cfg := config.NewServerConfig()
+	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	// Setup the real environment
+	clerkInstance, err := clerkclient.NewClerkClient(cfg.ClerkSecretKey)
+	if err != nil {
+		t.Errorf("Failed to create Clerk client: %v", err)
+	}
+	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	if err != nil {
+		t.Errorf("Failed to create Weaviate client: %v", err)
+	}
+	err = createTestUserInDb()
+	if err != nil {
+		t.Errorf("Failed to create test user in db: %v", err)
+	}
+	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	jwtToken := cfg.TestJWTSessionToken + " invalid"
+
+	postgresqlDB.UploadDocument(cfg.TestUserID, "Test Document", "Test Content")
+	postgresqlDB.UploadDocument(cfg.TestUserID, "Test Document 2", "Test Content 2")
+	postgresqlDB.UploadDocument(cfg.TestUserID, "Test Document 3", "Test Content 3")
+
+	req, _ := http.NewRequest(http.MethodGet, server.URL+"/documents/get_all_documents", nil)
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode == http.StatusUnauthorized {
+		t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, resp.StatusCode)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+	})
+}
+
 //	func TestDocumentsGetAllDocumentsHandlerUnauthenticatedIntegration(t *testing.T) {
 //		testconfig := config.NewServerConfig()
 //		db, err := postgresqlclient2.NewPostgreSQL()
