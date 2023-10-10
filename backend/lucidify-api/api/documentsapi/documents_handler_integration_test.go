@@ -694,10 +694,10 @@ func TestDocumentsDeleteDocumentHandlerNotMyDocumentIntegration(t *testing.T) {
 
 	// Cleanup the database
 	t.Cleanup(func() {
-		testconfig := config.NewServerConfig()
-		UserID := testconfig.TestUserID
+		UserID := cfg.TestUserID
 		postgresqlDB.DeleteUserInUsersTable(UserID)
-		postgresqlDB.DeleteDocument(UserID, "Test Document")
+		SecondUserID := "userid_testuserid2"
+		postgresqlDB.DeleteUserInUsersTable(SecondUserID)
 	})
 }
 
@@ -774,7 +774,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	})
 }
 
-func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
+func TestDocumentsUpdateDocumentHandlerIntegration(t *testing.T) {
 	cfg := config.NewServerConfig()
 	postgresqlDB, err := postgresqlclient2.NewPostgreSQL()
 	if err != nil {
@@ -860,6 +860,9 @@ func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
 	}
 	if document_response_updated_content.Content != "Test Content Updated" {
 		t.Errorf("Expected document content %s, got %s", "Test Content Updated", document_response_updated_content.Content)
+	}
+	if document_response_updated_content.DocumentName != "Test Document Updated" {
+		t.Errorf("Expected document content %s, got %s", "Test Document Updated", document_response_updated_content.DocumentName)
 	}
 
 	// Cleanup the database
