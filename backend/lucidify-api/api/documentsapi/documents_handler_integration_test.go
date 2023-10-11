@@ -118,7 +118,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 		t.Fatalf("Failed to create Clerk client: %v", err)
 	}
 
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
 	if err != nil {
 		t.Fatalf("Failed to create Weaviate client: %v", err)
 	}

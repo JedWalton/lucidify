@@ -107,7 +107,7 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	}
 
 	// Initialize Weaviate for tests
-	weaviateClient, err := weaviateclient.NewWeaviateClient()
+	weaviateClient, err := weaviateclient.NewWeaviateClientTest()
 	if err != nil {
 		t.Fatalf("Failed to create Weaviate client: %v", err)
 	}
