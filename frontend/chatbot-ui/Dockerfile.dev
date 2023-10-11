@@ -1,0 +1,17 @@
+# Use a base node image
+FROM node:19-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Start the application in development mode
+CMD ["npm", "run", "dev"]
