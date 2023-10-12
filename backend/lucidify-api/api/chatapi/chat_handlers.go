@@ -1,4 +1,4 @@
-package chat
+package chatapi
 
 import (
 	"encoding/json"

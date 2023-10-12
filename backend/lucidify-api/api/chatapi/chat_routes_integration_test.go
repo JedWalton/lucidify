@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package chat
+package chatapi
 
 import (
 	"io/ioutil"
