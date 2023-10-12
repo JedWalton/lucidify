@@ -26,7 +26,7 @@ func SetupChatHandler(
 	weaviateInstance weaviateclient.WeaviateClient,
 	clerkInstance clerk.Client) *http.ServeMux {
 
-	handler := ChatHandler()
+	handler := ChatHandler(clerkInstance)
 
 	injectActiveSession := clerk.WithSession(clerkInstance)
 
