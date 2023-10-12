@@ -37,6 +37,7 @@ func StartServer() {
 		mux,
 		storeInstance,
 		clerkInstance,
+		weaviateInstance,
 		documentsService)
 
 	BasicLogging(config, mux)
