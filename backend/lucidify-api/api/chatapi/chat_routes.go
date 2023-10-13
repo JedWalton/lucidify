@@ -1,9 +1,9 @@
 package chatapi
 
 import (
+	"lucidify-api/modules/chatservice"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/middleware"
-	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
@@ -12,10 +12,10 @@ import (
 func SetupRoutes(
 	config *config.ServerConfig,
 	mux *http.ServeMux,
-	weaviateInstance weaviateclient.WeaviateClient,
+	chatService chatservice.ChatService,
 	clerkInstance clerk.Client) *http.ServeMux {
 
-	mux = SetupChatHandler(config, mux, weaviateInstance, clerkInstance)
+	mux = SetupChatHandler(config, mux, chatService, clerkInstance)
 
 	return mux
 }
@@ -23,10 +23,10 @@ func SetupRoutes(
 func SetupChatHandler(
 	config *config.ServerConfig,
 	mux *http.ServeMux,
-	weaviateInstance weaviateclient.WeaviateClient,
+	chatService chatservice.ChatService,
 	clerkInstance clerk.Client) *http.ServeMux {
 
-	handler := ChatHandler(clerkInstance)
+	handler := ChatHandler(clerkInstance, chatService)
 
 	injectActiveSession := clerk.WithSession(clerkInstance)
 

@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"lucidify-api/modules/chatservice"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
@@ -15,7 +16,7 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
-	storeInstance, err := postgresqlclient.NewPostgreSQL()
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,15 +31,19 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	documentsService := store.NewDocumentService(storeInstance, weaviateInstance)
+	documentsService := store.NewDocumentService(postgresqlDB, weaviateInstance)
+
+	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance)
 
 	SetupRoutes(
 		config,
 		mux,
-		storeInstance,
+		postgresqlDB,
 		clerkInstance,
 		weaviateInstance,
-		documentsService)
+		documentsService,
+		chatService,
+	)
 
 	BasicLogging(config, mux)
 }

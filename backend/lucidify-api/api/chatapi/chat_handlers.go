@@ -3,12 +3,13 @@ package chatapi
 import (
 	"encoding/json"
 	"fmt"
+	"lucidify-api/modules/chatservice"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func ChatHandler(clerkInstance clerk.Client) http.HandlerFunc {
+func ChatHandler(clerkInstance clerk.Client, chatService chatservice.ChatService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -43,8 +44,12 @@ func ChatHandler(clerkInstance clerk.Client) http.HandlerFunc {
 		fmt.Printf("User prompt: %s\n", userPrompt)
 
 		// Do something with the user prompt here
-
-		responseMessage := "PLACEHOLDER RESPONSE"
+		// CreateWeaviateClass()
+		responseMessage, err := chatService.ProcessCurrentThreadAndReturnSystemPrompt()
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		responseBody := map[string]string{
 			"response": responseMessage,
