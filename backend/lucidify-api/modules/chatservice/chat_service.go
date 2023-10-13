@@ -22,7 +22,7 @@ func NewChatService(
 
 func (c *ChatServiceImpl) ProcessCurrentThreadAndReturnSystemPrompt() (string, error) {
 	// UpdateDatabaseWithCurrentChatThread()
-	// performVectorDatabaseSearch()
+	// performVectorDatabaseSearchOnCurrentThread()
 	// generateOptimalSystemPrompt()
 	// generateOptimalSystemPromptContext()
 	return "PLACEHOLDER RESPONSE", nil

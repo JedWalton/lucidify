@@ -16,7 +16,6 @@ import { PluginKey } from '@/types/plugin';
 
 import HomeContext from '@/pages/api/home/home.context';
 
-import { ChatFolders } from './components/ChatFolders';
 import { ChatbarSettings } from './components/ChatbarSettings';
 import { Conversations } from './components/Conversations';
 
@@ -224,7 +223,6 @@ export const Chatbar = () => {
         isOpen={showChatbar}
         addItemButtonTitle={t('New chat')}
         itemComponent={<Conversations conversations={filteredConversations} />}
-        folderComponent={<ChatFolders searchTerm={searchTerm} />}
         items={filteredConversations}
         searchTerm={searchTerm}
         handleSearchTerm={(searchTerm: string) =>

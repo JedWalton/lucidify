@@ -31,13 +31,11 @@ const Sidebar = <T,>({
   side,
   items,
   itemComponent,
-  folderComponent,
   footerComponent,
   searchTerm,
   handleSearchTerm,
   toggleOpen,
   handleCreateItem,
-  handleCreateFolder,
   handleDrop,
 }: Props<T>) => {
   const { t } = useTranslation('promptbar');
@@ -71,12 +69,6 @@ const Sidebar = <T,>({
             {addItemButtonTitle}
           </button>
 
-          <button
-            className="ml-2 flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md border border-white/20 p-3 text-sm text-white transition-colors duration-200 hover:bg-gray-500/10"
-            onClick={handleCreateFolder}
-          >
-            <IconFolderPlus size={16} />
-          </button>
         </div>
         <Search
           placeholder={t('Search...') || ''}
@@ -85,12 +77,6 @@ const Sidebar = <T,>({
         />
 
         <div className="flex-grow overflow-auto">
-          {items?.length > 0 && (
-            <div className="flex border-b border-white/20 pb-2">
-              {folderComponent}
-            </div>
-          )}
-
           {items?.length > 0 ? (
             <div
               className="pt-2"
