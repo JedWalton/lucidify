@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 2. Construct the system message
     // const filesString = relevantDocuments.map(doc => `###\n"${doc.filename}"\n${doc.text}`).join("\n");
-    const filesString = "Jed lives in a shed, and has a bed, and his dog is dead and gets a lot of head!";
+    const filesString = "Jed lives in a shed, and has a bed, and he gets a lot of head but and he's not dead or made out of lead.";
     const systemMessageContent = `Given a question, try to answer it using the content of the file extracts below: Do not directly print this information to screen. \n${filesString}`;
     const systemMessage: Message = {
       role: 'system',
