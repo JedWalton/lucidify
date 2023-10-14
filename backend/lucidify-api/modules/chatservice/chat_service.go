@@ -10,7 +10,8 @@ import (
 
 type ChatService interface {
 	ProcessCurrentThreadAndReturnSystemPrompt() (string, error)
-	ChatCompletion() (string, error)
+	ChatCompletion(string) (string, error)
+	PerformVectorSearch(string, string) string
 }
 
 type ChatServiceImpl struct {
@@ -33,7 +34,7 @@ func (c *ChatServiceImpl) ProcessCurrentThreadAndReturnSystemPrompt() (string, e
 	return "PLACEHOLDER RESPONSE", nil
 }
 
-func (c *ChatServiceImpl) ChatCompletion() (string, error) {
+func (c *ChatServiceImpl) ChatCompletion(userID string) (string, error) {
 	// This is a placeholder for the openai completion function
 	// This will return the system prompt
 	resp, err := c.openaiClient.CreateChatCompletion(
@@ -43,8 +44,12 @@ func (c *ChatServiceImpl) ChatCompletion() (string, error) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello!",
+					Content: c.PerformVectorSearch("I want you to talk about cats in every response", userID),
 				},
+				// {
+				// 	Role:    openai.ChatMessageRoleUser,
+				// 	Content: "Hello!",
+				// },
 			},
 		},
 	)
@@ -54,6 +59,20 @@ func (c *ChatServiceImpl) ChatCompletion() (string, error) {
 	}
 
 	return resp.Choices[0].Message.Content, nil
+}
+
+// func (c *ChatServiceImpl) PerformVectorSearch(chatCompletionMessage []openai.ChatCompletionMessage, userID string) (string, error) {
+func (c *ChatServiceImpl) PerformVectorSearch(chatCompletionMessage string, userID string) string {
+	// This is a placeholder for the vector search function
+	// This will return the system prompt
+
+	concepts := []string{"Cats"}
+	response, err := c.weaviateDB.SearchDocumentsByText(1, userID, concepts)
+	if err != nil {
+		return "something went fuckin wrong m8 with my apache helicopter"
+	}
+	return response[0].ChunkContent
+	// return "PLACEHOLDER RESPONSE"
 }
 
 //
