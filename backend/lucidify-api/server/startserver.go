@@ -9,6 +9,8 @@ import (
 	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 func StartServer() {
@@ -33,7 +35,9 @@ func StartServer() {
 
 	documentsService := store.NewDocumentService(postgresqlDB, weaviateInstance)
 
-	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance)
+	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
+
+	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient)
 
 	SetupRoutes(
 		config,

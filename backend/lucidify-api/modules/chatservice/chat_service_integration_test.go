@@ -4,9 +4,12 @@ package chatservice
 
 import (
 	"log"
+	"lucidify-api/modules/config"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/weaviateclient"
 	"testing"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 func setupTestChatService() ChatService {
@@ -22,27 +25,20 @@ func setupTestChatService() ChatService {
 		log.Fatalf("Failed to create Weaviate client: %v", err)
 	}
 
+	cfg := config.NewServerConfig()
+	openaiClient := openai.NewClient(cfg.OPENAI_API_KEY)
+
 	// Create instance of ChatService
-	chatService := NewChatService(postgresqlDB, weaviateDB)
+	chatService := NewChatService(postgresqlDB, weaviateDB, openaiClient)
 
 	return chatService
 }
 
-func TestProcessCurrentThreadAndReturnSystemPromptIntegration(t *testing.T) {
-	// Setup ChatService
+func TestChatCompletion(t *testing.T) {
 	chatService := setupTestChatService()
 
-	// Here you would set up any necessary preconditions in your database,
-	// like creating chat threads that you're going to process.
+	response, err := chatService.ChatCompletion()
 
-	// You might want to use a real thread from your database, or create a new one just for testing.
-	// Assuming here that you've set up a "current thread" in some way.
-
-	// Call the method to test.
-	response, err := chatService.ProcessCurrentThreadAndReturnSystemPrompt()
-
-	// Assert that the expected response is returned.
-	// This will depend on what exactly your method does and what your expected outcomes are.
 	if err != nil {
 		t.Errorf("Error was not expected while processing current thread: %v", err)
 	}

@@ -1,31 +1,59 @@
 package chatservice
 
 import (
+	"context"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/weaviateclient"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 type ChatService interface {
 	ProcessCurrentThreadAndReturnSystemPrompt() (string, error)
+	ChatCompletion() (string, error)
 }
 
 type ChatServiceImpl struct {
 	postgresqlDB postgresqlclient.PostgreSQL
 	weaviateDB   weaviateclient.WeaviateClient
+	openaiClient openai.Client
 }
 
 func NewChatService(
 	postgresqlDB *postgresqlclient.PostgreSQL,
-	weaviateDB weaviateclient.WeaviateClient) ChatService {
-	return &ChatServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
+	weaviateDB weaviateclient.WeaviateClient,
+	openaiClient *openai.Client) ChatService {
+	return &ChatServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB, openaiClient: *openaiClient}
 }
 
 func (c *ChatServiceImpl) ProcessCurrentThreadAndReturnSystemPrompt() (string, error) {
 	// UpdateDatabaseWithCurrentChatThread()
 	// performVectorDatabaseSearchOnCurrentThread()
 	// generateOptimalSystemPrompt()
-	// generateOptimalSystemPromptContext()
 	return "PLACEHOLDER RESPONSE", nil
+}
+
+func (c *ChatServiceImpl) ChatCompletion() (string, error) {
+	// This is a placeholder for the openai completion function
+	// This will return the system prompt
+	resp, err := c.openaiClient.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "Hello!",
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Choices[0].Message.Content, nil
 }
 
 //
@@ -48,6 +76,9 @@ func (c *ChatServiceImpl) ProcessCurrentThreadAndReturnSystemPrompt() (string, e
 // }
 
 // func generateOptimalSystemPrompt() {
+//		generateOptimalPrompt
+//		generateOptimalContextToAppendToPrompt
+//}
 
 // func performVectorDatabaseSearch()
 //		performSearchDocumentByText()
