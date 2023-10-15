@@ -33,11 +33,11 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	documentsService := store.NewDocumentService(postgresqlDB, weaviateInstance)
+	documentService := store.NewDocumentService(postgresqlDB, weaviateInstance)
 
 	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
 
-	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient)
+	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient, documentService)
 
 	SetupRoutes(
 		config,
@@ -45,7 +45,7 @@ func StartServer() {
 		postgresqlDB,
 		clerkInstance,
 		weaviateInstance,
-		documentsService,
+		documentService,
 		chatService,
 	)
 

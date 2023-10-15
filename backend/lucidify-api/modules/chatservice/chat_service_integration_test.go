@@ -66,23 +66,44 @@ func setupTestChatService() ChatService {
 	cfg := config.NewServerConfig()
 	openaiClient := openai.NewClient(cfg.OPENAI_API_KEY)
 
-	// Create instance of ChatService
-	chatService := NewChatService(postgresqlDB, weaviateDB, openaiClient)
-
 	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+
+	// Create instance of ChatService
+	chatService := NewChatService(postgresqlDB, weaviateDB, openaiClient, documentService)
 
 	createTestUserInDb()
 
 	documentService.UploadDocument("TestChatServiceIntegrationTestUUID", "Erica cat lore", "Erica likes cats, now we are mentioning cats erica is paying attention.")
-	documentService.UploadDocument("TestChatServiceIntegrationTestUUID", "Erica cat 2 lore", "Erica likes Yuki, now we are mentioning Yuki, erica is paying attention.")
+	documentService.UploadDocument("TestChatServiceIntegrationTestUUID", "Erica cat 2 lore", "Erica likes Yuki (her new cat), now we are mentioning Yuki, erica is paying attention.")
 
 	return chatService
 }
 
-func TestChatCompletion(t *testing.T) {
+// func TestChatCompletion(t *testing.T) {
+// 	chatService := setupTestChatService()
+//
+// 	response, err := chatService.ChatCompletion("TestChatServiceIntegrationTestUUID")
+//
+// 	if err != nil {
+// 		t.Errorf("Error was not expected while processing current thread: %v", err)
+// 	}
+//
+// 	expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
+// 	if response != expectedResponse {
+// 		t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
+// 	}
+//
+// 	// Optionally, you might want to query your databases here to assert that the expected
+// 	// updates have been made as a result of calling the method.
+//
+// 	// Cleanup after test
+// 	// Here you would clean up your database from any records you created for your test.
+// }
+
+func TestGetAnswerFromFiles(t *testing.T) {
 	chatService := setupTestChatService()
 
-	response, err := chatService.ChatCompletion("TestChatServiceIntegrationTestUUID")
+	response, err := chatService.GetAnswerFromFiles("Who is erica and does she have pets?", "TestChatServiceIntegrationTestUUID")
 
 	if err != nil {
 		t.Errorf("Error was not expected while processing current thread: %v", err)
