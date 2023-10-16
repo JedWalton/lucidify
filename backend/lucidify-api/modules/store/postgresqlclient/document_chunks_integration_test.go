@@ -13,7 +13,7 @@ func TestChunkFunctions(t *testing.T) {
 		t.Fatalf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	user := User{
+	user := storemodels.User{
 		UserID:           "document_chunks_integration_test_user_id",
 		ExternalID:       "TestDocumentChunksID",
 		Username:         "TestDocumentChunksUsername",

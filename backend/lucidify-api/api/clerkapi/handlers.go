@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 	"net/http"
 )
 
@@ -57,7 +58,7 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
 
 		switch event.Type {
 		case "user.created":
-			user := postgresqlclient.User{
+			user := storemodels.User{
 				UserID:           getStringFromMap(event.Data, "id"),
 				ExternalID:       getStringFromMap(event.Data, "external_id"),
 				Username:         getStringFromMap(event.Data, "username"),
@@ -78,7 +79,7 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
 				log.Printf("Error creating user: %v", err)
 			}
 		case "user.updated":
-			user := postgresqlclient.User{
+			user := storemodels.User{
 				UserID:           getStringFromMap(event.Data, "id"),
 				ExternalID:       getStringFromMap(event.Data, "external_id"),
 				Username:         getStringFromMap(event.Data, "username"),

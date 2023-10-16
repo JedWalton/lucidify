@@ -3,6 +3,7 @@
 package postgresqlclient
 
 import (
+	"lucidify-api/modules/store/storemodels"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestStoreFunctions(t *testing.T) {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	user := User{
+	user := storemodels.User{
 		UserID:           "documents_integration_test_user_id",
 		ExternalID:       "TestCreateUserInUsersTableExternalID",
 		Username:         "TestDocumentsIntegrationCreateUserInUsersTableUsername",

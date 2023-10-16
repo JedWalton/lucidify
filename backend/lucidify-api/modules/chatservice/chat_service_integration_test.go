@@ -7,6 +7,7 @@ import (
 	"lucidify-api/modules/config"
 	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 	"lucidify-api/modules/store/weaviateclient"
 
 	"github.com/sashabaranov/go-openai"
@@ -16,7 +17,7 @@ func createTestUserInDb() string {
 	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient.User{
+	user := storemodels.User{
 		UserID:           "TestChatServiceIntegrationTestUUID",
 		ExternalID:       "TestChatServiceIntegrationTestExternalID",
 		Username:         "TestChatServiceIntegrationTestUsername",

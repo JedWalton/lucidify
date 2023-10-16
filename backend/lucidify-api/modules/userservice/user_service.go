@@ -1,12 +1,12 @@
 package userservice
 
 import (
-	"fmt"
 	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 )
 
 type UserService interface {
-	CreateUser() error
+	CreateUser(user storemodels.User) error
 }
 
 type UserServiceImpl struct {
@@ -18,6 +18,10 @@ func NewUserService(
 	return &UserServiceImpl{postgresqlDB: postgresqlDB}
 }
 
-func (u *UserServiceImpl) CreateUser() error {
-	return fmt.Errorf("not implemented")
+func (u *UserServiceImpl) CreateUser(user storemodels.User) error {
+	err := u.postgresqlDB.CreateUserInUsersTable(user)
+	if err != nil {
+		return err
+	}
+	return nil
 }

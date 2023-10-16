@@ -18,7 +18,7 @@ func createTestUserInDb() string {
 	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient.User{
+	user := storemodels.User{
 		UserID:           "TestDocumentsServiceIntegrationTestUUID",
 		ExternalID:       "TestDocumentsServiceIntegrationTestExternalID",
 		Username:         "TestDocumentsServiceIntegrationTestUsername",
