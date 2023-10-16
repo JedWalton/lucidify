@@ -9,8 +9,8 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/storemodels"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
@@ -101,7 +101,7 @@ type TestSetup struct {
 	PostgresqlDB    *postgresqlclient.PostgreSQL
 	ClerkInstance   clerk.Client
 	WeaviateDB      weaviateclient.WeaviateClient
-	DocumentService store.DocumentService
+	DocumentService documentservice.DocumentService
 }
 
 func SetupTestEnvironment(t *testing.T) *TestSetup {
@@ -127,7 +127,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 		t.Fatalf("Failed to create test user in db: %v", err)
 	}
 
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
 
 	return &TestSetup{
 		Config:          cfg,

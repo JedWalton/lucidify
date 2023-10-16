@@ -6,8 +6,8 @@ import (
 	"lucidify-api/api/documentsapi"
 	"lucidify-api/modules/chatservice"
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 
@@ -20,7 +20,7 @@ func SetupRoutes(
 	storeInstance *postgresqlclient.PostgreSQL,
 	clerkInstance clerk.Client,
 	weaviateInstance weaviateclient.WeaviateClient,
-	documentsService store.DocumentService,
+	documentsService documentservice.DocumentService,
 	chatService chatservice.ChatService) {
 
 	chatapi.SetupRoutes(config, mux, chatService, clerkInstance)

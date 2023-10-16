@@ -3,14 +3,14 @@ package documentsapi
 import (
 	"encoding/json"
 	"fmt"
-	"lucidify-api/modules/store/store"
+	"lucidify-api/modules/documentservice"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/google/uuid"
 )
 
-func DocumentsUploadHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUploadHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -53,7 +53,7 @@ func DocumentsUploadHandler(documentService store.DocumentService, clerkInstance
 	}
 }
 
-func DocumentsGetDocumentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetDocumentHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -102,7 +102,7 @@ func DocumentsGetDocumentHandler(documentService store.DocumentService, clerkIns
 	}
 }
 
-func DocumentsGetAllDocumentsHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetAllDocumentsHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -142,7 +142,7 @@ func DocumentsGetAllDocumentsHandler(documentService store.DocumentService, cler
 	}
 }
 
-func DocumentsDeleteDocumentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsDeleteDocumentHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -182,7 +182,7 @@ func DocumentsDeleteDocumentHandler(documentService store.DocumentService, clerk
 	}
 }
 
-func DocumentsUpdateDocumentNameHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUpdateDocumentNameHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -226,7 +226,7 @@ func DocumentsUpdateDocumentNameHandler(documentService store.DocumentService, c
 	}
 }
 
-func DocumentsUpdateDocumentContentHandler(documentService store.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUpdateDocumentContentHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

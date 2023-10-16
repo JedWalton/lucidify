@@ -3,8 +3,8 @@ package chatservice
 import (
 	"context"
 	"fmt"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/weaviateclient"
 
 	"github.com/sashabaranov/go-openai"
@@ -21,14 +21,14 @@ type ChatServiceImpl struct {
 	postgresqlDB    postgresqlclient.PostgreSQL
 	weaviateDB      weaviateclient.WeaviateClient
 	openaiClient    openai.Client
-	documentService store.DocumentService
+	documentService documentservice.DocumentService
 }
 
 func NewChatService(
 	postgresqlDB *postgresqlclient.PostgreSQL,
 	weaviateDB weaviateclient.WeaviateClient,
 	openaiClient *openai.Client,
-	documentService store.DocumentService) ChatService {
+	documentService documentservice.DocumentService) ChatService {
 	return &ChatServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB, openaiClient: *openaiClient, documentService: documentService}
 }
 

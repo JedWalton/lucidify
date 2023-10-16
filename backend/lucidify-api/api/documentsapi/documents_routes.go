@@ -2,14 +2,14 @@ package documentsapi
 
 import (
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/middleware"
-	"lucidify-api/modules/store/store"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 	mux = SetupDocumentsUploadHandler(config, mux, documentService, client)
 	mux = SetupDocumentsGetDocumentHandler(config, mux, documentService, client)
 	mux = SetupDocumentsGetAllDocumentHandler(config, mux, documentService, client)
@@ -20,7 +20,7 @@ func SetupRoutes(config *config.ServerConfig, mux *http.ServeMux, documentServic
 	return mux
 }
 
-func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsUploadHandler(documentService, client)
 
@@ -34,7 +34,7 @@ func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux
 	return mux
 }
 
-func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsGetDocumentHandler(documentService, client)
 
@@ -48,7 +48,7 @@ func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.Ser
 	return mux
 }
 
-func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsGetAllDocumentsHandler(documentService, client)
 
@@ -62,7 +62,7 @@ func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.
 	return mux
 }
 
-func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsDeleteDocumentHandler(documentService, client)
 
@@ -76,7 +76,7 @@ func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.
 	return mux
 }
 
-func SetupDocumentsUpdateDocumentNameHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUpdateDocumentNameHandler(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsUpdateDocumentNameHandler(documentService, client)
 
@@ -90,7 +90,7 @@ func SetupDocumentsUpdateDocumentNameHandler(config *config.ServerConfig, mux *h
 	return mux
 }
 
-func SetupDocumentsUpdateDocumentContentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService store.DocumentService, client clerk.Client) *http.ServeMux {
+func SetupDocumentsUpdateDocumentContentHandler(config *config.ServerConfig, mux *http.ServeMux, documentService documentservice.DocumentService, client clerk.Client) *http.ServeMux {
 
 	handler := DocumentsUpdateDocumentContentHandler(documentService, client)
 

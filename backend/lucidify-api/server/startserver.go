@@ -5,8 +5,8 @@ import (
 	"lucidify-api/modules/chatservice"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
 
@@ -33,7 +33,7 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	documentService := store.NewDocumentService(postgresqlDB, weaviateInstance)
+	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateInstance)
 
 	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
 
