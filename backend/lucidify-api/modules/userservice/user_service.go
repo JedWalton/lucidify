@@ -1,8 +1,20 @@
 package userservice
 
+import "lucidify-api/modules/store/postgresqlclient"
+
 type UserService interface {
+	CreateUser() error
 }
 
-type UserServiceImpl struct{}
+type UserServiceImpl struct {
+	postgresqlDB postgresqlclient.PostgreSQL
+}
 
-func NewUserService() {}
+func NewUserService(
+	postgresqlDB *postgresqlclient.PostgreSQL) UserService {
+	return &UserServiceImpl{postgresqlDB: *postgresqlDB}
+}
+
+func (u *UserServiceImpl) CreateUser() error {
+	return nil
+}

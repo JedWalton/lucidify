@@ -72,6 +72,7 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
 
+			// Use userService.CreateUserInUsersTable
 			err := db.CreateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
@@ -91,11 +92,14 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
 				CreatedAt:        getInt64FromMap(event.Data, "created_at"),
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
+
+			// Use userService.UpdateUserInUsersTable
 			err := db.UpdateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error updating user: %v", err)
 			}
 		case "user.deleted":
+			// Use userService.DeleteUserInUsersTable
 			err := db.DeleteUserInUsersTable(event.Data["id"].(string))
 			if err != nil {
 				log.Printf("Error deleting user: %v", err)
