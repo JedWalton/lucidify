@@ -2,12 +2,15 @@ package server
 
 import (
 	"log"
+	"lucidify-api/modules/chatservice"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 func StartServer() {
@@ -15,7 +18,7 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
-	storeInstance, err := postgresqlclient.NewPostgreSQL()
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,14 +33,21 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	documentsService := store.NewDocumentService(storeInstance, weaviateInstance)
+	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateInstance)
+
+	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
+
+	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient, documentService)
 
 	SetupRoutes(
 		config,
 		mux,
-		storeInstance,
+		postgresqlDB,
 		clerkInstance,
-		documentsService)
+		weaviateInstance,
+		documentService,
+		chatService,
+	)
 
 	BasicLogging(config, mux)
 }

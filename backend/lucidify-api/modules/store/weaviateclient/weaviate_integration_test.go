@@ -11,7 +11,7 @@ import (
 )
 
 func TestUploadDeleteChunk(t *testing.T) {
-	weaviateClient, err := NewWeaviateClient()
+	weaviateClient, err := NewWeaviateClientTest()
 	if err != nil {
 		t.Errorf("failed to create weaviate client: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestUploadDeleteChunk(t *testing.T) {
 }
 
 func TestUploadDeleteChunks(t *testing.T) {
-	weaviateClient, err := NewWeaviateClient()
+	weaviateClient, err := NewWeaviateClientTest()
 	if err != nil {
 		t.Fatalf("failed to create weaviate client: %v", err)
 	}
@@ -258,7 +258,7 @@ func getTestChunks() []storemodels.Chunk {
 }
 
 func TestSearchDocumentsByText(t *testing.T) {
-	weaviateClient, err := NewWeaviateClient()
+	weaviateClient, err := NewWeaviateClientTest()
 	if err != nil {
 		t.Fatalf("failed to create weaviate client: %v", err)
 	}

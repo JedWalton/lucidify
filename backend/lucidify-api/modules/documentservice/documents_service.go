@@ -1,4 +1,4 @@
-package store
+package documentservice
 
 import (
 	"bytes"
@@ -34,6 +34,56 @@ func NewDocumentService(
 	postgresqlDB *postgresqlclient.PostgreSQL,
 	weaviateDB weaviateclient.WeaviateClient) DocumentService {
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
+}
+
+func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk, error) {
+	cfg := config.NewServerConfig()
+
+	url := cfg.AI_API_URL + "/split_text_to_chunks"
+	payload := map[string]string{
+		"text": document.Content,
+	}
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-AI-API-KEY", cfg.X_AI_API_KEY)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
+	}
+
+	var chunkContents []string
+	if err := json.NewDecoder(resp.Body).Decode(&chunkContents); err != nil {
+		return nil, err
+	}
+
+	var chunks []storemodels.Chunk
+	for index, content := range chunkContents {
+		chunk := storemodels.Chunk{
+			UserID:       document.UserID,
+			DocumentID:   document.DocumentUUID,
+			ChunkContent: content,
+			ChunkIndex:   index,
+		}
+		chunks = append(chunks, chunk)
+	}
+
+	return chunks, nil
 }
 
 func (d *DocumentServiceImpl) UploadDocument(
@@ -87,56 +137,6 @@ func (d *DocumentServiceImpl) UploadDocument(
 	}
 
 	return document, nil
-}
-
-func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk, error) {
-	cfg := config.NewServerConfig()
-
-	url := cfg.AI_API_URL + "/split_text_to_chunks"
-	payload := map[string]string{
-		"text": document.Content,
-	}
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-AI-API-KEY", cfg.X_AI_API_KEY)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API call failed with status %d: %s", resp.StatusCode, body)
-	}
-
-	var chunkContents []string
-	if err := json.NewDecoder(resp.Body).Decode(&chunkContents); err != nil {
-		return nil, err
-	}
-
-	var chunks []storemodels.Chunk
-	for index, content := range chunkContents {
-		chunk := storemodels.Chunk{
-			UserID:       document.UserID,
-			DocumentID:   document.DocumentUUID,
-			ChunkContent: content,
-			ChunkIndex:   index,
-		}
-		chunks = append(chunks, chunk)
-	}
-
-	return chunks, nil
 }
 
 func documentBelongsToUserID(userID string, documentID uuid.UUID) (bool, error) {

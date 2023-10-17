@@ -35,7 +35,7 @@ func getGitRoot() (string, error) {
 }
 
 func NewServerConfig() *ServerConfig {
-	if os.Getenv("POSTGRESQL_URL") == "" || os.Getenv("OPENAI_API_KEY") == "" || os.Getenv("CLERK_SECRET_KEY") == "" || os.Getenv("CLERK_SIGNING_SECRET") == "" {
+	if os.Getenv("POSTGRESQL_URL") == "" || os.Getenv("X_OPENAI_API_KEY") == "" || os.Getenv("CLERK_SECRET_KEY") == "" || os.Getenv("CLERK_SIGNING_SECRET") == "" {
 		// If missing, load the .env file
 		gitRoot, err := getGitRoot()
 		if err != nil {
@@ -48,9 +48,9 @@ func NewServerConfig() *ServerConfig {
 	}
 
 	// Now retrieve the environment variables
-	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
+	OPENAI_API_KEY := os.Getenv("X_OPENAI_API_KEY")
 	if OPENAI_API_KEY == "" {
-		log.Fatal("OPENAI_API_KEY environment variable is not set")
+		log.Fatal("X_OPENAI_API_KEY environment variable is not set")
 	}
 
 	port := os.Getenv("PORT")

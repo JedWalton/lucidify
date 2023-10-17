@@ -1,0 +1,120 @@
+{
+  "version": 4,
+  "history": [
+    {
+      "id": "46e695e7-20a1-4f92-876a-f9065cd36695",
+      "name": "hi there",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi there"
+        },
+        {
+          "role": "assistant",
+          "content": "Hello! How can I assist you today?"
+        }
+      ],
+      "model": {
+        "id": "gpt-3.5-turbo",
+        "name": "GPT-3.5",
+        "maxLength": 12000,
+        "tokenLimit": 4000
+      },
+      "prompt": "You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.",
+      "temperature": 1,
+      "folderId": null
+    },
+    {
+      "id": "c9942aab-eb11-4f83-9bba-1855984f2ff7",
+      "name": "wow, what is the weather like ...",
+      "messages": [
+        {
+          "role": "user",
+          "content": "wow, what is the weather like in mexico today? "
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry, but the content of the file extracts provided does not contain any information about the current weather in Mexico or any specific weather conditions. Is there anything else I can assist you with?"
+        },
+        {
+          "role": "user",
+          "content": "Hi there"
+        },
+        {
+          "role": "assistant",
+          "content": "Hello! How can I assist you today?"
+        }
+      ],
+      "model": {
+        "id": "gpt-3.5-turbo",
+        "name": "GPT-3.5",
+        "maxLength": 12000,
+        "tokenLimit": 4000
+      },
+      "prompt": "You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.",
+      "temperature": 1,
+      "folderId": null
+    },
+    {
+      "id": "c29ead13-bb16-4a24-a506-a37fffa1912d",
+      "name": "Tell me about Jed",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Tell me about Jed"
+        },
+        {
+          "role": "assistant",
+          "content": "Jed is a person who lives in a shed. He has a bed in his shed, indicating that he likely sleeps there. The information about his dog being dead suggests that he had a pet dog that has passed away. It's also mentioned that he doesn't like lead, which could refer to the metal or the verb \"to lead.\" The last statement about Jed \"getting a lot of head\" is unclear without additional context."
+        },
+        {
+          "role": "user",
+          "content": "that's really cool. tell me about his dog"
+        },
+        {
+          "role": "assistant",
+          "content": "Jed's dog is mentioned as being dead. Unfortunately, there isn't any additional information provided about the dog, such as its name, breed, or any other specific details."
+        },
+        {
+          "role": "user",
+          "content": "that's really sad"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it is sad to hear that Jed's dog has passed away. Losing a beloved pet can be a difficult and emotional experience for anyone. Losing a pet often means saying goodbye to a loyal companion and friend. Many people find comfort and support during such times through loved ones and the memories they hold of their furry friend."
+        }
+      ],
+      "model": {
+        "id": "gpt-3.5-turbo",
+        "name": "GPT-3.5",
+        "maxLength": 12000,
+        "tokenLimit": 4000
+      },
+      "prompt": "You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown.",
+      "temperature": 1,
+      "folderId": null
+    }
+  ],
+  "folders": [
+    {
+      "id": "dd7c1737-b971-4f55-a837-a4a44496b498",
+      "name": "New folder",
+      "type": "chat"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "c2e07466-da11-4a4d-8558-d18c88d463e1",
+      "name": "Prompt 1",
+      "description": "",
+      "content": "",
+      "model": {
+        "id": "gpt-3.5-turbo",
+        "name": "GPT-3.5",
+        "maxLength": 12000,
+        "tokenLimit": 4000
+      },
+      "folderId": null
+    }
+  ]
+}

@@ -9,8 +9,8 @@ import (
 	"log"
 	"lucidify-api/modules/clerkclient"
 	"lucidify-api/modules/config"
+	"lucidify-api/modules/documentservice"
 	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/store"
 	"lucidify-api/modules/store/storemodels"
 	"lucidify-api/modules/store/weaviateclient"
 	"net/http"
@@ -25,7 +25,7 @@ func createTestUserInDb() error {
 	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient.User{
+	user := storemodels.User{
 		UserID:           testconfig.TestUserID,
 		ExternalID:       "TestCreateUserInUsersTableExternalIDDocuments",
 		Username:         "TestCreateUserInUsersTableUsernameDocuments",
@@ -62,8 +62,7 @@ func createTestUserInDb() error {
 func createASecondTestUserInDb() string {
 	db, err := postgresqlclient.NewPostgreSQL()
 
-	// the user id registered by the jwt token must exist in the local database
-	user := postgresqlclient.User{
+	user := storemodels.User{
 		UserID:           "userid_testuserid2",
 		ExternalID:       "TestCreateSecondUserInUsersTableExternalID",
 		Username:         "TestCreateSecondUserInUsersTableUsername",
@@ -102,7 +101,7 @@ type TestSetup struct {
 	PostgresqlDB    *postgresqlclient.PostgreSQL
 	ClerkInstance   clerk.Client
 	WeaviateDB      weaviateclient.WeaviateClient
-	DocumentService store.DocumentService
+	DocumentService documentservice.DocumentService
 }
 
 func SetupTestEnvironment(t *testing.T) *TestSetup {
@@ -118,7 +117,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 		t.Fatalf("Failed to create Clerk client: %v", err)
 	}
 
-	weaviateDB, err := weaviateclient.NewWeaviateClient()
+	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
 	if err != nil {
 		t.Fatalf("Failed to create Weaviate client: %v", err)
 	}
@@ -128,7 +127,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 		t.Fatalf("Failed to create test user in db: %v", err)
 	}
 
-	documentService := store.NewDocumentService(postgresqlDB, weaviateDB)
+	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
 
 	return &TestSetup{
 		Config:          cfg,

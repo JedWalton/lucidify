@@ -3,7 +3,8 @@ package clerkapi
 import (
 	"encoding/json"
 	"log"
-	postgresqlclient2 "lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/postgresqlclient"
+	"lucidify-api/modules/store/storemodels"
 	"net/http"
 )
 
@@ -40,7 +41,7 @@ func getInt64FromMap(m map[string]interface{}, key string) int64 {
 	return 0
 }
 
-func ClerkHandler(db *postgresqlclient2.PostgreSQL) http.HandlerFunc {
+func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -57,7 +58,7 @@ func ClerkHandler(db *postgresqlclient2.PostgreSQL) http.HandlerFunc {
 
 		switch event.Type {
 		case "user.created":
-			user := postgresqlclient2.User{
+			user := storemodels.User{
 				UserID:           getStringFromMap(event.Data, "id"),
 				ExternalID:       getStringFromMap(event.Data, "external_id"),
 				Username:         getStringFromMap(event.Data, "username"),
@@ -72,12 +73,13 @@ func ClerkHandler(db *postgresqlclient2.PostgreSQL) http.HandlerFunc {
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
 
+			// Use userService.CreateUserInUsersTable
 			err := db.CreateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
 			}
 		case "user.updated":
-			user := postgresqlclient2.User{
+			user := storemodels.User{
 				UserID:           getStringFromMap(event.Data, "id"),
 				ExternalID:       getStringFromMap(event.Data, "external_id"),
 				Username:         getStringFromMap(event.Data, "username"),
@@ -91,11 +93,14 @@ func ClerkHandler(db *postgresqlclient2.PostgreSQL) http.HandlerFunc {
 				CreatedAt:        getInt64FromMap(event.Data, "created_at"),
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
+
+			// Use userService.UpdateUserInUsersTable
 			err := db.UpdateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error updating user: %v", err)
 			}
 		case "user.deleted":
+			// Use userService.DeleteUserInUsersTable
 			err := db.DeleteUserInUsersTable(event.Data["id"].(string))
 			if err != nil {
 				log.Printf("Error deleting user: %v", err)

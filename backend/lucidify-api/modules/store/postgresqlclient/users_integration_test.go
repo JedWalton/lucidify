@@ -3,6 +3,7 @@
 package postgresqlclient
 
 import (
+	"lucidify-api/modules/store/storemodels"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestCreateUserInUsersTable(t *testing.T) {
 		t.Errorf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	user := User{
+	user := storemodels.User{
 		UserID:           "TestCreateUserInUsersTableUserID",
 		ExternalID:       "TestCreateUserInUsersTableExternalID",
 		Username:         "TestCreateUserInUsersTableUsername",
@@ -51,7 +52,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 	}
 
 	// Create a user first
-	user := User{
+	user := storemodels.User{
 		UserID:           "TestUpdateUserInUsersTableUserID",
 		ExternalID:       "TestUpdateUserInUsersTableUserIDExternalID",
 		Username:         "TestUpdateUserInUsersTableUserIDUsername",
@@ -99,7 +100,7 @@ func TestGetUserInUsersTable(t *testing.T) {
 	}
 
 	// Create a user first
-	user := User{
+	user := storemodels.User{
 		UserID:           "TestGetUserInUsersTableUserID",
 		ExternalID:       "TestGetUserInUsersTableExternalID",
 		Username:         "TestGetUserInUsersTableUsername",
@@ -142,7 +143,7 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 	}
 
 	// Create a user first
-	user := User{
+	user := storemodels.User{
 		UserID:           "TestDeleteUserInUsersTableUserID",
 		ExternalID:       "TestDeleteUserInUsersTableExternalID",
 		Username:         "TestDeleteUserInUsersTableUsername",

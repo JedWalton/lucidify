@@ -41,6 +41,30 @@ func classExists(client *weaviate.Client, className string) bool {
 func NewWeaviateClient() (WeaviateClient, error) {
 	config := config.NewServerConfig()
 	cfg := weaviate.Config{
+		Host:   "weaviate:8080",
+		Scheme: "http",
+		Headers: map[string]string{
+			"X-OpenAI-Api-Key": config.OPENAI_API_KEY,
+		},
+	}
+	client, err := weaviate.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	if client == nil {
+		return nil, errors.New("client is nil after initialization")
+	}
+
+	if !classExists(client, "Documents") {
+		createWeaviateDocumentsClass(client)
+	}
+
+	return &WeaviateClientImpl{client: client}, nil
+}
+
+func NewWeaviateClientTest() (WeaviateClient, error) {
+	config := config.NewServerConfig()
+	cfg := weaviate.Config{
 		Host:   "localhost:8090",
 		Scheme: "http",
 		Headers: map[string]string{
