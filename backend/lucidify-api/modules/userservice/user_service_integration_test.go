@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func setupTests() (UserService, storemodels.User, error) {
+func setupTests() (UserService, storemodels.User, error, *postgresqlclient.PostgreSQL) {
 	user := storemodels.User{
 		UserID:           "TestCreateUserTableUserID",
 		ExternalID:       "TestCreateUserTableExternalID",
@@ -26,19 +26,26 @@ func setupTests() (UserService, storemodels.User, error) {
 
 	db, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
-		return nil, user, err
+		return nil, user, err, db
 	}
 	userService := NewUserService(db)
-	return userService, user, nil
+	return userService, user, nil, db
 }
 
 func TestCreateUser(t *testing.T) {
-	userService, user, err := setupTests()
+	userService, user, err, db := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
 	err = userService.CreateUser(user)
 	if err != nil {
 		t.Error(err)
+	}
+	userFromDb, err := db.GetUserInUsersTable(user.UserID)
+	if err != nil {
+		t.Error(err)
+	}
+	if userFromDb.UserID != user.UserID {
+		t.Errorf("Expected %s, got %s", user.UserID, userFromDb.UserID)
 	}
 }
