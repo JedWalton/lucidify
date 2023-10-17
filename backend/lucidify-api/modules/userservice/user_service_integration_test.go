@@ -129,4 +129,34 @@ func TestUpdateUser(t *testing.T) {
 		t.Errorf("Expected %d, got %d", userUpdated.UpdatedAt, userAfterUpdate.UpdatedAt)
 	}
 
+	t.Cleanup(func() {
+		cleanupTests(user, db)
+	})
+}
+
+func TestDeleteUser(t *testing.T) {
+	userService, user, err, db := setupTests()
+	if err != nil {
+		t.Error(err)
+	}
+	err = userService.CreateUser(user)
+	if err != nil {
+		t.Error(err)
+	}
+	err = db.CheckIfUserInUsersTable(user.UserID, 5)
+	if err != nil {
+		t.Error(err)
+	}
+	err = userService.DeleteUser(user.UserID)
+	if err != nil {
+		t.Error(err)
+	}
+	err = db.CheckUserDeletedInUsersTable(user.UserID, 5)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Cleanup(func() {
+		cleanupTests(user, db)
+	})
 }

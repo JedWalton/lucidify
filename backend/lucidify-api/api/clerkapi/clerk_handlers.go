@@ -75,7 +75,6 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL, userService userservice.UserS
 			}
 
 			err := userService.CreateUser(user)
-			// err := db.CreateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
 			}
@@ -96,13 +95,11 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL, userService userservice.UserS
 			}
 
 			err := userService.UpdateUser(user)
-			// err := db.UpdateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error updating user: %v", err)
 			}
 		case "user.deleted":
-			// Use userService.DeleteUserInUsersTable
-			err := db.DeleteUserInUsersTable(event.Data["id"].(string))
+			err := userService.DeleteUser(event.Data["id"].(string))
 			if err != nil {
 				log.Printf("Error deleting user: %v", err)
 			}
