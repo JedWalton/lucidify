@@ -134,6 +134,32 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestGetUser(t *testing.T) {
+	userService, user, err, db := setupTests()
+	if err != nil {
+		t.Error(err)
+	}
+	err = userService.CreateUser(user)
+	if err != nil {
+		t.Error(err)
+	}
+	err = db.CheckIfUserInUsersTable(user.UserID, 5)
+	if err != nil {
+		t.Error(err)
+	}
+	userFromDb, err := userService.GetUser(user.UserID)
+	if err != nil {
+		t.Error(err)
+	}
+	if userFromDb.Email != user.Email {
+		t.Errorf("Expected %s, got %s", user.Email, userFromDb.Email)
+	}
+
+	t.Cleanup(func() {
+		cleanupTests(user, db)
+	})
+}
+
 func TestDeleteUser(t *testing.T) {
 	userService, user, err, db := setupTests()
 	if err != nil {
@@ -159,26 +185,4 @@ func TestDeleteUser(t *testing.T) {
 	t.Cleanup(func() {
 		cleanupTests(user, db)
 	})
-}
-
-func TestGetUser(t *testing.T) {
-	userService, user, err, db := setupTests()
-	if err != nil {
-		t.Error(err)
-	}
-	err = userService.CreateUser(user)
-	if err != nil {
-		t.Error(err)
-	}
-	err = db.CheckIfUserInUsersTable(user.UserID, 5)
-	if err != nil {
-		t.Error(err)
-	}
-	userFromDb, err := userService.GetUser(user.UserID)
-	if err != nil {
-		t.Error(err)
-	}
-	if userFromDb.Email != user.Email {
-		t.Errorf("Expected %s, got %s", user.Email, userFromDb.Email)
-	}
 }
