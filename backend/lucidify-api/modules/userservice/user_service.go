@@ -9,6 +9,7 @@ type UserService interface {
 	CreateUser(user storemodels.User) error
 	UpdateUser(user storemodels.User) error
 	DeleteUser(userID string) error
+	GetUser(userID string) (*storemodels.User, error)
 }
 
 type UserServiceImpl struct {
@@ -45,4 +46,12 @@ func (u *UserServiceImpl) DeleteUser(userID string) error {
 		return err
 	}
 	return nil
+}
+
+func (u *UserServiceImpl) GetUser(userID string) (*storemodels.User, error) {
+	user, err := u.postgresqlDB.GetUserInUsersTable(userID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
