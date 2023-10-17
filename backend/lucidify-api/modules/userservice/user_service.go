@@ -13,9 +13,12 @@ type UserServiceImpl struct {
 	postgresqlDB *postgresqlclient.PostgreSQL
 }
 
-func NewUserService(
-	postgresqlDB *postgresqlclient.PostgreSQL) UserService {
-	return &UserServiceImpl{postgresqlDB: postgresqlDB}
+func NewUserService() (UserService, error) {
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		return nil, err
+	}
+	return &UserServiceImpl{postgresqlDB: postgresqlDB}, nil
 }
 
 func (u *UserServiceImpl) CreateUser(user storemodels.User) error {

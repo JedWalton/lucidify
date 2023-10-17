@@ -5,6 +5,7 @@ import (
 	"log"
 	"lucidify-api/modules/store/postgresqlclient"
 	"lucidify-api/modules/store/storemodels"
+	"lucidify-api/modules/userservice"
 	"net/http"
 )
 
@@ -41,7 +42,7 @@ func getInt64FromMap(m map[string]interface{}, key string) int64 {
 	return 0
 }
 
-func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
+func ClerkHandler(db *postgresqlclient.PostgreSQL, userService userservice.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -73,8 +74,8 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL) http.HandlerFunc {
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
 
-			// Use userService.CreateUserInUsersTable
-			err := db.CreateUserInUsersTable(user)
+			err := userService.CreateUser(user)
+			// err := db.CreateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
 			}

@@ -28,7 +28,10 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 	if err != nil {
 		return nil, user, err, db
 	}
-	userService := NewUserService(db)
+	userService, err := NewUserService()
+	if err != nil {
+		return nil, user, err, db
+	}
 	return userService, user, nil, db
 }
 
