@@ -7,6 +7,7 @@ import (
 
 type UserService interface {
 	CreateUser(user storemodels.User) error
+	UpdateUser(user storemodels.User) error
 }
 
 type UserServiceImpl struct {
@@ -23,6 +24,14 @@ func NewUserService() (UserService, error) {
 
 func (u *UserServiceImpl) CreateUser(user storemodels.User) error {
 	err := u.postgresqlDB.CreateUserInUsersTable(user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserServiceImpl) UpdateUser(user storemodels.User) error {
+	err := u.postgresqlDB.UpdateUserInUsersTable(user)
 	if err != nil {
 		return err
 	}

@@ -95,8 +95,8 @@ func ClerkHandler(db *postgresqlclient.PostgreSQL, userService userservice.UserS
 				UpdatedAt:        getInt64FromMap(event.Data, "updated_at"),
 			}
 
-			// Use userService.UpdateUserInUsersTable
-			err := db.UpdateUserInUsersTable(user)
+			err := userService.UpdateUser(user)
+			// err := db.UpdateUserInUsersTable(user)
 			if err != nil {
 				log.Printf("Error updating user: %v", err)
 			}
