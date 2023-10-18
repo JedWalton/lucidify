@@ -13,6 +13,7 @@ import (
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
+	"lucidify-api/service/userservice"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,10 +52,18 @@ func createTestUserInDb() error {
 	}
 
 	// Check if the user exists
-	err = db.CheckIfUserInUsersTable(user.UserID, 3)
+	// err = db.CheckIfUserInUsersTable(user.UserID, 3)
+	// if err != nil {
+	// 	log.Fatalf("User not found after creation: %v", err)
+	// 	return err
+	// }
+	userService, err := userservice.NewUserService()
+	if err != nil {
+		log.Fatalf("Failed to create UserService: %v", err)
+	}
+	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
-		return err
 	}
 
 	return nil
