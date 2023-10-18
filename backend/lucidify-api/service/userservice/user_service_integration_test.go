@@ -169,9 +169,9 @@ func TestDeleteUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = db.CheckIfUserInUsersTable(user.UserID, 5)
+	_, err = userService.GetUserWithRetries(user.UserID, 5)
 	if err != nil {
-		t.Error(err)
+		t.Errorf("User not found after creation: %v", err)
 	}
 	err = userService.DeleteUser(user.UserID)
 	if err != nil {
