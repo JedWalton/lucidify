@@ -8,6 +8,7 @@ import (
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
+	"lucidify-api/service/userservice"
 	"testing"
 	"time"
 )
@@ -42,7 +43,15 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		}
 	})
 
-	err = storeInstance.CheckIfUserInUsersTable(userID, 10)
+	// err = storeInstance.CheckIfUserInUsersTable(userID, 10)
+	// if err != nil {
+	// 	t.Errorf("User not found after creation: %v", err)
+	// }
+	userService, err := userservice.NewUserService()
+	if err != nil {
+		t.Errorf("Failed to create UserService: %v", err)
+	}
+	_, err = userService.GetUserWithRetries(userID, 10)
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)
 	}

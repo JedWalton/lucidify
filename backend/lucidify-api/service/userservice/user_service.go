@@ -1,8 +1,10 @@
 package userservice
 
 import (
+	"fmt"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"time"
 )
 
 type UserService interface {
@@ -10,6 +12,7 @@ type UserService interface {
 	UpdateUser(user storemodels.User) error
 	DeleteUser(userID string) error
 	GetUser(userID string) (*storemodels.User, error)
+	GetUserWithRetries(userID string, retries int) (*storemodels.User, error)
 }
 
 type UserServiceImpl struct {
@@ -56,21 +59,21 @@ func (u *UserServiceImpl) GetUser(userID string) (*storemodels.User, error) {
 	return user, nil
 }
 
-// func (u *UserServiceImpl) GetUserWithRetries(userID string, retries int) (*storemodels.User, error) {
-// 	var found bool
-// 	var user *storemodels.User
-// 	var err error
-//
-// 	for i := 0; i < retries; i++ {
-// 		user, err = u.GetUser(userID)
-// 		if err == nil {
-// 			found = true
-// 			break
-// 		}
-// 		time.Sleep(time.Second) // Wait for 1 second before retrying
-// 	}
-// 	if found {
-// 		return user, nil
-// 	}
-// 	return nil, nil
-// }
+func (u *UserServiceImpl) GetUserWithRetries(userID string, retries int) (*storemodels.User, error) {
+	var found bool
+	var user *storemodels.User
+	var err error
+
+	for i := 0; i < retries; i++ {
+		user, err = u.GetUser(userID)
+		if err == nil {
+			found = true
+			break
+		}
+		time.Sleep(time.Second) // Wait for 1 second before retrying
+	}
+	if found {
+		return user, nil
+	}
+	return nil, fmt.Errorf("User not found after %d retries", retries)
+}
