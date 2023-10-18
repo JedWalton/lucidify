@@ -6,8 +6,6 @@ import (
 	"lucidify-api/data/store/storemodels"
 )
 
-// This needs to be a Users Service.
-
 func (s *PostgreSQL) CreateUserInUsersTable(user storemodels.User) error {
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -41,9 +39,6 @@ func (s *PostgreSQL) UpdateUserInUsersTable(user storemodels.User) error {
 }
 
 func (s *PostgreSQL) GetUserInUsersTable(userID string) (*storemodels.User, error) {
-	// Since this function is just fetching data, we don't need to wrap it in a transaction
-	// Transactions are primarily used when multiple write operations need to be executed together
-
 	query := `SELECT user_id, external_id, username, password_enabled, email, first_name, last_name, image_url, profile_image_url, two_factor_enabled, created_at, updated_at FROM users WHERE user_id = $1`
 	row := s.db.QueryRow(query, userID)
 	var user storemodels.User
