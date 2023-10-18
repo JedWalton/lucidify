@@ -187,9 +187,18 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 	}
 
 	// Check if the user has been deleted
-	err = store.CheckUserDeletedInUsersTable(user.UserID, 3)
-	if err != nil {
-		t.Errorf("User still exists after deletion: %v", err)
+	var deleted bool
+	for i := 0; i < 3; i++ {
+		user, err := store.GetUserInUsersTable(user.UserID)
+		if user == nil && err != nil {
+			// If the user is not found, it means the user has been deleted
+			deleted = true
+			break
+		}
+		time.Sleep(time.Second) // Wait for 1 second before retrying
+	}
+	if !deleted {
+		t.Errorf("User still exists in the database after 3 retries")
 	}
 
 	t.Cleanup(func() {
