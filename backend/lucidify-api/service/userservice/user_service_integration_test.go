@@ -143,9 +143,9 @@ func TestGetUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = db.CheckIfUserInUsersTable(user.UserID, 5)
+	_, err = userService.GetUserWithRetries(user.UserID, 5)
 	if err != nil {
-		t.Error(err)
+		t.Errorf("User not found after creation: %v", err)
 	}
 	userFromDb, err := userService.GetUser(user.UserID)
 	if err != nil {
