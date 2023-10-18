@@ -3,9 +3,7 @@
 package postgresqlclient
 
 import (
-	"fmt"
 	"lucidify-api/data/store/storemodels"
-	"time"
 )
 
 // This needs to be a Users Service.
@@ -70,27 +68,4 @@ func (s *PostgreSQL) DeleteUserInUsersTable(userID string) error {
 	}
 
 	return tx.Commit()
-}
-
-func (s *PostgreSQL) CheckUserDeletedInUsersTable(userID string, retries int) error {
-	for i := 0; i < retries; i++ {
-		_, err := s.GetUserInUsersTable(userID)
-		if err != nil {
-			// If the user is not found, it means the user has been deleted
-			return nil
-		}
-		time.Sleep(time.Second) // Wait for 1 second before retrying
-	}
-	return fmt.Errorf("User still exists in the database after %d retries", retries)
-}
-
-func (s *PostgreSQL) CheckUserHasExpectedFirstNameAndLastNameInUsersTable(userID string, retries int, expectedFirstName string, expectedLastName string) error {
-	for i := 0; i < retries; i++ {
-		user, err := s.GetUserInUsersTable(userID)
-		if err == nil && user.FirstName == expectedFirstName && user.LastName == expectedLastName {
-			return nil
-		}
-		time.Sleep(time.Second) // Wait for 1 second before retrying
-	}
-	return fmt.Errorf("User not updated correctly after %d retries", retries)
 }

@@ -61,6 +61,20 @@ func TestCreateUserInUsersTable(t *testing.T) {
 		store.DeleteUserInUsersTable(user.UserID)
 	})
 }
+func checkUserHasExpectedFirstNameAndLastNameInUsersTable(userID string, retries int, expectedFirstName string, expectedLastName string) error {
+	db, err := NewPostgreSQL()
+	if err != nil {
+		return fmt.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	for i := 0; i < retries; i++ {
+		user, err := db.GetUserInUsersTable(userID)
+		if err == nil && user.FirstName == expectedFirstName && user.LastName == expectedLastName {
+			return nil
+		}
+		time.Sleep(time.Second) // Wait for 1 second before retrying
+	}
+	return fmt.Errorf("User not updated correctly after %d retries", retries)
+}
 
 func TestUpdateUserInUsersTable(t *testing.T) {
 	store, err := NewPostgreSQL()
@@ -98,7 +112,7 @@ func TestUpdateUserInUsersTable(t *testing.T) {
 	}
 
 	// Check if the user has the expected first name and last name
-	err = store.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(user.UserID, 3, "UpdatedFirstName", "UpdatedLastName")
+	err = checkUserHasExpectedFirstNameAndLastNameInUsersTable(user.UserID, 3, "UpdatedFirstName", "UpdatedLastName")
 	if err != nil {
 		t.Errorf("User not updated correctly: %v", err)
 	}

@@ -5,7 +5,6 @@ package clerkapi
 import (
 	"fmt"
 	"log"
-	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/userservice"
@@ -20,11 +19,6 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 	firstName := "clerk_handler_firstname"
 	lastName := "clerk_handler_lastname"
 	password := "$sswordoatnsu28348ckj"
-
-	storeInstance, err := postgresqlclient.NewPostgreSQL()
-	if err != nil {
-		t.Errorf("Failed to create test postgresqlclient: %v", err)
-	}
 
 	userID, err := clerkservice.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
 	if err != nil {
@@ -55,15 +49,23 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		t.Errorf("User not found after creation: %v", err)
 	}
 
-	newFirstName := "updated_clerk_handler_firstname"
-	newLastName := "updated_clerk_handler_lastname"
-	err = clerkservice.UpdateUserInClerk(clerkSecretKey, userID, newFirstName, newLastName)
+	updatedFirstName := "updated_clerk_handler_firstname"
+	updatedLastName := "updated_clerk_handler_lastname"
+	err = clerkservice.UpdateUserInClerk(clerkSecretKey, userID, updatedFirstName, updatedLastName)
 	if err != nil {
 		t.Errorf("Failed to update user in Clerk: %v", err)
 	}
 
-	err = storeInstance.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(userID, 10, newFirstName, newLastName)
-	if err != nil {
-		t.Errorf("User first name and last name not updated in users table: %v", err)
+	var updated bool
+	for i := 0; i < 10; i++ {
+		user, err := userService.GetUser(userID)
+		if err == nil && user.FirstName == updatedFirstName && user.LastName == updatedLastName {
+			updated = true
+			break
+		}
+		time.Sleep(time.Second) // Wait for 1 second before retrying
+	}
+	if !updated {
+		t.Errorf("User first name and last name not updated in users table")
 	}
 }
