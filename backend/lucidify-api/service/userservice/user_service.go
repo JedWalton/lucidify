@@ -56,15 +56,21 @@ func (u *UserServiceImpl) GetUser(userID string) (*storemodels.User, error) {
 	return user, nil
 }
 
-//
 // func (u *UserServiceImpl) GetUserWithRetries(userID string, retries int) (*storemodels.User, error) {
+// 	var found bool
 // 	var user *storemodels.User
+// 	var err error
+//
 // 	for i := 0; i < retries; i++ {
-// 		_, err := u.GetUser(userID)
+// 		user, err = u.GetUser(userID)
 // 		if err == nil {
+// 			found = true
 // 			break
 // 		}
 // 		time.Sleep(time.Second) // Wait for 1 second before retrying
 // 	}
-// 	return user, nil
+// 	if found {
+// 		return user, nil
+// 	}
+// 	return nil, nil
 // }

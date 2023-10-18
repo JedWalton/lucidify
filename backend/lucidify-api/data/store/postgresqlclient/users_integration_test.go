@@ -3,9 +3,26 @@
 package postgresqlclient
 
 import (
+	"fmt"
 	"lucidify-api/data/store/storemodels"
 	"testing"
+	"time"
 )
+
+func checkIfUserInUsersTable(userID string, retries int) error {
+	store, err := NewPostgreSQL()
+	if err != nil {
+		return fmt.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	for i := 0; i < retries; i++ {
+		_, err := store.GetUserInUsersTable(userID)
+		if err == nil {
+			return nil
+		}
+		time.Sleep(time.Second) // Wait for 1 second before retrying
+	}
+	return fmt.Errorf("User not found after %d retries", retries)
+}
 
 func TestCreateUserInUsersTable(t *testing.T) {
 	store, err := NewPostgreSQL()
@@ -34,7 +51,7 @@ func TestCreateUserInUsersTable(t *testing.T) {
 	}
 
 	// Check if the user exists
-	err = store.CheckIfUserInUsersTable(user.UserID, 3)
+	err = checkIfUserInUsersTable(user.UserID, 3)
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)
 	}
