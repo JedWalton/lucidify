@@ -72,17 +72,6 @@ func (s *PostgreSQL) DeleteUserInUsersTable(userID string) error {
 	return tx.Commit()
 }
 
-func (s *PostgreSQL) CheckIfUserInUsersTable(userID string, retries int) error {
-	for i := 0; i < retries; i++ {
-		_, err := s.GetUserInUsersTable(userID)
-		if err == nil {
-			return nil
-		}
-		time.Sleep(time.Second) // Wait for 1 second before retrying
-	}
-	return fmt.Errorf("User not found after %d retries", retries)
-}
-
 func (s *PostgreSQL) CheckUserDeletedInUsersTable(userID string, retries int) error {
 	for i := 0; i < retries; i++ {
 		_, err := s.GetUserInUsersTable(userID)
