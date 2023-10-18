@@ -2,8 +2,9 @@ package postgresqlclient
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"lucidify-api/data/store/storemodels"
+
+	"github.com/google/uuid"
 )
 
 func (s *PostgreSQL) UploadChunks(chunks []storemodels.Chunk) ([]storemodels.Chunk, error) {
