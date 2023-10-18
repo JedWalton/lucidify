@@ -2,7 +2,7 @@ package chatapi
 
 import (
 	"lucidify-api/server/config"
-	middleware2 "lucidify-api/server/middleware"
+	"lucidify-api/server/middleware"
 	"lucidify-api/service/chatservice"
 	"net/http"
 
@@ -30,8 +30,8 @@ func SetupChatHandler(
 
 	injectActiveSession := clerk.WithSession(clerkInstance)
 
-	handler = middleware2.CORSMiddleware(config.AllowedOrigins)(handler)
-	handler = middleware2.Logging(handler)
+	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
+	handler = middleware.Logging(handler)
 
 	mux.Handle("/chat", injectActiveSession(handler))
 

@@ -8,7 +8,7 @@ import (
 	"io"
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
-	storemodels2 "lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
@@ -26,7 +26,7 @@ func createTestUserInDb() error {
 	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := storemodels2.User{
+	user := storemodels.User{
 		UserID:           testconfig.TestUserID,
 		ExternalID:       "TestCreateUserInUsersTableExternalIDDocuments",
 		Username:         "TestCreateUserInUsersTableUsernameDocuments",
@@ -71,7 +71,7 @@ func createTestUserInDb() error {
 func createASecondTestUserInDb() string {
 	db, err := postgresqlclient.NewPostgreSQL()
 
-	user := storemodels2.User{
+	user := storemodels.User{
 		UserID:           "userid_testuserid2",
 		ExternalID:       "TestCreateSecondUserInUsersTableExternalID",
 		Username:         "TestCreateSecondUserInUsersTableUsername",
@@ -299,7 +299,7 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	}
 
 	// Unmarshal the response body into a Document object
-	var respDocument storemodels2.Document
+	var respDocument storemodels.Document
 	err = json.Unmarshal(respBody, &respDocument)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -405,7 +405,7 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []storemodels2.Document
+	var respDocuments []storemodels.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
@@ -514,7 +514,7 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 	}
 
 	// Unmarshal the response body into a slice of Document objects
-	var respDocuments []storemodels2.Document
+	var respDocuments []storemodels.Document
 	err = json.Unmarshal(respBody, &respDocuments)
 	if err != nil {
 		t.Errorf("Failed to unmarshal response body: %v", err)
