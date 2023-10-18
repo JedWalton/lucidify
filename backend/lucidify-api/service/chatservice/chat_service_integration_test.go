@@ -9,6 +9,7 @@ import (
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/documentservice"
+	"lucidify-api/service/userservice"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -43,7 +44,11 @@ func createTestUserInDb() string {
 	}
 
 	// Check if the user exists
-	err = db.CheckIfUserInUsersTable(user.UserID, 3)
+	userService, err := userservice.NewUserService()
+	if err != nil {
+		log.Fatalf("Failed to create UserService: %v", err)
+	}
+	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
 	}
