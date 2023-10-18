@@ -60,11 +60,6 @@ func createTestUserInDb() error {
 	}
 
 	// Check if the user exists
-	// err = db.CheckIfUserInUsersTable(user.UserID, 3)
-	// if err != nil {
-	// 	log.Fatalf("User not found after creation: %v", err)
-	// 	return err
-	// }
 	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
@@ -72,6 +67,7 @@ func createTestUserInDb() error {
 
 	return nil
 }
+
 func createASecondTestUserInDb() string {
 	db, err := postgresqlclient.NewPostgreSQL()
 

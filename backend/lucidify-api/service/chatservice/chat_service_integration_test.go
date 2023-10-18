@@ -33,21 +33,24 @@ func createTestUserInDb() string {
 		UpdatedAt:        1654012591514,
 	}
 
-	db.DeleteUserInUsersTable(user.UserID)
-	err = db.CheckUserDeletedInUsersTable(user.UserID, 3)
+	userService, err := userservice.NewUserService()
+	if err != nil {
+		log.Fatalf("Failed to create UserService: %v", err)
+	}
+
+	err = userService.DeleteUser(user.UserID)
 	if err != nil {
 		log.Fatalf("Failed to delete user: %v", err)
 	}
+	if !userService.HasUserBeenDeleted(user.UserID, 3) {
+		log.Fatalf("Failed to delete user: %v", err)
+	}
+
 	err = db.CreateUserInUsersTable(user)
 	if err != nil {
 		log.Fatalf("Failed to create user: %v", err)
 	}
 
-	// Check if the user exists
-	userService, err := userservice.NewUserService()
-	if err != nil {
-		log.Fatalf("Failed to create UserService: %v", err)
-	}
 	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
