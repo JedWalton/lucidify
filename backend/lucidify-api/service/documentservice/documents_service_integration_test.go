@@ -7,6 +7,7 @@ import (
 	"lucidify-api/data/store/postgresqlclient"
 	storemodels2 "lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
+	"lucidify-api/service/userservice"
 	"os"
 	"testing"
 	"time"
@@ -44,10 +45,15 @@ func createTestUserInDb() string {
 	}
 
 	// Check if the user exists
-	err = db.CheckIfUserInUsersTable(user.UserID, 3)
+	userService, err := userservice.NewUserService()
+	if err != nil {
+		log.Fatalf("Failed to create UserService: %v", err)
+	}
+	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
 	}
+
 	return user.UserID
 }
 
