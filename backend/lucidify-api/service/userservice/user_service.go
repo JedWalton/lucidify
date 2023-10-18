@@ -80,7 +80,7 @@ func (u *UserServiceImpl) GetUserWithRetries(userID string, retries int) (*store
 }
 
 func (u *UserServiceImpl) HasUserBeenDeleted(userID string, retries int) bool {
-	for i := 0; i < 5; i++ {
+	for i := 0; i < retries; i++ {
 		_, err := u.GetUser(userID)
 		if err != nil {
 			return true

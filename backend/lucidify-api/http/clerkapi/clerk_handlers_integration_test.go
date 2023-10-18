@@ -37,16 +37,15 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}
-		err = storeInstance.CheckUserDeletedInUsersTable(userID, 10)
+		userService, err := userservice.NewUserService()
 		if err != nil {
+			t.Errorf("Failed to create UserService: %v", err)
+		}
+		if userService.HasUserBeenDeleted(userID, 10) {
 			t.Errorf("Failed to delete test user in users table: %v\n", err)
 		}
 	})
 
-	// err = storeInstance.CheckIfUserInUsersTable(userID, 10)
-	// if err != nil {
-	// 	t.Errorf("User not found after creation: %v", err)
-	// }
 	userService, err := userservice.NewUserService()
 	if err != nil {
 		t.Errorf("Failed to create UserService: %v", err)
