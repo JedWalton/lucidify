@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	storemodels2 "lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/storemodels"
 	"lucidify-api/server/config"
 
 	"github.com/google/uuid"
@@ -17,12 +17,12 @@ import (
 
 type WeaviateClient interface {
 	GetWeaviateClient() *weaviate.Client
-	UploadChunk(storemodels2.Chunk) error
-	UploadChunks([]storemodels2.Chunk) error
+	UploadChunk(storemodels.Chunk) error
+	UploadChunks([]storemodels.Chunk) error
 	DeleteChunk(chunkID uuid.UUID) error
-	DeleteChunks([]storemodels2.Chunk) error
-	GetChunks(chunksFromPostgresql []storemodels2.Chunk) ([]storemodels2.Chunk, error)
-	SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels2.ChunkFromVectorSearch, error)
+	DeleteChunks([]storemodels.Chunk) error
+	GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error)
+	SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error)
 }
 
 type WeaviateClientImpl struct {
@@ -141,7 +141,7 @@ func createWeaviateDocumentsClass(client *weaviate.Client) {
 	}
 }
 
-func (w *WeaviateClientImpl) UploadChunks(chunks []storemodels2.Chunk) error {
+func (w *WeaviateClientImpl) UploadChunks(chunks []storemodels.Chunk) error {
 	for _, chunk := range chunks {
 		err := w.UploadChunk(chunk)
 		if err != nil {
@@ -151,7 +151,7 @@ func (w *WeaviateClientImpl) UploadChunks(chunks []storemodels2.Chunk) error {
 	return nil
 }
 
-func (w *WeaviateClientImpl) UploadChunk(chunk storemodels2.Chunk) error {
+func (w *WeaviateClientImpl) UploadChunk(chunk storemodels.Chunk) error {
 	if w.client == nil {
 		return errors.New("Weaviate client is not initialized")
 	}
@@ -188,7 +188,7 @@ func (w *WeaviateClientImpl) DeleteChunk(chunkID uuid.UUID) error {
 	return err
 }
 
-func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels2.Chunk) error {
+func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels.Chunk) error {
 	for _, chunk := range chunks {
 		err := w.DeleteChunk(chunk.ChunkID)
 		if err != nil {
@@ -198,8 +198,8 @@ func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels2.Chunk) error {
 	return nil
 }
 
-func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels2.Chunk) ([]storemodels2.Chunk, error) {
-	var chunksFromWeaviate []storemodels2.Chunk
+func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error) {
+	var chunksFromWeaviate []storemodels.Chunk
 	for _, chunk := range chunksFromPostgresql {
 		objects, err := w.client.Data().ObjectsGetter().
 			WithClassName("Documents").
@@ -225,7 +225,7 @@ func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels2.Chunk
 		}
 
 		// Map the properties to your storemodels.Chunk struct
-		singleChunkFromWeaviate := storemodels2.Chunk{
+		singleChunkFromWeaviate := storemodels.Chunk{
 			ChunkID:      uuid.MustParse(properties["chunkId"].(string)),
 			UserID:       properties["userId"].(string),
 			DocumentID:   uuid.MustParse(properties["documentId"].(string)),
@@ -238,7 +238,7 @@ func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels2.Chunk
 	return chunksFromWeaviate, nil
 }
 
-func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels2.ChunkFromVectorSearch, error) {
+func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error) {
 	className := "Documents"
 
 	documentId := graphql.Field{Name: "documentId"}
@@ -287,7 +287,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, con
 		panic(err)
 	}
 
-	var chunks []storemodels2.ChunkFromVectorSearch
+	var chunks []storemodels.ChunkFromVectorSearch
 
 	if result != nil && result.Data != nil {
 		getData, ok := result.Data["Get"].(map[string]interface{})
@@ -315,7 +315,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, con
 			certainty := additional["certainty"].(float64)
 			distance := additional["distance"].(float64)
 
-			chunkFromVectorSearch := storemodels2.ChunkFromVectorSearch{
+			chunkFromVectorSearch := storemodels.ChunkFromVectorSearch{
 				ChunkID:      uuid.MustParse(chunkId),
 				UserID:       userID,
 				DocumentID:   uuid.MustParse(documentId),

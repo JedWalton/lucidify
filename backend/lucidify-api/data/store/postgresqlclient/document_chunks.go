@@ -3,10 +3,10 @@ package postgresqlclient
 import (
 	"errors"
 	"github.com/google/uuid"
-	storemodels2 "lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/storemodels"
 )
 
-func (s *PostgreSQL) UploadChunks(chunks []storemodels2.Chunk) ([]storemodels2.Chunk, error) {
+func (s *PostgreSQL) UploadChunks(chunks []storemodels.Chunk) ([]storemodels.Chunk, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
@@ -17,7 +17,7 @@ func (s *PostgreSQL) UploadChunks(chunks []storemodels2.Chunk) ([]storemodels2.C
 	query := `INSERT INTO document_chunks (user_id, document_id, chunk_content, chunk_index)
 	          VALUES ($1, $2, $3, $4) RETURNING chunk_id`
 
-	var chunksWithIDs []storemodels2.Chunk
+	var chunksWithIDs []storemodels.Chunk
 
 	for _, chunk := range chunks {
 		var id uuid.UUID
@@ -53,7 +53,7 @@ func (s *PostgreSQL) DeleteAllChunksByDocumentID(documentID uuid.UUID) error {
 	return tx.Commit()
 }
 
-func (s *PostgreSQL) GetChunksOfDocument(document *storemodels2.Document) ([]storemodels2.Chunk, error) {
+func (s *PostgreSQL) GetChunksOfDocument(document *storemodels.Document) ([]storemodels.Chunk, error) {
 	if document == nil {
 		return nil, errors.New("provided document is nil")
 	}
@@ -65,9 +65,9 @@ func (s *PostgreSQL) GetChunksOfDocument(document *storemodels2.Document) ([]sto
 	}
 	defer rows.Close()
 
-	var chunks []storemodels2.Chunk
+	var chunks []storemodels.Chunk
 	for rows.Next() {
-		var chunk storemodels2.Chunk
+		var chunk storemodels.Chunk
 		// Scan the user_id into the UserID field
 		err = rows.Scan(&chunk.ChunkID, &chunk.UserID, &chunk.DocumentID, &chunk.ChunkContent, &chunk.ChunkIndex)
 		if err != nil {
@@ -79,7 +79,7 @@ func (s *PostgreSQL) GetChunksOfDocument(document *storemodels2.Document) ([]sto
 	return chunks, nil
 }
 
-func (s *PostgreSQL) GetChunksOfDocumentByDocumentID(documentID uuid.UUID) ([]storemodels2.Chunk, error) {
+func (s *PostgreSQL) GetChunksOfDocumentByDocumentID(documentID uuid.UUID) ([]storemodels.Chunk, error) {
 	// Modify the SELECT statement to retrieve all fields of the chunks
 	query := `SELECT chunk_id, user_id, document_id, chunk_content, chunk_index 
 	          FROM document_chunks WHERE document_id = $1`
@@ -89,9 +89,9 @@ func (s *PostgreSQL) GetChunksOfDocumentByDocumentID(documentID uuid.UUID) ([]st
 	}
 	defer rows.Close()
 
-	var chunks []storemodels2.Chunk
+	var chunks []storemodels.Chunk
 	for rows.Next() {
-		var chunk storemodels2.Chunk
+		var chunk storemodels.Chunk
 		// Scan all the fields into the Chunk struct
 		err = rows.Scan(&chunk.ChunkID, &chunk.UserID, &chunk.DocumentID, &chunk.ChunkContent, &chunk.ChunkIndex)
 		if err != nil {

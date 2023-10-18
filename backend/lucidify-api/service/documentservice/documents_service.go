@@ -7,7 +7,7 @@ import (
 	"io"
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
-	storemodels2 "lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"net/http"
@@ -16,10 +16,10 @@ import (
 )
 
 type DocumentService interface {
-	UploadDocument(userID, name, content string) (*storemodels2.Document, error)
-	GetDocument(userID, name string) (*storemodels2.Document, error)
-	GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels2.Document, error)
-	GetAllDocuments(userID string) ([]storemodels2.Document, error)
+	UploadDocument(userID, name, content string) (*storemodels.Document, error)
+	GetDocument(userID, name string) (*storemodels.Document, error)
+	GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels.Document, error)
+	GetAllDocuments(userID string) ([]storemodels.Document, error)
 	DeleteDocument(userID string, documentID uuid.UUID) error
 	UpdateDocumentName(userID string, documentID uuid.UUID, name string) error
 	UpdateDocumentContent(userID string, documentUUID uuid.UUID, content string) error
@@ -36,7 +36,7 @@ func NewDocumentService(
 	return &DocumentServiceImpl{postgresqlDB: *postgresqlDB, weaviateDB: weaviateDB}
 }
 
-func splitContentIntoChunks(document storemodels2.Document) ([]storemodels2.Chunk, error) {
+func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk, error) {
 	cfg := config.NewServerConfig()
 
 	url := cfg.AI_API_URL + "/split_text_to_chunks"
@@ -72,9 +72,9 @@ func splitContentIntoChunks(document storemodels2.Document) ([]storemodels2.Chun
 		return nil, err
 	}
 
-	var chunks []storemodels2.Chunk
+	var chunks []storemodels.Chunk
 	for index, content := range chunkContents {
-		chunk := storemodels2.Chunk{
+		chunk := storemodels.Chunk{
 			UserID:       document.UserID,
 			DocumentID:   document.DocumentUUID,
 			ChunkContent: content,
@@ -87,7 +87,7 @@ func splitContentIntoChunks(document storemodels2.Document) ([]storemodels2.Chun
 }
 
 func (d *DocumentServiceImpl) UploadDocument(
-	userID, name, content string) (*storemodels2.Document, error) {
+	userID, name, content string) (*storemodels.Document, error) {
 
 	var cleanupTasks []func() error
 	shouldCleanup := false
@@ -169,7 +169,7 @@ func (d *DocumentServiceImpl) ensureDocumentBelongsToUser(userID string, documen
 	return nil
 }
 
-func (d *DocumentServiceImpl) GetDocument(userID, name string) (*storemodels2.Document, error) {
+func (d *DocumentServiceImpl) GetDocument(userID, name string) (*storemodels.Document, error) {
 	doc, err := d.postgresqlDB.GetDocument(userID, name)
 	if err != nil {
 		return nil, err
@@ -182,14 +182,14 @@ func (d *DocumentServiceImpl) GetDocument(userID, name string) (*storemodels2.Do
 	return d.postgresqlDB.GetDocument(userID, name)
 }
 
-func (d *DocumentServiceImpl) GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels2.Document, error) {
+func (d *DocumentServiceImpl) GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels.Document, error) {
 	if err := d.ensureDocumentBelongsToUser(userID, documentID); err != nil {
 		return nil, err
 	}
 	return d.postgresqlDB.GetDocumentByUUID(documentID)
 }
 
-func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels2.Document, error) {
+func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Document, error) {
 	return d.postgresqlDB.GetAllDocuments(userID)
 }
 

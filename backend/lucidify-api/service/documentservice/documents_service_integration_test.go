@@ -5,7 +5,7 @@ package documentservice
 import (
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
-	storemodels2 "lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/service/userservice"
 	"os"
@@ -19,7 +19,7 @@ func createTestUserInDb() string {
 	db, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
-	user := storemodels2.User{
+	user := storemodels.User{
 		UserID:           "TestDocumentsServiceIntegrationTestUUID",
 		ExternalID:       "TestDocumentsServiceIntegrationTestExternalID",
 		Username:         "TestDocumentsServiceIntegrationTestUsername",
@@ -90,7 +90,7 @@ func TestSplitContentIntoChunks(t *testing.T) {
 				t.Errorf("failed to read file content: %v", err)
 			}
 
-			document := storemodels2.Document{
+			document := storemodels.Document{
 				DocumentUUID: uuid.New(),
 				UserID:       "TestStoreIntegrationTestUserUUID",
 				DocumentName: "test_document_name",
@@ -148,7 +148,7 @@ func TestUploadDocumentIntegration(t *testing.T) {
 		t.Error("Chunks were not uploaded to PostgreSQL")
 	}
 
-	var chunksFromWeaviate []storemodels2.Chunk
+	var chunksFromWeaviate []storemodels.Chunk
 	success := false
 
 	for i := 0; i < 10; i++ { // Retry up to 10 times

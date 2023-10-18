@@ -3,7 +3,7 @@
 package postgresqlclient
 
 import (
-	storemodels2 "lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/storemodels"
 	"testing"
 )
 
@@ -13,7 +13,7 @@ func TestChunkFunctions(t *testing.T) {
 		t.Fatalf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	user := storemodels2.User{
+	user := storemodels.User{
 		UserID:           "document_chunks_integration_test_user_id",
 		ExternalID:       "TestDocumentChunksID",
 		Username:         "TestDocumentChunksUsername",
@@ -33,7 +33,7 @@ func TestChunkFunctions(t *testing.T) {
 		t.Fatalf("Failed to create user: %v", err)
 	}
 
-	doc := &storemodels2.Document{
+	doc := &storemodels.Document{
 		UserID:       user.UserID,
 		DocumentName: "test_document_name",
 		Content:      "test_content",
@@ -44,7 +44,7 @@ func TestChunkFunctions(t *testing.T) {
 		t.Fatalf("Failed to upload test document: %v", err)
 	}
 
-	chunks := []storemodels2.Chunk{
+	chunks := []storemodels.Chunk{
 		{
 			UserID:       user.UserID,
 			DocumentID:   insertedDoc.DocumentUUID,
