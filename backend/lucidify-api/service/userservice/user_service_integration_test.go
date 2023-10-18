@@ -6,6 +6,7 @@ import (
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
 	"testing"
+	"time"
 )
 
 func setupTests() (UserService, storemodels.User, error, *postgresqlclient.PostgreSQL) {
@@ -134,6 +135,32 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestDeleteUser(t *testing.T) {
+	userService, user, err, db := setupTests()
+	if err != nil {
+		t.Error(err)
+	}
+	err = userService.CreateUser(user)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = userService.GetUserWithRetries(user.UserID, 5)
+	if err != nil {
+		t.Errorf("User not found after creation: %v", err)
+	}
+	err = userService.DeleteUser(user.UserID)
+	if err != nil {
+		t.Error(err)
+	}
+	if !userService.HasUserBeenDeleted(user.UserID, 5) {
+		t.Errorf("User not deleted after deletion: %v", err)
+	}
+
+	t.Cleanup(func() {
+		cleanupTests(user, db)
+	})
+}
+
 func TestGetUser(t *testing.T) {
 	userService, user, err, db := setupTests()
 	if err != nil {
@@ -160,25 +187,60 @@ func TestGetUser(t *testing.T) {
 	})
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestGetUserWithRetries(t *testing.T) {
 	userService, user, err, db := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = userService.CreateUser(user)
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = userService.GetUserWithRetries(user.UserID, 5)
-	if err != nil {
-		t.Errorf("User not found after creation: %v", err)
+	// Case 1: User is found without needing retries
+	foundUser, err := userService.GetUserWithRetries(user.UserID, 5)
+	if err != nil || foundUser == nil {
+		t.Error("GetUserWithRetries failed to retrieve the user, but the user should have been found")
 	}
-	err = userService.DeleteUser(user.UserID)
+	// Case 2: User is not found even after retries
+	nonExistentUserID := "non-existent-user-id"
+	// Delay the start of the next case to avoid immediate execution after user creation
+	time.Sleep(2 * time.Second)
+
+	_, err = userService.GetUserWithRetries(nonExistentUserID, 5)
+	if err == nil {
+		t.Error("GetUserWithRetries did not return an error, but it should have since the user does not exist")
+	}
+
+	t.Cleanup(func() {
+		cleanupTests(user, db)
+	})
+}
+
+func TestHasUserBeenDeleted(t *testing.T) {
+	userService, user, err, db := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
-	if !userService.HasUserBeenDeleted(user.UserID, 5) {
-		t.Errorf("User not deleted after deletion: %v", err)
+
+	err = userService.CreateUser(user)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Case 1: User has not been deleted
+	userNotDeleted := userService.HasUserBeenDeleted(user.UserID, 5)
+	if userNotDeleted {
+		t.Error("HasUserBeenDeleted returns true, but the user was not deleted")
+	}
+
+	// Assume we have a function to delete a user for test
+	userService.DeleteUser(user.UserID)
+
+	// Case 2: User has been deleted
+	userHasBeenDeleted := userService.HasUserBeenDeleted(user.UserID, 5)
+	if !userHasBeenDeleted {
+		t.Error("HasUserBeenDeleted returns false, but the user was deleted")
 	}
 
 	t.Cleanup(func() {
