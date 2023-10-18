@@ -1,4 +1,4 @@
-package clerkservice
+package clerk_test_utils
 
 import (
 	"encoding/json"

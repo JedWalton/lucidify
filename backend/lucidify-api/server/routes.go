@@ -2,7 +2,6 @@ package server
 
 import (
 	"lucidify-api/data/store/postgresqlclient"
-	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/http/chatapi"
 	"lucidify-api/http/clerkapi"
 	"lucidify-api/http/documentsapi"
@@ -19,7 +18,6 @@ func SetupRoutes(
 	mux *http.ServeMux,
 	storeInstance *postgresqlclient.PostgreSQL,
 	clerkInstance clerk.Client,
-	weaviateInstance weaviateclient.WeaviateClient,
 	documentsService documentservice.DocumentService,
 	chatService chatservice.ChatService) {
 

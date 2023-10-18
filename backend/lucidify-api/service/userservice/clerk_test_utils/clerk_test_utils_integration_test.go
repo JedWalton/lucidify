@@ -1,6 +1,6 @@
 // //go:build integration
 // // +build integration
-package clerkservice
+package clerk_test_utils
 
 import (
 	"log"
