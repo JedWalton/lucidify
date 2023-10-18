@@ -1,4 +1,4 @@
-package userservice
+package clerkservice
 
 import (
 	"lucidify-api/server/config"

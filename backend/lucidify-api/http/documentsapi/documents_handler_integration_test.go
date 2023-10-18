@@ -11,6 +11,7 @@ import (
 	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
+	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
 	"lucidify-api/service/userservice"
 	"net/http"
@@ -127,7 +128,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 		t.Fatalf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	clerkInstance, err := userservice.NewClerkClient()
+	clerkInstance, err := clerkservice.NewClerkClient()
 	if err != nil {
 		t.Fatalf("Failed to create Clerk client: %v", err)
 	}

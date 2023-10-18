@@ -1,6 +1,6 @@
 // //go:build integration
 // // +build integration
-package clerk_test_utils
+package clerkapi_test_utils
 
 import (
 	"log"
@@ -17,25 +17,25 @@ func TestIntegration_store_clerk(t *testing.T) {
 	lastName := "store_clerk_lastname"
 	password := "$sswordoatnsu28348ckj"
 
-	_, err := CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
+	_, err := SimulateCreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
 	if err != nil {
 		log.Printf("User not created in Clerk, likely already exists.")
 	}
 
-	userID, err := GetUserIDByEmail(testEmail, clerkSecretKey)
+	userID, err := getUserIDByEmail(testEmail, clerkSecretKey)
 	if err != nil {
 		t.Errorf("Error getting user by email: %v", err)
 	}
 
 	newFirstName := "updated_store_clerk_firstname"
 	newLastName := "updated_store_clerk_lastname"
-	err = UpdateUserInClerk(clerkSecretKey, userID, newFirstName, newLastName)
+	err = SimulateUpdateUserInClerk(clerkSecretKey, userID, newFirstName, newLastName)
 	if err != nil {
 		t.Errorf("Failed to update user in Clerk: %v", err)
 	}
 
 	// Retrieve the user to verify the update
-	user, err := RetrieveUser(clerkSecretKey, userID)
+	user, err := retrieveUser(clerkSecretKey, userID)
 	if err != nil {
 		t.Errorf("Failed to retrieve user from Clerk: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestIntegration_store_clerk(t *testing.T) {
 
 	t.Cleanup(func() {
 		log.Printf("Cleaning up test user: %v", userID)
-		err = DeleteUserInClerk(clerkSecretKey, userID)
+		err = SimulateDeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}

@@ -5,9 +5,9 @@ package clerkapi
 import (
 	"fmt"
 	"log"
+	"lucidify-api/http/clerkapi/clerkapi_test_utils"
 	"lucidify-api/server/config"
 	"lucidify-api/service/userservice"
-	"lucidify-api/service/userservice/clerk_test_utils"
 	"testing"
 	"time"
 )
@@ -20,14 +20,14 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 	lastName := "clerk_handler_lastname"
 	password := "$sswordoatnsu28348ckj"
 
-	userID, err := clerk_test_utils.CreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
+	userID, err := clerkapi_test_utils.SimulateCreateUserInClerk(clerkSecretKey, firstName, lastName, testEmail, password)
 	if err != nil {
 		t.Errorf("User not created in Clerk. Reason: %v", err)
 	}
 
 	t.Cleanup(func() {
 		log.Printf("Cleaning up test user: %v", userID)
-		err = clerk_test_utils.DeleteUserInClerk(clerkSecretKey, userID)
+		err = clerkapi_test_utils.SimulateDeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}
@@ -51,7 +51,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 
 	updatedFirstName := "updated_clerk_handler_firstname"
 	updatedLastName := "updated_clerk_handler_lastname"
-	err = clerk_test_utils.UpdateUserInClerk(clerkSecretKey, userID, updatedFirstName, updatedLastName)
+	err = clerkapi_test_utils.SimulateUpdateUserInClerk(clerkSecretKey, userID, updatedFirstName, updatedLastName)
 	if err != nil {
 		t.Errorf("Failed to update user in Clerk: %v", err)
 	}

@@ -1,4 +1,4 @@
-package clerk_test_utils
+package clerkapi_test_utils
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func CreateUserInClerk(apiKey string, firstName string, lastName string, email string, password string) (string, error) {
+func SimulateCreateUserInClerk(apiKey string, firstName string, lastName string, email string, password string) (string, error) {
 	url := "https://api.clerk.dev/v1/users"
 	payload := strings.NewReader(fmt.Sprintf(`{
         "first_name": "%s",
@@ -37,7 +37,79 @@ func CreateUserInClerk(apiKey string, firstName string, lastName string, email s
 	return "", fmt.Errorf("Failed to create user in Clerk. Response: %s", string(body))
 }
 
-func GetUserIDByEmail(email string, apiKey string) (string, error) {
+func SimulateDeleteUserInClerk(apiKey string, userID string) error {
+	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+	req.Header.Add("Authorization", "Bearer "+apiKey)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("Failed to delete user in Clerk. Status code: %d. Response: %s", res.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func SimulateUpdateUserInClerk(apiKey string, userID string, firstName string, lastName string) error {
+	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
+	payload := strings.NewReader(fmt.Sprintf(`{
+        "first_name": "%s",
+        "last_name": "%s"
+    }`, firstName, lastName))
+
+	req, err := http.NewRequest("PATCH", url, payload)
+	req.Header.Add("Authorization", "Bearer "+apiKey)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("Failed to update user in Clerk. Response: %s", string(body))
+	}
+
+	return nil
+}
+
+func retrieveUser(apiKey string, userID string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
+
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+apiKey)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("Failed to retrieve user from Clerk. Response: %s", string(body))
+	}
+
+	var user map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func getUserIDByEmail(email string, apiKey string) (string, error) {
 	// Construct the URL
 	baseURL := "https://api.clerk.dev/v1"
 	url := fmt.Sprintf("%s/users?email_address=%s", baseURL, email)
@@ -84,76 +156,4 @@ func GetUserIDByEmail(email string, apiKey string) (string, error) {
 	}
 
 	return "", fmt.Errorf("no user found with email: %s", email)
-}
-
-func DeleteUserInClerk(apiKey string, userID string) error {
-	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
-
-	req, _ := http.NewRequest("DELETE", url, nil)
-	req.Header.Add("Authorization", "Bearer "+apiKey)
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		body, _ := io.ReadAll(res.Body)
-		return fmt.Errorf("Failed to delete user in Clerk. Status code: %d. Response: %s", res.StatusCode, string(body))
-	}
-
-	return nil
-}
-
-func UpdateUserInClerk(apiKey string, userID string, firstName string, lastName string) error {
-	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
-	payload := strings.NewReader(fmt.Sprintf(`{
-        "first_name": "%s",
-        "last_name": "%s"
-    }`, firstName, lastName))
-
-	req, err := http.NewRequest("PATCH", url, payload)
-	req.Header.Add("Authorization", "Bearer "+apiKey)
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		body, _ := io.ReadAll(res.Body)
-		return fmt.Errorf("Failed to update user in Clerk. Response: %s", string(body))
-	}
-
-	return nil
-}
-
-func RetrieveUser(apiKey string, userID string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("https://api.clerk.dev/v1/users/%s", userID)
-
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer "+apiKey)
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		body, _ := io.ReadAll(res.Body)
-		return nil, fmt.Errorf("Failed to retrieve user from Clerk. Response: %s", string(body))
-	}
-
-	var user map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&user)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
 }

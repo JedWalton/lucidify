@@ -6,8 +6,8 @@ import (
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/chatservice"
+	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
-	"lucidify-api/service/userservice"
 	"net/http"
 
 	"github.com/sashabaranov/go-openai"
@@ -23,7 +23,7 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	clerkInstance, err := userservice.NewClerkClient()
+	clerkInstance, err := clerkservice.NewClerkClient()
 	if err != nil {
 		log.Fatal(err)
 	}
