@@ -2,12 +2,12 @@ package server
 
 import (
 	"log"
-	"lucidify-api/modules/chatservice"
-	"lucidify-api/modules/clerkclient"
-	"lucidify-api/modules/config"
-	"lucidify-api/modules/documentservice"
-	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/weaviateclient"
+	"lucidify-api/data/store/postgresqlclient"
+	"lucidify-api/data/store/weaviateclient"
+	"lucidify-api/server/config"
+	"lucidify-api/service/chatservice"
+	"lucidify-api/service/clerkservice"
+	"lucidify-api/service/documentservice"
 	"net/http"
 
 	"github.com/sashabaranov/go-openai"
@@ -23,7 +23,7 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	clerkInstance, err := clerkclient.NewClerkClient(config.ClerkSecretKey)
+	clerkInstance, err := clerkservice.NewClerkClient()
 	if err != nil {
 		log.Fatal(err)
 	}

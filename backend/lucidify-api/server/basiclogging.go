@@ -2,7 +2,7 @@ package server
 
 import (
 	"log"
-	"lucidify-api/modules/config"
+	"lucidify-api/server/config"
 	"net/http"
 )
 

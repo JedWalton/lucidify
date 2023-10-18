@@ -1,14 +1,14 @@
 package server
 
 import (
-	"lucidify-api/api/chatapi"
-	"lucidify-api/api/clerkapi"
-	"lucidify-api/api/documentsapi"
-	"lucidify-api/modules/chatservice"
-	"lucidify-api/modules/config"
-	"lucidify-api/modules/documentservice"
-	"lucidify-api/modules/store/postgresqlclient"
-	"lucidify-api/modules/store/weaviateclient"
+	"lucidify-api/data/store/postgresqlclient"
+	"lucidify-api/data/store/weaviateclient"
+	"lucidify-api/http/chatapi"
+	"lucidify-api/http/clerkapi"
+	"lucidify-api/http/documentsapi"
+	"lucidify-api/server/config"
+	"lucidify-api/service/chatservice"
+	"lucidify-api/service/documentservice"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
