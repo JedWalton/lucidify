@@ -96,8 +96,11 @@ func createASecondTestUserInDb() string {
 		log.Fatalf("Failed to create user: %v", err)
 	}
 
-	// Check if the user exists
-	err = db.CheckIfUserInUsersTable(user.UserID, 3)
+	userService, err := userservice.NewUserService()
+	if err != nil {
+		log.Fatalf("Failed to create UserService: %v", err)
+	}
+	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
 	}
