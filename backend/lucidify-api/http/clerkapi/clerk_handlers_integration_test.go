@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
-	"lucidify-api/data/store/storemodels"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
 	"testing"
@@ -55,15 +54,8 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		t.Errorf("Failed to update user in Clerk: %v", err)
 	}
 
-	var userFromDb *storemodels.User
-	for i := 0; i < 5; i++ {
-		userFromDb, err = storeInstance.GetUserInUsersTable(userID)
-		if err == nil && userFromDb.FirstName == newFirstName && userFromDb.LastName == newLastName {
-			break
-		}
-		time.Sleep(time.Second) // Wait for 1 second before retrying
-	}
-	if userFromDb.FirstName != newFirstName || userFromDb.LastName != newLastName {
+	err = storeInstance.CheckUserHasExpectedFirstNameAndLastNameInUsersTable(userID, 10, newFirstName, newLastName)
+	if err != nil {
 		t.Errorf("User first name and last name not updated in users table: %v", err)
 	}
 }
