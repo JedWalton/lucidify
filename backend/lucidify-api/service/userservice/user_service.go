@@ -13,6 +13,7 @@ type UserService interface {
 	DeleteUser(userID string) error
 	GetUser(userID string) (*storemodels.User, error)
 	GetUserWithRetries(userID string, retries int) (*storemodels.User, error)
+	HasUserBeenDeleted(userID string, retries int) bool
 }
 
 type UserServiceImpl struct {
@@ -76,4 +77,14 @@ func (u *UserServiceImpl) GetUserWithRetries(userID string, retries int) (*store
 		return user, nil
 	}
 	return nil, fmt.Errorf("User not found after %d retries", retries)
+}
+
+func (u *UserServiceImpl) HasUserBeenDeleted(userID string, retries int) bool {
+	for i := 0; i < 5; i++ {
+		_, err := u.GetUser(userID)
+		if err != nil {
+			return true
+		}
+	}
+	return false
 }

@@ -190,7 +190,7 @@ func TestDeleteUserInUsersTable(t *testing.T) {
 	var deleted bool
 	for i := 0; i < 3; i++ {
 		user, err := store.GetUserInUsersTable(user.UserID)
-		if user == nil && err != nil {
+		if user == nil || err != nil {
 			// If the user is not found, it means the user has been deleted
 			deleted = true
 			break

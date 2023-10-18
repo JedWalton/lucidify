@@ -177,9 +177,8 @@ func TestDeleteUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = db.CheckUserDeletedInUsersTable(user.UserID, 5)
-	if err != nil {
-		t.Error(err)
+	if !userService.HasUserBeenDeleted(user.UserID, 5) {
+		t.Errorf("User not deleted after deletion: %v", err)
 	}
 
 	t.Cleanup(func() {
