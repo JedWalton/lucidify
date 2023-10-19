@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestIntegration_store_clerk(t *testing.T) {
+func TestClerkTestUtilsIntegration(t *testing.T) {
 	// Test configuration
 	testconfig := config.NewServerConfig()
 	clerkSecretKey := testconfig.ClerkSecretKey
