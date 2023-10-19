@@ -11,7 +11,10 @@ import (
 	"time"
 )
 
-func setupTests() (UserService, storemodels.User, error, *postgresqlclient.PostgreSQL, documentservice.DocumentService) {
+func setupTests() (UserService, storemodels.User, error,
+	*postgresqlclient.PostgreSQL, documentservice.DocumentService,
+	weaviateclient.WeaviateClient) {
+
 	user := storemodels.User{
 		UserID:           "TestCreateUserTableUserServiceUserID",
 		ExternalID:       "TestCreateUserTableExternalID",
@@ -29,7 +32,7 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 
 	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
-		return nil, user, err, postgresqlDB, nil
+		return nil, user, err, postgresqlDB, nil, nil
 	}
 
 	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
@@ -37,11 +40,11 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 
 	userService := NewUserService(postgresqlDB)
 	if err != nil {
-		return nil, user, err, postgresqlDB, nil
+		return nil, user, err, postgresqlDB, nil, nil
 	}
 
 	userService.SetDocumentService(docService)
-	return userService, user, nil, postgresqlDB, docService
+	return userService, user, nil, postgresqlDB, docService, weaviateDB
 }
 
 func cleanupTests(user storemodels.User, db *postgresqlclient.PostgreSQL) error {
@@ -49,7 +52,7 @@ func cleanupTests(user storemodels.User, db *postgresqlclient.PostgreSQL) error 
 }
 
 func TestCreateUser(t *testing.T) {
-	userService, user, err, db, _ := setupTests()
+	userService, user, err, db, _, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,7 +74,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	userService, user, err, db, _ := setupTests()
+	userService, user, err, db, _, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -144,7 +147,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	userService, user, err, postgresqlDB, docService := setupTests()
+	userService, user, err, postgresqlDB, docService, weaviateDB := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -175,12 +178,28 @@ func TestDeleteUser(t *testing.T) {
 		t.Errorf("Expected number of chunks to be %d, got %d", 1, len(chunksPreDeleteDoc1))
 	}
 
+	chunksWeaviatePreDeleteDoc1, err := weaviateDB.GetChunks(chunksPreDeleteDoc1)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksWeaviatePreDeleteDoc1) != 1 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 1, len(chunksWeaviatePreDeleteDoc1))
+	}
+
 	chunksPreDeleteDoc2, err := postgresqlDB.GetChunksOfDocumentByDocumentID(doc2.DocumentUUID)
 	if err != nil {
 		t.Error(err)
 	}
 	if len(chunksPreDeleteDoc2) != 1 {
 		t.Errorf("Expected number of chunks to be %d, got %d", 1, len(chunksPreDeleteDoc2))
+	}
+
+	chunksWeaviatePreDeleteDoc2, err := weaviateDB.GetChunks(chunksPreDeleteDoc2)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksWeaviatePreDeleteDoc2) != 1 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 1, len(chunksWeaviatePreDeleteDoc2))
 	}
 
 	_, err = userService.GetUserWithRetries(user.UserID, 5)
@@ -211,6 +230,22 @@ func TestDeleteUser(t *testing.T) {
 		t.Errorf("Expected number of chunks to be %d, got %d", 0, len(chunksPreDeleteDoc2))
 	}
 
+	chunksWeaviatePostDeleteDoc1, err := weaviateDB.GetChunks(chunksPostDeleteDoc1)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksWeaviatePostDeleteDoc1) != 0 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 0, len(chunksWeaviatePostDeleteDoc1))
+	}
+
+	chunksWeaviatePostDeleteDoc2, err := weaviateDB.GetChunks(chunksPostDeleteDoc2)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksWeaviatePostDeleteDoc2) != 0 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 0, len(chunksWeaviatePostDeleteDoc2))
+	}
+
 	// Verify All Documents, Chunks in Postgresql and Weaviate are deleted
 
 	docs, err := docService.GetAllDocuments(user.UserID)
@@ -227,7 +262,7 @@ func TestDeleteUser(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	userService, user, err, db, _ := setupTests()
+	userService, user, err, db, _, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -253,7 +288,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserWithRetries(t *testing.T) {
-	userService, user, err, db, _ := setupTests()
+	userService, user, err, db, _, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -283,7 +318,7 @@ func TestGetUserWithRetries(t *testing.T) {
 }
 
 func TestHasUserBeenDeleted(t *testing.T) {
-	userService, user, err, db, _ := setupTests()
+	userService, user, err, db, _, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
