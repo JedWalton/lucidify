@@ -144,7 +144,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	userService, user, err, postgresqlDB, _ := setupTests()
+	userService, user, err, postgresqlDB, docService := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -153,6 +153,36 @@ func TestDeleteUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	doc1, err := docService.UploadDocument(user.UserID, "test delete user doc 1",
+		"some delete user content for doc 1")
+	doc2, err := docService.UploadDocument(user.UserID, "test delete user doc 2",
+		"some delete user content for doc 2")
+
+	docsPreDelete, err := docService.GetAllDocuments(user.UserID)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(docsPreDelete) != 2 {
+		t.Errorf("Expected number of docs to be %d, got %d", 2, len(docsPreDelete))
+	}
+
+	chunksPreDeleteDoc1, err := postgresqlDB.GetChunksOfDocumentByDocumentID(doc1.DocumentUUID)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksPreDeleteDoc1) != 1 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 1, len(chunksPreDeleteDoc1))
+	}
+
+	chunksPreDeleteDoc2, err := postgresqlDB.GetChunksOfDocumentByDocumentID(doc2.DocumentUUID)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksPreDeleteDoc2) != 1 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 1, len(chunksPreDeleteDoc2))
+	}
+
 	_, err = userService.GetUserWithRetries(user.UserID, 5)
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)
@@ -165,7 +195,31 @@ func TestDeleteUser(t *testing.T) {
 		t.Errorf("User not deleted after deletion: %v", err)
 	}
 
+	chunksPostDeleteDoc1, err := postgresqlDB.GetChunksOfDocumentByDocumentID(doc1.DocumentUUID)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksPostDeleteDoc1) != 0 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 0, len(chunksPreDeleteDoc1))
+	}
+
+	chunksPostDeleteDoc2, err := postgresqlDB.GetChunksOfDocumentByDocumentID(doc2.DocumentUUID)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(chunksPostDeleteDoc2) != 0 {
+		t.Errorf("Expected number of chunks to be %d, got %d", 0, len(chunksPreDeleteDoc2))
+	}
+
 	// Verify All Documents, Chunks in Postgresql and Weaviate are deleted
+
+	docs, err := docService.GetAllDocuments(user.UserID)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(docs) != 0 {
+		t.Errorf("Expected number of docs to be %d, got %d", 0, len(docs))
+	}
 
 	t.Cleanup(func() {
 		cleanupTests(user, postgresqlDB)
