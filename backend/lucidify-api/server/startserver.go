@@ -43,7 +43,7 @@ func StartServer() {
 		config,
 		mux,
 		postgresqlDB,
-		clerkInstance,
+		clerkInstance.GetClerkClient(),
 		documentService,
 		chatService,
 	)

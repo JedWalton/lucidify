@@ -148,7 +148,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 	return &TestSetup{
 		Config:          cfg,
 		PostgresqlDB:    postgresqlDB,
-		ClerkInstance:   clerkInstance,
+		ClerkInstance:   clerkInstance.GetClerkClient(),
 		WeaviateDB:      weaviateDB,
 		DocumentService: documentService,
 	}
