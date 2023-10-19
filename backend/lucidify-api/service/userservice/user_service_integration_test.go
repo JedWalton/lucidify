@@ -5,6 +5,8 @@ package userservice
 import (
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/weaviateclient"
+	"lucidify-api/service/documentservice"
 	"testing"
 	"time"
 )
@@ -25,15 +27,21 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 		UpdatedAt:        1654012591514,
 	}
 
-	db, err := postgresqlclient.NewPostgreSQL()
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
-		return nil, user, err, db
+		return nil, user, err, postgresqlDB
 	}
-	userService := NewUserService(db)
+
+	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
+	docService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
+
+	userService := NewUserService(postgresqlDB)
 	if err != nil {
-		return nil, user, err, db
+		return nil, user, err, postgresqlDB
 	}
-	return userService, user, nil, db
+
+	userService.SetDocumentService(docService)
+	return userService, user, nil, postgresqlDB
 }
 
 func cleanupTests(user storemodels.User, db *postgresqlclient.PostgreSQL) error {
@@ -136,10 +144,11 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, postgresqlDB := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = userService.CreateUser(user)
 	if err != nil {
 		t.Error(err)
@@ -157,7 +166,7 @@ func TestDeleteUser(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		cleanupTests(user, postgresqlDB)
 	})
 }
 

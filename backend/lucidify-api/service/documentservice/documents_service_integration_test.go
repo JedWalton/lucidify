@@ -7,7 +7,6 @@ import (
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
-	"lucidify-api/service/userservice"
 	"os"
 	"testing"
 	"time"
@@ -34,25 +33,14 @@ func createTestUserInDb() string {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService := userservice.NewUserService(db)
-
-	err = userService.DeleteUser(user.UserID)
+	err = db.DeleteUserInUsersTable(user.UserID)
 	if err != nil {
-		log.Fatalf("Failed to delete user: %v", err)
-	}
-	if !userService.HasUserBeenDeleted(user.UserID, 3) {
 		log.Fatalf("Failed to delete user: %v", err)
 	}
 
 	err = db.CreateUserInUsersTable(user)
 	if err != nil {
 		log.Fatalf("Failed to create user: %v", err)
-	}
-
-	// Check if the user exists
-	_, err = userService.GetUserWithRetries(user.UserID, 3)
-	if err != nil {
-		log.Fatalf("User not found after creation: %v", err)
 	}
 
 	return user.UserID

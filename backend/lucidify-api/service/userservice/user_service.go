@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"lucidify-api/service/documentservice"
 	"time"
 )
 
@@ -14,18 +15,20 @@ type UserService interface {
 	GetUser(userID string) (*storemodels.User, error)
 	GetUserWithRetries(userID string, retries int) (*storemodels.User, error)
 	HasUserBeenDeleted(userID string, retries int) bool
+	SetDocumentService(docService documentservice.DocumentService)
 }
 
 type UserServiceImpl struct {
-	postgresqlDB *postgresqlclient.PostgreSQL
+	postgresqlDB    *postgresqlclient.PostgreSQL
+	documentService documentservice.DocumentService
 }
 
 func NewUserService(postgresqlDB *postgresqlclient.PostgreSQL) UserService {
-	// postgresqlDB, err := postgresqlclient.NewPostgreSQL()
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return &UserServiceImpl{postgresqlDB: postgresqlDB}
+}
+
+func (u *UserServiceImpl) SetDocumentService(docService documentservice.DocumentService) {
+	u.documentService = docService
 }
 
 func (u *UserServiceImpl) CreateUser(user storemodels.User) error {
@@ -45,12 +48,32 @@ func (u *UserServiceImpl) UpdateUser(user storemodels.User) error {
 }
 
 func (u *UserServiceImpl) DeleteUser(userID string) error {
+	documents, err := u.documentService.GetAllDocuments(userID)
+	if err != nil {
+		return err
+	}
+
+	if len(documents) == 0 {
+		err = u.postgresqlDB.DeleteUserInUsersTable(userID)
+		if err != nil {
+			return err
+		}
+	}
+	//
+	// for _, document := range documents {
+	// 	err := u.documentService.DeleteDocument(userID, document.DocumentUUID)
+	// 	if err != nil {
+	// 		return fmt.Errorf("Error deleting document %s for user %s: %s. Operation"+
+	// 			"in incomplete state. Please manually delete documents for user.",
+	// 			document.DocumentUUID, userID, err)
+	// 	}
+	// }
 	// Perform Full Cleanup Of All User Data
 	// Weaviate Data
 	// Postgres Data
 	// Confirm Cleanup
 	// Then Delete User from Users Table
-	err := u.postgresqlDB.DeleteUserInUsersTable(userID)
+	err = u.postgresqlDB.DeleteUserInUsersTable(userID)
 	if err != nil {
 		return err
 	}

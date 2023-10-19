@@ -21,7 +21,7 @@ import (
 
 func createTestUserInDb() error {
 	testconfig := config.NewServerConfig()
-	db, err := postgresqlclient.NewPostgreSQL()
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 
 	// the user id registered by the jwt token must exist in the local database
 	user := storemodels.User{
@@ -39,7 +39,13 @@ func createTestUserInDb() error {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService := userservice.NewUserService(db)
+	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create Weaviate client: %v", err)
+	}
+	docService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
+	userService := userservice.NewUserService(postgresqlDB)
+	userService.SetDocumentService(docService)
 
 	err = userService.DeleteUser(user.UserID)
 	if err != nil {
@@ -49,7 +55,7 @@ func createTestUserInDb() error {
 		log.Fatalf("Failed to delete user: %v", err)
 	}
 
-	err = db.CreateUserInUsersTable(user)
+	err = postgresqlDB.CreateUserInUsersTable(user)
 	if err != nil {
 		log.Fatalf("Failed to create user: %v", err)
 	}
@@ -64,7 +70,7 @@ func createTestUserInDb() error {
 }
 
 func createASecondTestUserInDb() string {
-	db, err := postgresqlclient.NewPostgreSQL()
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 
 	user := storemodels.User{
 		UserID:           "userid_testuserid2",
@@ -81,7 +87,13 @@ func createASecondTestUserInDb() string {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService := userservice.NewUserService(db)
+	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create Weaviate client: %v", err)
+	}
+	docService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
+	userService := userservice.NewUserService(postgresqlDB)
+	userService.SetDocumentService(docService)
 
 	err = userService.DeleteUser(user.UserID)
 	if err != nil {
@@ -91,7 +103,7 @@ func createASecondTestUserInDb() string {
 		log.Fatalf("Failed to delete user: %v", err)
 	}
 
-	err = db.CreateUserInUsersTable(user)
+	err = postgresqlDB.CreateUserInUsersTable(user)
 	if err != nil {
 		log.Fatalf("Failed to create user: %v", err)
 	}

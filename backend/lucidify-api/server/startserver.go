@@ -41,6 +41,7 @@ func StartServer() {
 	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient, documentService)
 
 	userService := userservice.NewUserService(postgresqlDB)
+	userService.SetDocumentService(documentService)
 
 	SetupRoutes(
 		config,
