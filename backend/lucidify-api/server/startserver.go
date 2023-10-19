@@ -23,7 +23,7 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	clerkInstance, err := clerkservice.NewClerkClient()
+	clerkService, err := clerkservice.NewClerkClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func StartServer() {
 		config,
 		mux,
 		postgresqlDB,
-		clerkInstance.GetClerkClient(),
+		clerkService,
 		documentService,
 		chatService,
 	)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lucidify-api/server/config"
+	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
@@ -11,9 +12,10 @@ import (
 type ClerkClient interface {
 	GetUserIDFromSession(ctx context.Context) (string, error)
 	GetClerkClient() clerk.Client
+	WithActiveSession(handler http.Handler) http.Handler
 }
 
-type ClerkClientImpl struct {
+type clerkClientImpl struct {
 	clerkClient clerk.Client
 }
 
@@ -23,11 +25,11 @@ func NewClerkClient() (ClerkClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ClerkClientImpl{clerkClient: client}, nil
+	return &clerkClientImpl{clerkClient: client}, nil
 
 }
 
-func (c *ClerkClientImpl) GetUserIDFromSession(ctx context.Context) (string, error) {
+func (c *clerkClientImpl) GetUserIDFromSession(ctx context.Context) (string, error) {
 	sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
 	if !ok {
 		// w.WriteHeader(http.StatusUnauthorized)
@@ -42,6 +44,11 @@ func (c *ClerkClientImpl) GetUserIDFromSession(ctx context.Context) (string, err
 	return user.ID, nil
 }
 
-func (c *ClerkClientImpl) GetClerkClient() clerk.Client {
+func (c *clerkClientImpl) GetClerkClient() clerk.Client {
 	return c.clerkClient
+}
+
+func (c *clerkClientImpl) WithActiveSession(handler http.Handler) http.Handler {
+	// Assuming clerk.WithSession() returns a function that wraps a http.Handler
+	return clerk.WithSession(c.GetClerkClient())(handler)
 }

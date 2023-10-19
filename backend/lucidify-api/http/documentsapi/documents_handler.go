@@ -3,35 +3,26 @@ package documentsapi
 import (
 	"encoding/json"
 	"fmt"
+	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
 	"net/http"
 
-	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/google/uuid"
 )
 
-func DocumentsUploadHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUploadHandler(documentService documentservice.DocumentService, clerkService clerkservice.ClerkClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		ctx := r.Context()
-
-		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := clerkService.GetUserIDFromSession(r.Context())
 		if err != nil {
 			panic(err)
 		}
 
-		w.Write([]byte(*&user.ID))
+		w.Write([]byte(userID))
 
 		var reqBody map[string]string
 		decoder := json.NewDecoder(r.Body)
@@ -43,7 +34,7 @@ func DocumentsUploadHandler(documentService documentservice.DocumentService, cle
 		document_name := reqBody["document_name"]
 		content := reqBody["content"]
 
-		_, err = documentService.UploadDocument(user.ID, document_name, content)
+		_, err = documentService.UploadDocument(userID, document_name, content)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
@@ -53,23 +44,14 @@ func DocumentsUploadHandler(documentService documentservice.DocumentService, cle
 	}
 }
 
-func DocumentsGetDocumentHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetDocumentHandler(documentService documentservice.DocumentService, clerkService clerkservice.ClerkClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		ctx := r.Context()
-
-		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := clerkService.GetUserIDFromSession(r.Context())
 		if err != nil {
 			panic(err)
 		}
@@ -83,7 +65,7 @@ func DocumentsGetDocumentHandler(documentService documentservice.DocumentService
 		}
 		document_name := reqBody["document_name"]
 
-		document, err := documentService.GetDocument(user.ID, document_name)
+		document, err := documentService.GetDocument(userID, document_name)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to get document", http.StatusInternalServerError)
 			return
@@ -102,28 +84,19 @@ func DocumentsGetDocumentHandler(documentService documentservice.DocumentService
 	}
 }
 
-func DocumentsGetAllDocumentsHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsGetAllDocumentsHandler(documentService documentservice.DocumentService, clerkService clerkservice.ClerkClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		ctx := r.Context()
-
-		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := clerkService.GetUserIDFromSession(r.Context())
 		if err != nil {
 			panic(err)
 		}
 
-		document, err := documentService.GetAllDocuments(user.ID)
+		document, err := documentService.GetAllDocuments(userID)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to get document", http.StatusInternalServerError)
 			return
@@ -142,23 +115,14 @@ func DocumentsGetAllDocumentsHandler(documentService documentservice.DocumentSer
 	}
 }
 
-func DocumentsDeleteDocumentHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsDeleteDocumentHandler(documentService documentservice.DocumentService, clerkService clerkservice.ClerkClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		ctx := r.Context()
-
-		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := clerkService.GetUserIDFromSession(r.Context())
 		if err != nil {
 			panic(err)
 		}
@@ -172,7 +136,7 @@ func DocumentsDeleteDocumentHandler(documentService documentservice.DocumentServ
 		}
 		documentID := reqBody["documentID"]
 
-		err = documentService.DeleteDocument(user.ID, uuid.MustParse(documentID))
+		err = documentService.DeleteDocument(userID, uuid.MustParse(documentID))
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to delete document", http.StatusInternalServerError)
 			return
@@ -182,23 +146,14 @@ func DocumentsDeleteDocumentHandler(documentService documentservice.DocumentServ
 	}
 }
 
-func DocumentsUpdateDocumentNameHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUpdateDocumentNameHandler(documentService documentservice.DocumentService, clerkService clerkservice.ClerkClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		ctx := r.Context()
-
-		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := clerkService.GetUserIDFromSession(r.Context())
 		if err != nil {
 			panic(err)
 		}
@@ -216,7 +171,7 @@ func DocumentsUpdateDocumentNameHandler(documentService documentservice.Document
 
 		fmt.Println(documentID)
 
-		err = documentService.UpdateDocumentName(user.ID, uuid.MustParse(documentID), newDocumentName)
+		err = documentService.UpdateDocumentName(userID, uuid.MustParse(documentID), newDocumentName)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
 			return
@@ -226,23 +181,14 @@ func DocumentsUpdateDocumentNameHandler(documentService documentservice.Document
 	}
 }
 
-func DocumentsUpdateDocumentContentHandler(documentService documentservice.DocumentService, clerkInstance clerk.Client) http.HandlerFunc {
+func DocumentsUpdateDocumentContentHandler(documentService documentservice.DocumentService, clerkService clerkservice.ClerkClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		ctx := r.Context()
-
-		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := clerkService.GetUserIDFromSession(r.Context())
 		if err != nil {
 			panic(err)
 		}
@@ -260,7 +206,7 @@ func DocumentsUpdateDocumentContentHandler(documentService documentservice.Docum
 
 		fmt.Println(documentID)
 
-		err = documentService.UpdateDocumentContent(user.ID, uuid.MustParse(documentID), newDocumentContent)
+		err = documentService.UpdateDocumentContent(userID, uuid.MustParse(documentID), newDocumentContent)
 		if err != nil {
 			http.Error(w, "Internal server error. Unable to update document", http.StatusInternalServerError)
 			return

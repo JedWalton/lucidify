@@ -17,8 +17,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
 func createTestUserInDb() error {
@@ -115,7 +113,7 @@ func createASecondTestUserInDb() string {
 type TestSetup struct {
 	Config          *config.ServerConfig
 	PostgresqlDB    *postgresqlclient.PostgreSQL
-	ClerkInstance   clerk.Client
+	ClerkService    clerkservice.ClerkClient
 	WeaviateDB      weaviateclient.WeaviateClient
 	DocumentService documentservice.DocumentService
 }
@@ -128,9 +126,9 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 		t.Fatalf("Failed to create test postgresqlclient: %v", err)
 	}
 
-	clerkInstance, err := clerkservice.NewClerkClient()
+	clerkService, err := clerkservice.NewClerkClient()
 	if err != nil {
-		t.Fatalf("Failed to create Clerk client: %v", err)
+		t.Fatalf("Failed to create Clerk Service: %v", err)
 	}
 
 	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
@@ -148,7 +146,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 	return &TestSetup{
 		Config:          cfg,
 		PostgresqlDB:    postgresqlDB,
-		ClerkInstance:   clerkInstance.GetClerkClient(),
+		ClerkService:    clerkService,
 		WeaviateDB:      weaviateDB,
 		DocumentService: documentService,
 	}
@@ -159,11 +157,11 @@ func TestDocumentsUploadHandlerIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -214,11 +212,11 @@ func TestDocumentsUploadHandlerUnauthorizedIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -259,11 +257,11 @@ func TestDocumentsGetDocumentHandlerIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -324,11 +322,11 @@ func TestDocumentsGetDocumentHandlerUnauthorizedIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -370,11 +368,11 @@ func TestDocumentsGetAllDocumentsHandlerIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -436,11 +434,11 @@ func TestDocumentsGetAllDocumentsHandlerUnauthorizedIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -477,13 +475,13 @@ func TestDocumentsGetAllDocumentsHandlerUnauthenticatedOtherUserIntegration(t *t
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	UserID2 := createASecondTestUserInDb()
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -546,13 +544,13 @@ func TestDocumentsDeleteDocumentHandlerIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	createTestUserInDb()
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -602,13 +600,13 @@ func TestDocumentsDeleteDocumentHandlerNotMyDocumentIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	createASecondTestUserInDb()
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -658,7 +656,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	err := createTestUserInDb()
 	if err != nil {
@@ -667,7 +665,7 @@ func TestDocumentsDeleteDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -722,7 +720,7 @@ func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	err := createTestUserInDb()
 	if err != nil {
@@ -731,7 +729,7 @@ func TestDocumentsUpdateDocumentNameHandlerIntegration(t *testing.T) {
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -811,7 +809,7 @@ func TestDocumentsUpdateDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	err := createTestUserInDb()
 	if err != nil {
@@ -820,7 +818,7 @@ func TestDocumentsUpdateDocumentHandlerUnauthenticatedIntegration(t *testing.T) 
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -892,7 +890,7 @@ func TestDocumentsUpdateDocumentNotMyDocumentHandlerIntegration(t *testing.T) {
 	cfg := setup.Config
 	documentService := setup.DocumentService
 	postgresqlDB := setup.PostgresqlDB
-	clerkInstance := setup.ClerkInstance
+	clerkService := setup.ClerkService
 
 	err := createTestUserInDb()
 	if err != nil {
@@ -901,7 +899,7 @@ func TestDocumentsUpdateDocumentNotMyDocumentHandlerIntegration(t *testing.T) {
 
 	// Create a test server
 	mux := http.NewServeMux()
-	SetupRoutes(cfg, mux, documentService, clerkInstance)
+	SetupRoutes(cfg, mux, documentService, clerkService)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
