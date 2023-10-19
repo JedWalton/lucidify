@@ -59,19 +59,16 @@ func (u *UserServiceImpl) DeleteUser(userID string) error {
 			return err
 		}
 	}
-	//
-	// for _, document := range documents {
-	// 	err := u.documentService.DeleteDocument(userID, document.DocumentUUID)
-	// 	if err != nil {
-	// 		return fmt.Errorf("Error deleting document %s for user %s: %s. Operation"+
-	// 			"in incomplete state. Please manually delete documents for user.",
-	// 			document.DocumentUUID, userID, err)
-	// 	}
-	// }
-	// Perform Full Cleanup Of All User Data
-	// Weaviate Data
-	// Postgres Data
-	// Confirm Cleanup
+
+	for _, document := range documents {
+		err := u.documentService.DeleteDocument(userID, document.DocumentUUID)
+		if err != nil {
+			return fmt.Errorf("Error deleting document %s for user %s: %s. Operation"+
+				"in incomplete state. Please manually delete documents for user.",
+				document.DocumentUUID, userID, err)
+		}
+	}
+
 	// Then Delete User from Users Table
 	err = u.postgresqlDB.DeleteUserInUsersTable(userID)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func setupTests() (UserService, storemodels.User, error, *postgresqlclient.PostgreSQL) {
+func setupTests() (UserService, storemodels.User, error, *postgresqlclient.PostgreSQL, documentservice.DocumentService) {
 	user := storemodels.User{
 		UserID:           "TestCreateUserTableUserServiceUserID",
 		ExternalID:       "TestCreateUserTableExternalID",
@@ -29,7 +29,7 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 
 	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
-		return nil, user, err, postgresqlDB
+		return nil, user, err, postgresqlDB, nil
 	}
 
 	weaviateDB, err := weaviateclient.NewWeaviateClientTest()
@@ -37,11 +37,11 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 
 	userService := NewUserService(postgresqlDB)
 	if err != nil {
-		return nil, user, err, postgresqlDB
+		return nil, user, err, postgresqlDB, nil
 	}
 
 	userService.SetDocumentService(docService)
-	return userService, user, nil, postgresqlDB
+	return userService, user, nil, postgresqlDB, docService
 }
 
 func cleanupTests(user storemodels.User, db *postgresqlclient.PostgreSQL) error {
@@ -49,7 +49,7 @@ func cleanupTests(user storemodels.User, db *postgresqlclient.PostgreSQL) error 
 }
 
 func TestCreateUser(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, db, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,7 +71,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, db, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -144,7 +144,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	userService, user, err, postgresqlDB := setupTests()
+	userService, user, err, postgresqlDB, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -165,13 +165,15 @@ func TestDeleteUser(t *testing.T) {
 		t.Errorf("User not deleted after deletion: %v", err)
 	}
 
+	// Verify All Documents, Chunks in Postgresql and Weaviate are deleted
+
 	t.Cleanup(func() {
 		cleanupTests(user, postgresqlDB)
 	})
 }
 
 func TestGetUser(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, db, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -197,7 +199,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserWithRetries(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, db, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -227,7 +229,7 @@ func TestGetUserWithRetries(t *testing.T) {
 }
 
 func TestHasUserBeenDeleted(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, db, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
