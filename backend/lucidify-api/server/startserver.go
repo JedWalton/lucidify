@@ -8,6 +8,7 @@ import (
 	"lucidify-api/service/chatservice"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
+	"lucidify-api/service/userservice"
 	"net/http"
 
 	"github.com/sashabaranov/go-openai"
@@ -39,12 +40,15 @@ func StartServer() {
 
 	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient, documentService)
 
+	userService := userservice.NewUserService(postgresqlDB)
+
 	SetupRoutes(
 		config,
 		mux,
 		clerkService,
 		documentService,
 		chatService,
+		userService,
 	)
 
 	BasicLogging(config, mux)

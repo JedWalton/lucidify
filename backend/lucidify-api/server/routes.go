@@ -8,6 +8,7 @@ import (
 	"lucidify-api/service/chatservice"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
+	"lucidify-api/service/userservice"
 	"net/http"
 )
 
@@ -16,9 +17,10 @@ func SetupRoutes(
 	mux *http.ServeMux,
 	clerkService clerkservice.ClerkClient,
 	documentsService documentservice.DocumentService,
-	chatService chatservice.ChatService) {
+	chatService chatservice.ChatService,
+	userService userservice.UserService) {
 
 	chatapi.SetupRoutes(config, mux, chatService, clerkService.GetClerkClient())
 	documentsapi.SetupRoutes(config, mux, documentsService, clerkService)
-	clerkapi.SetupRoutes(config, mux)
+	clerkapi.SetupRoutes(config, mux, userService)
 }

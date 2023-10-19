@@ -33,10 +33,7 @@ func createTestUserInDb() string {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService, err := userservice.NewUserService()
-	if err != nil {
-		log.Fatalf("Failed to create UserService: %v", err)
-	}
+	userService := userservice.NewUserService(db)
 
 	err = userService.DeleteUser(user.UserID)
 	if err != nil {

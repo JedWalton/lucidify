@@ -5,6 +5,7 @@ package clerkapi
 import (
 	"fmt"
 	"log"
+	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/http/clerkapi/clerkapi_test_utils"
 	"lucidify-api/server/config"
 	"lucidify-api/service/userservice"
@@ -25,13 +26,18 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		t.Errorf("User not created in Clerk. Reason: %v", err)
 	}
 
+	postgresDB, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create PostgreSQL client: %v", err)
+	}
+
 	t.Cleanup(func() {
 		log.Printf("Cleaning up test user: %v", userID)
 		err = clerkapi_test_utils.SimulateDeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}
-		userService, err := userservice.NewUserService()
+		userService := userservice.NewUserService(postgresDB)
 		if err != nil {
 			t.Errorf("Failed to create UserService: %v", err)
 		}
@@ -40,10 +46,7 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		}
 	})
 
-	userService, err := userservice.NewUserService()
-	if err != nil {
-		t.Errorf("Failed to create UserService: %v", err)
-	}
+	userService := userservice.NewUserService(postgresDB)
 	_, err = userService.GetUserWithRetries(userID, 10)
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)
