@@ -3,7 +3,6 @@ package clerkapi
 import (
 	"encoding/json"
 	"log"
-	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
 	"lucidify-api/service/userservice"
 	"net/http"
@@ -42,7 +41,7 @@ func getInt64FromMap(m map[string]interface{}, key string) int64 {
 	return 0
 }
 
-func ClerkHandler(db *postgresqlclient.PostgreSQL, userService userservice.UserService) http.HandlerFunc {
+func ClerkHandler(userService userservice.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

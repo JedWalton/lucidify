@@ -42,7 +42,6 @@ func StartServer() {
 	SetupRoutes(
 		config,
 		mux,
-		postgresqlDB,
 		clerkService,
 		documentService,
 		chatService,

@@ -45,6 +45,11 @@ func (u *UserServiceImpl) UpdateUser(user storemodels.User) error {
 }
 
 func (u *UserServiceImpl) DeleteUser(userID string) error {
+	// Perform Full Cleanup Of All User Data
+	// Weaviate Data
+	// Postgres Data
+	// Confirm Cleanup
+	// Then Delete User from Users Table
 	err := u.postgresqlDB.DeleteUserInUsersTable(userID)
 	if err != nil {
 		return err
