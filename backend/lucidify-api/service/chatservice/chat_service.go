@@ -9,12 +9,12 @@ type ChatService interface {
 
 // ChatServiceImpl is a concrete implementation of ChatService.
 type ChatServiceImpl struct {
-	chs ChatHistoryService
+	chs ChatThreadService
 	cvs ChatVectorService
 }
 
 // NewChatThreadService creates a new ChatService with its dependencies.
-func NewChatService(chs ChatHistoryService, cvs ChatVectorService) ChatService {
+func NewChatService(chs ChatThreadService, cvs ChatVectorService) ChatService {
 	return &ChatServiceImpl{
 		chs: chs,
 		cvs: cvs,
@@ -24,7 +24,7 @@ func NewChatService(chs ChatHistoryService, cvs ChatVectorService) ChatService {
 // StartChat initiates a new chat session.
 func (cs *ChatServiceImpl) StartChat(userID, initialMessage, model, temperature, prompt, folderID string) error {
 	// Start a new chat, which may involve creating a new chat history
-	chatID, err := cs.chs.CreateNewChatHistory(userID, model, temperature, prompt, folderID)
+	chatID, err := cs.chs.CreateNewChatThread(userID, model, temperature, prompt, folderID)
 	if err != nil {
 		return err
 	}

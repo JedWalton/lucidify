@@ -38,8 +38,8 @@ func StartServer() {
 	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
 
 	cvs := chatservice.NewChatVectorService(weaviate, openaiClient, documentService)
-	chs := chatservice.NewChatHistoryService(postgre)
-	chatService := chatservice.NewChatService(chs, cvs)
+	cts := chatservice.NewChatThreadService(postgre)
+	chatService := chatservice.NewChatService(cts, cvs)
 
 	SetupRoutes(
 		config,

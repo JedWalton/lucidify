@@ -10,7 +10,6 @@ import (
 )
 
 type ChatVectorService interface {
-	ProcessCurrentThreadAndReturnSystemPrompt() (string, error)
 	GetAnswerFromFiles(string, string) (string, error)
 }
 
@@ -25,13 +24,6 @@ func NewChatVectorService(
 	openaiClient *openai.Client,
 	documentService documentservice.DocumentService) ChatVectorService {
 	return &ChatVectorServiceImpl{weaviateDB: weaviateDB, openaiClient: *openaiClient, documentService: documentService}
-}
-
-func (c *ChatVectorServiceImpl) ProcessCurrentThreadAndReturnSystemPrompt() (string, error) {
-	// UpdateDatabaseWithCurrentChatThread()
-	// performVectorDatabaseSearchOnCurrentThread()
-	// generateOptimalSystemPrompt()
-	return "PLACEHOLDER RESPONSE", nil
 }
 
 func (c *ChatVectorServiceImpl) GetAnswerFromFiles(question string, userID string) (string, error) {
