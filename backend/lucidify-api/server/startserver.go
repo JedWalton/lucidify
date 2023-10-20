@@ -18,33 +18,35 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+	postgre, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	clerkInstance, err := clerkservice.NewClerkClient()
+	clerk, err := clerkservice.NewClerkClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	weaviateInstance, err := weaviateclient.NewWeaviateClient()
+	weaviate, err := weaviateclient.NewWeaviateClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateInstance)
+	documentService := documentservice.NewDocumentService(postgre, weaviate)
 
 	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
 
-	chatService := chatservice.NewChatService(postgresqlDB, weaviateInstance, openaiClient, documentService)
+	cvs := chatservice.NewChatVectorService(weaviate, openaiClient, documentService)
+	chs := chatservice.NewChatHistoryService(postgre)
+	chatService := chatservice.NewChatService(chs, cvs)
 
 	SetupRoutes(
 		config,
 		mux,
-		postgresqlDB,
-		clerkInstance,
-		weaviateInstance,
+		postgre,
+		clerk,
+		weaviate,
 		documentService,
 		chatService,
 	)

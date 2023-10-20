@@ -45,17 +45,17 @@ func ChatHandler(clerkInstance clerk.Client, chatService chatservice.ChatService
 
 		// Do something with the user prompt here
 		// CreateWeaviateClass()
-		responseMessage, err := chatService.ProcessCurrentThreadAndReturnSystemPrompt()
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		responseBody := map[string]string{
-			"response": responseMessage,
-		}
+		// responseMessage, err := chatService.ProcessCurrentThreadAndReturnSystemPrompt()
+		// if err != nil {
+		// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
+		// 	return
+		// }
+		//
+		// responseBody := map[string]string{
+		// 	"response": responseMessage,
+		// }
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(responseBody)
+		// json.NewEncoder(w).Encode(responseBody)
 	}
 }
