@@ -37,7 +37,7 @@ func (cs *ChatServiceImpl) SendMessage(userID, chatID, role, content string) err
 	// If role is "user", communicate with OpenAI API and get a response
 	if role == "user" {
 		// Save user's message
-		err := cs.chs.AddMessageToHistory(chatID, role, content)
+		err := cs.chs.AddMessageToThread(chatID, role, content)
 		if err != nil {
 			return err
 		}
@@ -47,7 +47,7 @@ func (cs *ChatServiceImpl) SendMessage(userID, chatID, role, content string) err
 			return err
 		}
 
-		err = cs.chs.AddMessageToHistory(chatID, "assistant", response)
+		err = cs.chs.AddMessageToThread(chatID, "assistant", response)
 		if err != nil {
 			return err
 		}

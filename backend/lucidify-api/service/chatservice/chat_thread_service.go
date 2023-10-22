@@ -4,8 +4,8 @@ import "lucidify-api/data/store/postgresqlclient"
 
 type ChatThreadService interface {
 	CreateNewChatThread(userID, model, temperature, prompt, folderID string) (chatID string, err error)
-	AddMessageToHistory(chatID, role, content string) error
-	ExportChatHistory(userID string) (exportData []byte, err error)
+	AddMessageToThread(chatID, role, content string) error
+	ExportChatThread(userID string) (exportData []byte, err error)
 	// ... other chat history methods ...
 }
 
@@ -22,12 +22,12 @@ func (chs *ChatThreadServiceImpl) CreateNewChatThread(userID, model, temperature
 	return "", nil
 }
 
-func (chs *ChatThreadServiceImpl) AddMessageToHistory(chatID, role, content string) error {
+func (chs *ChatThreadServiceImpl) AddMessageToThread(chatID, role, content string) error {
 	// Logic to add a message to a chat history
 	return nil
 }
 
-func (chs *ChatThreadServiceImpl) ExportChatHistory(userID string) (exportData []byte, err error) {
+func (chs *ChatThreadServiceImpl) ExportChatThread(userID string) (exportData []byte, err error) {
 	// Logic to export chat history
 	return nil, nil
 }
