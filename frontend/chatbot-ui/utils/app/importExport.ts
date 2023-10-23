@@ -72,10 +72,10 @@ function currentDate() {
   return `${month}-${day}`;
 }
 
-export const exportData = () => {
-  let history = storageService.getItem('conversationHistory');
-  let folders = storageService.getItem('folders');
-  let prompts = storageService.getItem('prompts');
+export const exportData = async () => {
+  let history = await storageService.getItem('conversationHistory');
+  let folders = await storageService.getItem('folders');
+  let prompts = await storageService.getItem('prompts');
 
   if (history) {
     history = JSON.parse(history);
@@ -110,13 +110,13 @@ export const exportData = () => {
   URL.revokeObjectURL(url);
 };
 
-export const importData = (
+export const importData = async (
   data: SupportedExportFormats,
-): LatestExportFormat => {
+): Promise<LatestExportFormat> => { // Mark the function as async and update the return type to Promise<LatestExportFormat>
   const { history, folders, prompts } = cleanData(data);
 
-  const oldConversations = storageService.getItem('conversationHistory');
-  const oldConversationsParsed = oldConversations
+  const oldConversations = await storageService.getItem('conversationHistory'); // Await the getItem call
+  const oldConversationsParsed = oldConversations 
     ? JSON.parse(oldConversations)
     : [];
 
@@ -127,17 +127,17 @@ export const importData = (
     (conversation, index, self) =>
       index === self.findIndex((c) => c.id === conversation.id),
   );
-  storageService.setItem('conversationHistory', JSON.stringify(newHistory));
+  await storageService.setItem('conversationHistory', JSON.stringify(newHistory)); // Await the setItem call
   if (newHistory.length > 0) {
-    storageService.setItem(
+    await storageService.setItem( // Await the setItem call
       'selectedConversation',
       JSON.stringify(newHistory[newHistory.length - 1]),
     );
   } else {
-    storageService.removeItem('selectedConversation');
+    await storageService.removeItem('selectedConversation'); // Await the removeItem call
   }
 
-  const oldFolders = storageService.getItem('folders');
+  const oldFolders = await storageService.getItem('folders'); // Await the getItem call
   const oldFoldersParsed = oldFolders ? JSON.parse(oldFolders) : [];
   const newFolders: FolderInterface[] = [
     ...oldFoldersParsed,
@@ -146,15 +146,15 @@ export const importData = (
     (folder, index, self) =>
       index === self.findIndex((f) => f.id === folder.id),
   );
-  storageService.setItem('folders', JSON.stringify(newFolders));
+  await storageService.setItem('folders', JSON.stringify(newFolders)); // Await the setItem call
 
-  const oldPrompts = storageService.getItem('prompts');
+  const oldPrompts = await storageService.getItem('prompts'); // Await the getItem call
   const oldPromptsParsed = oldPrompts ? JSON.parse(oldPrompts) : [];
   const newPrompts: Prompt[] = [...oldPromptsParsed, ...prompts].filter(
     (prompt, index, self) =>
       index === self.findIndex((p) => p.id === prompt.id),
   );
-  storageService.setItem('prompts', JSON.stringify(newPrompts));
+  await storageService.setItem('prompts', JSON.stringify(newPrompts)); // Await the setItem call
 
   return {
     version: 4,
@@ -163,3 +163,4 @@ export const importData = (
     prompts: newPrompts,
   };
 };
+
