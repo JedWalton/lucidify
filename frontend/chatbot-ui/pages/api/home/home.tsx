@@ -252,101 +252,110 @@ const Home = ({
   // ON LOAD --------------------------------------------
 
   useEffect(() => {
-    const settings = getSettings();
-    if (settings.theme) {
-      dispatch({
-        field: 'lightMode',
-        value: settings.theme,
-      });
-    }
+    const loadData = async () => {
+      try {
+        const settings = getSettings();
+        if (settings.theme) {
+          dispatch({
+            field: 'lightMode',
+            value: settings.theme,
+          });
+        }
 
-    const apiKey = storageService.getItem('apiKey');
+        const apiKey = await storageService.getItem('apiKey');
+        if (serverSideApiKeyIsSet) {
+          dispatch({ field: 'apiKey', value: '' });
+          await storageService.removeItem('apiKey');
+        } else if (apiKey) {
+          dispatch({ field: 'apiKey', value: apiKey });
+        }
 
-    if (serverSideApiKeyIsSet) {
-      dispatch({ field: 'apiKey', value: '' });
+        const pluginKeys = await storageService.getItem('pluginKeys');
+        if (serverSidePluginKeysSet) {
+          dispatch({ field: 'pluginKeys', value: [] });
+          localStorage.removeItem('pluginKeys');
+        } else if (pluginKeys) {
+          dispatch({ field: 'pluginKeys', value: pluginKeys });
+        }
 
-      storageService.removeItem('apiKey');
-    } else if (apiKey) {
-      dispatch({ field: 'apiKey', value: apiKey });
-    }
 
-    const pluginKeys = storageService.getItem('pluginKeys');
-    if (serverSidePluginKeysSet) {
-      dispatch({ field: 'pluginKeys', value: [] });
-      storageService.removeItem('pluginKeys');
-    } else if (pluginKeys) {
-      dispatch({ field: 'pluginKeys', value: pluginKeys });
-    }
+        if (window.innerWidth < 640) {
+          dispatch({ field: 'showChatbar', value: false });
+          dispatch({ field: 'showPromptbar', value: false });
+        }
 
-    if (window.innerWidth < 640) {
-      dispatch({ field: 'showChatbar', value: false });
-      dispatch({ field: 'showPromptbar', value: false });
-    }
+        const showChatbar = await storageService.getItem('showChatbar');
+        if (showChatbar) {
+          dispatch({ field: 'showChatbar', value: showChatbar === 'true' });
+        }
 
-    const showChatbar = storageService.getItem('showChatbar');
-    if (showChatbar) {
-      dispatch({ field: 'showChatbar', value: showChatbar === 'true' });
-    }
+        const showPromptbar = await storageService.getItem('showPromptbar');
+        if (showPromptbar) {
+          dispatch({ field: 'showPromptbar', value: showPromptbar === 'true' });
+        }
 
-    const showPromptbar = storageService.getItem('showPromptbar');
-    if (showPromptbar) {
-      dispatch({ field: 'showPromptbar', value: showPromptbar === 'true' });
-    }
+        const folders = await storageService.getItem('folders');
+        if (folders) {
+          dispatch({ field: 'folders', value: JSON.parse(folders) });
+        }
 
-    const folders = storageService.getItem('folders');
-    if (folders) {
-      dispatch({ field: 'folders', value: JSON.parse(folders) });
-    }
+        const prompts = await storageService.getItem('prompts');
+        if (prompts) {
+          dispatch({ field: 'prompts', value: JSON.parse(prompts) });
+        }
 
-    const prompts = storageService.getItem('prompts');
-    if (prompts) {
-      dispatch({ field: 'prompts', value: JSON.parse(prompts) });
-    }
+        const conversationHistory = await storageService.getItem('conversationHistory');
+        if (conversationHistory) {
+          const parsedConversationHistory: Conversation[] =
+            JSON.parse(conversationHistory);
+          const cleanedConversationHistory = cleanConversationHistory(
+            parsedConversationHistory,
+          );
 
-    const conversationHistory = storageService.getItem('conversationHistory');
-    if (conversationHistory) {
-      const parsedConversationHistory: Conversation[] =
-        JSON.parse(conversationHistory);
-      const cleanedConversationHistory = cleanConversationHistory(
-        parsedConversationHistory,
-      );
+          dispatch({ field: 'conversations', value: cleanedConversationHistory });
+        }
 
-      dispatch({ field: 'conversations', value: cleanedConversationHistory });
-    }
+        const selectedConversation = await storageService.getItem('selectedConversation');
+        if (selectedConversation) {
+          const parsedSelectedConversation: Conversation =
+            JSON.parse(selectedConversation);
+          const cleanedSelectedConversation = cleanSelectedConversation(
+            parsedSelectedConversation,
+          );
 
-    const selectedConversation = storageService.getItem('selectedConversation');
-    if (selectedConversation) {
-      const parsedSelectedConversation: Conversation =
-        JSON.parse(selectedConversation);
-      const cleanedSelectedConversation = cleanSelectedConversation(
-        parsedSelectedConversation,
-      );
-
-      dispatch({
-        field: 'selectedConversation',
-        value: cleanedSelectedConversation,
-      });
-    } else {
-      const lastConversation = conversations[conversations.length - 1];
-      dispatch({
-        field: 'selectedConversation',
-        value: {
-          id: uuidv4(),
-          name: t('New Conversation'),
-          messages: [],
-          model: OpenAIModels[defaultModelId],
-          prompt: DEFAULT_SYSTEM_PROMPT,
-          temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
-          folderId: null,
-        },
-      });
-    }
+          dispatch({
+            field: 'selectedConversation',
+            value: cleanedSelectedConversation,
+          });
+        } else {
+          const lastConversation = conversations[conversations.length - 1];
+          dispatch({
+            field: 'selectedConversation',
+            value: {
+              id: uuidv4(),
+              name: t('New Conversation'),
+              messages: [],
+              model: OpenAIModels[defaultModelId],
+              prompt: DEFAULT_SYSTEM_PROMPT,
+              temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
+              folderId: null,
+            },
+          });
+        }
+      } catch (error) {
+        // Handle or log errors as appropriate
+        console.error('An error occurred:', error);
+      }
+    };
+    // Call the async function
+    loadData();
   }, [
     defaultModelId,
     dispatch,
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
   ]);
+
 
   return (
     <HomeContext.Provider
