@@ -1,3 +1,4 @@
+import { storageService } from '@/services/storageService';
 import { Conversation } from '@/types/chat';
 
 export const updateConversation = (
@@ -22,9 +23,9 @@ export const updateConversation = (
 };
 
 export const saveConversation = (conversation: Conversation) => {
-  localStorage.setItem('selectedConversation', JSON.stringify(conversation));
+  storageService.setItem('selectedConversation', JSON.stringify(conversation));
 };
 
 export const saveConversations = (conversations: Conversation[]) => {
-  localStorage.setItem('conversationHistory', JSON.stringify(conversations));
+  storageService.setItem('conversationHistory', JSON.stringify(conversations));
 };
