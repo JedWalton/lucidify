@@ -8,7 +8,7 @@ See /docs/README.md
 
 ## Tools:
 - Docker Desktop
-- Serveo
+- Ngrok
 - GCP
 - Namecheap
 - Clerk
