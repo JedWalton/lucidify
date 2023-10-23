@@ -8,19 +8,11 @@ import { Prompt } from '../types/prompt';
 // import { LocalStorage, Conversation, FolderInterface, PluginKey, Prompt } from './your-types-file'; // update with your actual file path
 
 export const storageService = {
-  get(key: keyof LocalStorage): LocalStorage[keyof LocalStorage] | null {
+  getItem(key: keyof LocalStorage): string | null {
     const value = localStorage.getItem(key);
-    if (!value) return null;
-
-    // For complex objects stored as strings, we'll need to parse them
-    try {
-      return JSON.parse(value);
-    } catch {
-      // If an error occurs, it's possible that the item is a string that isn't JSON, so return it directly
-      return value;
-    }
+    return value; // return the string directly, parse after retrieval where necessary
   },
-  set(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): void {
+  setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): void {
     // For complex types, we need to stringify them to store in localStorage
     if (typeof value === 'object' && value !== null) {
       localStorage.setItem(key, JSON.stringify(value));
@@ -28,7 +20,7 @@ export const storageService = {
       localStorage.setItem(key, String(value));
     }
   },
-  remove(key: keyof LocalStorage): void {
+  removeItem(key: keyof LocalStorage): void {
     localStorage.removeItem(key);
   },
 };
