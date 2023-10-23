@@ -1,3 +1,4 @@
+import { storageService } from '@/services/storageService';
 import { Prompt } from '@/types/prompt';
 
 export const updatePrompt = (updatedPrompt: Prompt, allPrompts: Prompt[]) => {
