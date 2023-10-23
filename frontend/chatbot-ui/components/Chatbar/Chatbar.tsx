@@ -25,6 +25,7 @@ import ChatbarContext from './Chatbar.context';
 import { ChatbarInitialState, initialState } from './Chatbar.state';
 
 import { v4 as uuidv4 } from 'uuid';
+import { storageService } from '@/services/storageService';
 
 export const Chatbar = () => {
   const { t } = useTranslation('sidebar');
@@ -50,7 +51,7 @@ export const Chatbar = () => {
     (apiKey: string) => {
       homeDispatch({ field: 'apiKey', value: apiKey });
 
-      localStorage.setItem('apiKey', apiKey);
+      storageService.setItem('apiKey', apiKey);
     },
     [homeDispatch],
   );
@@ -67,11 +68,11 @@ export const Chatbar = () => {
 
       homeDispatch({ field: 'pluginKeys', value: updatedPluginKeys });
 
-      localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+      storageService.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
     } else {
       homeDispatch({ field: 'pluginKeys', value: [...pluginKeys, pluginKey] });
 
-      localStorage.setItem(
+      storageService.setItem(
         'pluginKeys',
         JSON.stringify([...pluginKeys, pluginKey]),
       );
@@ -85,13 +86,13 @@ export const Chatbar = () => {
 
     if (updatedPluginKeys.length === 0) {
       homeDispatch({ field: 'pluginKeys', value: [] });
-      localStorage.removeItem('pluginKeys');
+      storageService.removeItem('pluginKeys');
       return;
     }
 
     homeDispatch({ field: 'pluginKeys', value: updatedPluginKeys });
 
-    localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+    storageService.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
   };
 
   const handleExportData = () => {
@@ -128,8 +129,8 @@ export const Chatbar = () => {
 
     homeDispatch({ field: 'conversations', value: [] });
 
-    localStorage.removeItem('conversationHistory');
-    localStorage.removeItem('selectedConversation');
+    storageService.removeItem('conversationHistory');
+    storageService.removeItem('selectedConversation');
 
     const updatedFolders = folders.filter((f) => f.type !== 'chat');
 
@@ -168,13 +169,13 @@ export const Chatbar = () => {
           },
         });
 
-      localStorage.removeItem('selectedConversation');
+      storageService.removeItem('selectedConversation');
     }
   };
 
   const handleToggleChatbar = () => {
     homeDispatch({ field: 'showChatbar', value: !showChatbar });
-    localStorage.setItem('showChatbar', JSON.stringify(!showChatbar));
+    storageService.setItem('showChatbar', JSON.stringify(!showChatbar));
   };
 
   const handleDrop = (e: any) => {

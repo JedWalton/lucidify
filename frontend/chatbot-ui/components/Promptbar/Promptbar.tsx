@@ -40,7 +40,7 @@ const Promptbar = () => {
 
   const handleTogglePromptbar = () => {
     homeDispatch({ field: 'showPromptbar', value: !showPromptbar });
-    localStorage.setItem('showPromptbar', JSON.stringify(!showPromptbar));
+    storageService.setItem('showPromptbar', JSON.stringify(!showPromptbar));
   };
 
   const handleCreatePrompt = () => {
