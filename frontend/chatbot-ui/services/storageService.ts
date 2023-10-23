@@ -1,9 +1,10 @@
 // storageService.ts
 import { LocalStorage } from '@/types/storage';
-import { Conversation } from '../types/chat';
-import { FolderInterface } from '../types/folder';
-import { PluginKey } from '../types/plugin';
-import { Prompt } from '../types/prompt';
+import { Conversation } from '@/types/chat';
+import { FolderInterface } from '@/types/folder';
+import { PluginKey } from '@/types/plugin';
+import { Prompt } from '@/types/prompt';
+import { Settings } from '@/types/settings';
 
 // import { LocalStorage, Conversation, FolderInterface, PluginKey, Prompt } from './your-types-file'; // update with your actual file path
 
