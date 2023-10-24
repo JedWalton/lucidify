@@ -74,6 +74,34 @@ export const storageService = {
 
 const API_BASE_URL = "http://localhost:8080"
 
+// async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
+//   try {
+//     const url = `${API_BASE_URL}${endpoint}`;
+//
+//     const options: RequestInit = {
+//       method,
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       mode: 'cors',
+//     };
+//     if (body) {
+//       options.body = JSON.stringify(body);
+//     }
+//
+//     const response = await fetch(url, options);
+//
+//     if (!response.ok) {
+//       const errBody = await response.json();
+//       throw new Error(errBody.message || `Server responded with ${response.status}`);
+//     }
+//
+//     return method === 'GET' ? response.json() : null;
+//   } catch (error) {
+//     console.error(`Request failed: ${error}`);
+//     return null;
+//   }
+// }
 async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -92,13 +120,21 @@ async function makeRequest(endpoint: string, method: string, body: any = null): 
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      const errBody = await response.json();
-      throw new Error(errBody.message || `Server responded with ${response.status}`);
+      // Attempt to read the response as JSON only if the content type is correct
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errBody = await response.json();
+        throw new Error(errBody.message || `Server responded with ${response.status}`);
+      } else {
+        throw new Error(`Server responded with ${response.status}`);
+      }
     }
 
+    // For 'GET' method, we expect a JSON response. Otherwise, resolve with null.
     return method === 'GET' ? response.json() : null;
   } catch (error) {
     console.error(`Request failed: ${error}`);
     return null;
   }
 }
+
