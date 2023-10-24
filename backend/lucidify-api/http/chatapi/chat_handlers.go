@@ -81,11 +81,12 @@ func SyncHandler(chatService chatservice.ChatService) http.HandlerFunc {
 
 		case http.MethodPost:
 			// Logic for saving/updating data
-			err := SyncData(w, r) // this function should be implemented and return an error if it fails
-			if err != nil {
-				http.Error(w, "Failed to sync data", http.StatusInternalServerError)
-				return
-			}
+			SyncData(w, r) // this function should be implemented and return an error if it fails
+			// err := SyncData(w, r) // this function should be implemented and return an error if it fails
+			// if err != nil {
+			// 	http.Error(w, "Failed to sync data", http.StatusInternalServerError)
+			// 	return
+			// }
 
 			response := map[string]string{
 				"status":  "success",
@@ -102,11 +103,12 @@ func SyncHandler(chatService chatservice.ChatService) http.HandlerFunc {
 				return
 			}
 
-			err := DeleteData(w, r, key) // this function should be implemented and return an error if it fails
-			if err != nil {
-				http.Error(w, "Failed to delete data", http.StatusInternalServerError)
-				return
-			}
+			DeleteData(w, r, key) // this function should be implemented and return an error if it fails
+			// err := DeleteData(w, r, key) // this function should be implemented and return an error if it fails
+			// if err != nil {
+			// 	http.Error(w, "Failed to delete data", http.StatusInternalServerError)
+			// 	return
+			// }
 
 			response := map[string]string{
 				"status":  "success",
