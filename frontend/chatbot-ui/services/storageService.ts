@@ -6,6 +6,42 @@ import { PluginKey } from '@/types/plugin';
 import { Prompt } from '@/types/prompt';
 import { Settings } from '@/types/settings';
 
+interface ChangeLog {
+  changeId: number;
+  key: keyof LocalStorage;
+  operation: 'INSERT' | 'UPDATE' | 'DELETE';
+  oldValue?: any;
+  newValue?: any;
+  timestamp: number;
+}
+
+const CHANGE_LOG_KEY = '__CHANGE_LOG__';
+
+function getChangeLog(): ChangeLog[] {
+  const log = localStorage.getItem(CHANGE_LOG_KEY);
+  return log ? JSON.parse(log) : [];
+}
+
+function addToChangeLog(change: Omit<ChangeLog, 'changeId'>): void {
+  const log = getChangeLog();
+  const changeId = log.length > 0 ? log[log.length - 1].changeId + 1 : 1; // Simple incremental IDs.
+  log.push({ ...change, changeId });
+  localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(log));
+}
+
+function clearChangeLog(): void {
+  localStorage.removeItem(CHANGE_LOG_KEY);
+}
+
+function removeFromChangeLog(changeId: number): void {
+  const log = getChangeLog();
+  const index = log.findIndex(change => change.changeId === changeId);
+  if (index !== -1) {
+    log.splice(index, 1);
+    localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(log));
+  }
+}
+
 export const storageService = {
   async getItem(key: keyof LocalStorage): Promise<string | null> {
     let value = localStorage.getItem(key);
@@ -22,24 +58,69 @@ export const storageService = {
   },
 
   async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<void> {
-    // For complex types, we need to stringify them to store in localStorage
+    const oldValue = await this.getItem(key);
+
     if (typeof value === 'object' && value !== null) {
       localStorage.setItem(key, JSON.stringify(value));
     } else {
       localStorage.setItem(key, String(value));
     }
-    // Also sync with server
+
+    // Add to change log
+    addToChangeLog({
+      key,
+      operation: oldValue ? 'UPDATE' : 'INSERT',
+      oldValue,
+      newValue: value,
+      timestamp: Date.now(),
+    });
+
+
     await this.syncWithServer(key, value);
   },
 
   async removeItem(key: keyof LocalStorage): Promise<void> {
+    const oldValue = await this.getItem(key);
     localStorage.removeItem(key);
-    // Also attempt to remove the data from the server
+
+    // Add to change log
+    addToChangeLog({
+      key,
+      operation: 'DELETE',
+      oldValue,
+      timestamp: Date.now(),
+    });
+
     await this.removeFromServer(key).catch(error => {
       console.error('Failed to remove item from server:', error);
     });
   },
 
+  async syncAllChangesWithServer(): Promise<void> {
+    const changeLog = getChangeLog();
+    for (const change of changeLog) {
+      try {
+        await this.syncSingleChangeWithServer(change);
+        removeFromChangeLog(change.changeId);
+      } catch (error) {
+        console.error(`Failed to sync change ${change.changeId} with server:`, error);
+      }
+    }
+  },
+
+  async syncSingleChangeWithServer(change: ChangeLog): Promise<void> {
+    switch (change.operation) {
+      case 'INSERT':
+      case 'UPDATE':
+        await this.syncWithServer(change.key, change.newValue);
+        break;
+      case 'DELETE':
+        await this.removeFromServer(change.key);
+        break;
+      default:
+        console.warn(`Unhandled change operation: ${change.operation}`);
+    }
+  },
 
   async syncWithServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<void> {
     try {
@@ -69,7 +150,6 @@ export const storageService = {
         throw new Error(errorMessage);
       }
 
-      // handle response logic, if needed
       console.log('Data synced successfully with server');
     } catch (error) {
       console.error('Failed to sync with server:', error);
