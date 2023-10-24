@@ -40,31 +40,86 @@ export const storageService = {
     });
   },
 
-  // Now, refactor your methods using the above helper function
+
   async syncWithServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<void> {
-    const body = { key, value };
-    const result = await makeRequest('/api/sync', 'POST', body); // replace '/api/sync' with your actual API endpoint
-    if (result === null) {
-      console.error('Failed to sync with server');
-    } else {
+    try {
+      const url = `${API_BASE_URL}/api/sync/?key=${encodeURIComponent(key as string)}`;
+
+      const options: RequestInit = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+        body: JSON.stringify({ value }), // We send only the value in the body as the key is already in the URL.
+      };
+
+      const response = await fetch(url, options);
+      const responseClone = response.clone(); // Clone the response to read it multiple times
+
+      if (!response.ok) {
+        let errorMessage = 'Server responded with an error';
+        try {
+          const errorBody = await responseClone.json(); // Try to parse as JSON first
+          errorMessage = errorBody.message || `Server responded with status code ${response.status}`;
+        } catch (jsonError) {
+          errorMessage = await responseClone.text(); // If response is not JSON, read as text
+        }
+
+        throw new Error(errorMessage);
+      }
+
       // handle response logic, if needed
+      console.log('Data synced successfully with server');
+    } catch (error) {
+      console.error('Failed to sync with server:', error);
     }
   },
 
+
+  // async fetchFromServer(key: keyof LocalStorage): Promise<string | null> {
+  //   const result = await makeRequest(`/api/sync/${key}`, 'GET'); // replace with your actual API endpoint
+  // For GET and DELETE, it makes more sense to pass the 'key' in the query parameters (as you're not supposed to have a body in GET and DELETE requests).
   async fetchFromServer(key: keyof LocalStorage): Promise<string | null> {
-    const result = await makeRequest(`/api/sync/${key}`, 'GET'); // replace with your actual API endpoint
-    if (result === null) {
-      console.error('Failed to fetch data from server');
+    try {
+      const url = `${API_BASE_URL}/api/sync/?key=${encodeURIComponent(key as string)}`;
+
+      const options: RequestInit = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      };
+
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        // You can first attempt to decode the response as JSON, and then fall back to text if it fails.
+        let errorMessage = 'Server responded with an error';
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || `Server responded with ${response.status}`;
+        } catch (jsonError) {
+          errorMessage = await response.text(); // If response is not in JSON format
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      // If the response is OK, we decode it from JSON
+      const data = await response.json();
+      return JSON.stringify(data);  // or just `return data;` if you don't need to stringify the response
+    } catch (error) {
+      console.error(`Request failed: ${error}`);
       return null;
     }
-
-    // If the server returns the data directly, we stringify it to keep the method's signature consistent
-    // You might need to adjust this based on how your server responds
-    return JSON.stringify(result);
   },
 
+  // async removeFromServer(key: keyof LocalStorage): Promise<void> {
+  //   const result = await makeRequest(`/api/sync/${key}`, 'DELETE');
   async removeFromServer(key: keyof LocalStorage): Promise<void> {
-    const result = await makeRequest(`/api/sync/${key}`, 'DELETE');
+    const result = await makeRequest(`/api/sync?key=${key}`, 'DELETE'); // Sending 'key' in query parameters
     if (result !== null) {
       console.log(`Data associated with '${key}' successfully deleted from the server.`);
     }
@@ -74,34 +129,6 @@ export const storageService = {
 
 const API_BASE_URL = "http://localhost:8080"
 
-// async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
-//   try {
-//     const url = `${API_BASE_URL}${endpoint}`;
-//
-//     const options: RequestInit = {
-//       method,
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       mode: 'cors',
-//     };
-//     if (body) {
-//       options.body = JSON.stringify(body);
-//     }
-//
-//     const response = await fetch(url, options);
-//
-//     if (!response.ok) {
-//       const errBody = await response.json();
-//       throw new Error(errBody.message || `Server responded with ${response.status}`);
-//     }
-//
-//     return method === 'GET' ? response.json() : null;
-//   } catch (error) {
-//     console.error(`Request failed: ${error}`);
-//     return null;
-//   }
-// }
 async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -120,21 +147,13 @@ async function makeRequest(endpoint: string, method: string, body: any = null): 
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      // Attempt to read the response as JSON only if the content type is correct
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errBody = await response.json();
-        throw new Error(errBody.message || `Server responded with ${response.status}`);
-      } else {
-        throw new Error(`Server responded with ${response.status}`);
-      }
+      const errBody = await response.json();
+      throw new Error(errBody.message || `Server responded with ${response.status}`);
     }
 
-    // For 'GET' method, we expect a JSON response. Otherwise, resolve with null.
     return method === 'GET' ? response.json() : null;
   } catch (error) {
     console.error(`Request failed: ${error}`);
     return null;
   }
 }
-
