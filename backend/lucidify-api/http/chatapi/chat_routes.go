@@ -65,20 +65,21 @@ func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 	jsonResponse(w, http.StatusOK, Response{"success", data})
 }
 
-func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
+func DeleteData(w http.ResponseWriter, r *http.Request, key string) error {
 	log.Printf("DeleteData called with key: %s\n", key)
 
 	err := deleteDataFromDB(key) // Ensure this function returns error if any
 	if err != nil {
 		log.Printf("DeleteData: error deleting data from DB: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	jsonResponse(w, http.StatusOK, Response{"success", "data deleted"})
+	return nil
 }
 
-func SyncData(w http.ResponseWriter, r *http.Request) {
+func SyncData(w http.ResponseWriter, r *http.Request) error {
 	log.Println("SyncData called")
 
 	var requestBody map[string]interface{}
@@ -86,31 +87,32 @@ func SyncData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("SyncData: error decoding request body: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 
 	key, ok := requestBody["key"].(string)
 	if !ok {
 		log.Println("SyncData: 'key' not in request body or not a string")
 		http.Error(w, "'key' not in request body or not a string", http.StatusBadRequest)
-		return
+		return err
 	}
 
 	value, ok := requestBody["value"]
 	if !ok {
 		log.Println("SyncData: 'value' not in request body")
 		http.Error(w, "'value' not in request body", http.StatusBadRequest)
-		return
+		return err
 	}
 
 	err = syncDataToDB(key, value) // Ensure this function returns error if any
 	if err != nil {
 		log.Printf("SyncData: error syncing data to DB: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	jsonResponse(w, http.StatusOK, Response{"success", "data synced"})
+	return nil
 }
 
 // ... other code ...

@@ -10,6 +10,7 @@ import (
 	"lucidify-api/service/documentservice"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/sashabaranov/go-openai"
 )
 
@@ -51,5 +52,20 @@ func StartServer() {
 		chatService,
 	)
 
-	BasicLogging(config, mux)
+	// Set up CORS middleware with your desired options.
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}), // Adjust this to the origins you want to allow.
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	)
+
+	// Wrap the original mux with the CORS handler.
+	corsEnabledMux := corsHandler(mux)
+
+	// Use the CORS-enabled mux in your server.
+	log.Printf("Server starting on :%s", config.Port)
+	if err := http.ListenAndServe(":"+config.Port, corsEnabledMux); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+	// BasicLogging(config, mux)
 }

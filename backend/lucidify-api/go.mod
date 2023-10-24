@@ -10,10 +10,12 @@ require (
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/clerkinc/clerk-sdk-go v1.48.1 // indirect
+	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/sashabaranov/go-openai v1.15.4 // indirect
