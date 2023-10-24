@@ -2,6 +2,7 @@ package chatapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"lucidify-api/server/config"
 	"lucidify-api/server/middleware"
@@ -114,20 +115,35 @@ func SyncData(w http.ResponseWriter, r *http.Request) {
 
 // ... other code ...
 
-// Placeholder functions - replace with actual database interactions
+// fetchDataFromDB is a stub function to simulate database fetching.
 func fetchDataFromDB(key string) (interface{}, error) {
-	// Your logic to fetch data from the database
-	return nil, nil // Placeholder return value, update with your logic
+	// Instead of fetching data from a database, we return a hardcoded value.
+	// You should replace this with actual database interaction logic.
+	data := map[string]string{
+		"exampleKey": "exampleValue",
+	}
+
+	if value, exists := data[key]; exists {
+		return value, nil
+	}
+
+	return nil, fmt.Errorf("no data found for key: %s", key)
 }
 
-func syncDataToDB(key string, value interface{}) error {
-	// Your logic to save data to the database
-	return nil // Placeholder return value, update with your logic
-}
-
+// deleteDataFromDB is a stub function to simulate database deletion.
 func deleteDataFromDB(key string) error {
-	// Your logic to delete data from the database
-	return nil // Placeholder return value, update with your logic
+	// Instead of deleting data from a database, we just log the action and pretend it succeeded.
+	// You should replace this with actual database interaction logic.
+	log.Printf("Data with key '%s' is supposed to be deleted here.", key)
+	return nil // no error, means it was "successful"
+}
+
+// syncDataToDB is a stub function to simulate database sync/insert/update.
+func syncDataToDB(key string, value interface{}) error {
+	// Instead of syncing data to a database, we just log the action and pretend it succeeded.
+	// You should replace this with actual database interaction logic.
+	log.Printf("Data with key '%s' and value '%v' is supposed to be synced here.", key, value)
+	return nil // no error, means it was "successful"
 }
 
 func SetupChatHandler(
