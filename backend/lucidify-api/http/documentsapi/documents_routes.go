@@ -26,7 +26,6 @@ func SetupDocumentsUploadHandler(config *config.ServerConfig, mux *http.ServeMux
 
 	injectActiveSession := clerk.WithSession(client)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/upload", injectActiveSession(handler))
@@ -40,7 +39,6 @@ func SetupDocumentsGetDocumentHandler(config *config.ServerConfig, mux *http.Ser
 
 	injectActiveSession := clerk.WithSession(client)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/getdocument", injectActiveSession(handler))
@@ -54,7 +52,6 @@ func SetupDocumentsGetAllDocumentHandler(config *config.ServerConfig, mux *http.
 
 	injectActiveSession := clerk.WithSession(client)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/get_all_documents", injectActiveSession(handler))
@@ -68,7 +65,6 @@ func SetupDocumentsDeleteDocumentHandler(config *config.ServerConfig, mux *http.
 
 	injectActiveSession := clerk.WithSession(client)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/deletedocument", injectActiveSession(handler))
@@ -82,7 +78,6 @@ func SetupDocumentsUpdateDocumentNameHandler(config *config.ServerConfig, mux *h
 
 	injectActiveSession := clerk.WithSession(client)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/update_document_name", injectActiveSession(handler))
@@ -96,7 +91,6 @@ func SetupDocumentsUpdateDocumentContentHandler(config *config.ServerConfig, mux
 
 	injectActiveSession := clerk.WithSession(client)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/documents/update_document_content", injectActiveSession(handler))
