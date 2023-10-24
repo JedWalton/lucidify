@@ -32,67 +32,84 @@ type Response struct {
 func jsonResponse(w http.ResponseWriter, statusCode int, payload interface{}) {
 	response, err := json.Marshal(payload)
 	if err != nil {
+		log.Printf("jsonResponse: error marshalling payload: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	w.Write(response) // This is a simplification; in production code, you'd want to handle the error that Write can produce.
+	_, err = w.Write(response)
+	if err != nil {
+		log.Printf("jsonResponse: error writing response: %v", err)
+	}
 }
 
 func FetchData(w http.ResponseWriter, r *http.Request, key string) {
-	// No need for mux.Vars(r) as we're now passing the key directly
 	log.Printf("FetchData called with key: %s\n", key)
 
-	// Replace with logic to fetch data by key from your database
-	data, err := fetchDataFromDB(key)
+	data, err := fetchDataFromDB(key) // Ensure this function returns the expected data or error
 	if err != nil {
+		log.Printf("FetchData: error fetching data from DB: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if data == nil {
+		log.Printf("FetchData: no data found for key: %s", key)
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
 	jsonResponse(w, http.StatusOK, Response{"success", data})
 }
 
-func DeleteData(w http.ResponseWriter, r *http.Request, key string) error {
-	// No need for mux.Vars(r) as we're now passing the key directly
+func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
 	log.Printf("DeleteData called with key: %s\n", key)
 
-	// Replace with logic to delete data by key from your database
-	err := deleteDataFromDB(key)
+	err := deleteDataFromDB(key) // Ensure this function returns error if any
 	if err != nil {
+		log.Printf("DeleteData: error deleting data from DB: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return err
+		return
 	}
 
-	jsonResponse(w, http.StatusOK, Response{"success", nil})
-	return nil
+	jsonResponse(w, http.StatusOK, Response{"success", "data deleted"})
 }
 
-// Handler to sync data
-func SyncData(w http.ResponseWriter, r *http.Request) error {
-	log.Printf("SyncData called with key")
+func SyncData(w http.ResponseWriter, r *http.Request) {
+	log.Println("SyncData called")
 
 	var requestBody map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
+		log.Printf("SyncData: error decoding request body: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return err
+		return
 	}
 
-	key := requestBody["key"].(string)
-	value := requestBody["value"]
+	key, ok := requestBody["key"].(string)
+	if !ok {
+		log.Println("SyncData: 'key' not in request body or not a string")
+		http.Error(w, "'key' not in request body or not a string", http.StatusBadRequest)
+		return
+	}
 
-	// Replace with logic to store data in your database
-	err = syncDataToDB(key, value)
+	value, ok := requestBody["value"]
+	if !ok {
+		log.Println("SyncData: 'value' not in request body")
+		http.Error(w, "'value' not in request body", http.StatusBadRequest)
+		return
+	}
+
+	err = syncDataToDB(key, value) // Ensure this function returns error if any
 	if err != nil {
+		log.Printf("SyncData: error syncing data to DB: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return err
+		return
 	}
 
-	jsonResponse(w, http.StatusOK, Response{"success", nil})
-	return nil
+	jsonResponse(w, http.StatusOK, Response{"success", "data synced"})
 }
 
 // ... other code ...
