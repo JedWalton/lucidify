@@ -77,9 +77,8 @@ func setupTestChatService() ChatService {
 	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
 
 	// Create instance of ChatVectorService
-	chs := NewChatThreadService(postgresqlDB)
 	cvs := NewChatVectorService(weaviateDB, openaiClient, documentService)
-	chatService := NewChatService(chs, cvs)
+	chatService := NewChatService(cvs)
 
 	createTestUserInDb()
 
