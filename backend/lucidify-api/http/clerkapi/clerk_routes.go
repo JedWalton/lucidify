@@ -17,7 +17,6 @@ func SetupRoutes(storeInstance *postgresqlclient.PostgreSQL, config *config.Serv
 	handler := ClerkHandler(storeInstance, userService)
 
 	handler = middleware.ClerkWebhooksAuthenticationMiddleware(config)(handler)
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.HandleFunc("/clerk/webhook", handler)

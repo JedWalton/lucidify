@@ -158,7 +158,6 @@ func SetupChatHandler(
 
 	injectActiveSession := clerk.WithSession(clerkInstance)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/chat", injectActiveSession(handler))
@@ -170,7 +169,6 @@ func SetupSyncHandler(config *config.ServerConfig, chatService chatservice.ChatS
 
 	handler := SyncHandler(chatService)
 
-	handler = middleware.CORSMiddleware(config.AllowedOrigins)(handler)
 	handler = middleware.Logging(handler)
 
 	mux.Handle("/api/sync", handler)
