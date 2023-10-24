@@ -61,6 +61,7 @@ func NewServerConfig() *ServerConfig {
 
 	allowedOrigins := []string{
 		"http://localhost:3000",
+		"http://localhost:3002",
 	}
 
 	postgresqlURL := os.Getenv("POSTGRESQL_URL")
