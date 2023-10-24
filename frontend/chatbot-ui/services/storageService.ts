@@ -28,7 +28,7 @@ export const storageService = {
     } else {
       localStorage.setItem(key, String(value));
     }
-        // Also sync with server
+    // Also sync with server
     await this.syncWithServer(key, value);
   },
 
@@ -83,6 +83,7 @@ async function makeRequest(endpoint: string, method: string, body: any = null): 
       headers: {
         'Content-Type': 'application/json',
       },
+      mode: 'cors',
     };
     if (body) {
       options.body = JSON.stringify(body);
@@ -91,7 +92,8 @@ async function makeRequest(endpoint: string, method: string, body: any = null): 
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
+      const errBody = await response.json();
+      throw new Error(errBody.message || `Server responded with ${response.status}`);
     }
 
     return method === 'GET' ? response.json() : null;
