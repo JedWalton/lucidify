@@ -171,7 +171,8 @@ func SetupSyncHandler(config *config.ServerConfig, chatService chatservice.ChatS
 
 	handler = middleware.Logging(handler)
 
-	mux.Handle("/api/sync", handler)
+	// mux.Handle("/api/sync", handler)
+	mux.Handle("/api/sync/", http.StripPrefix("/api/sync/", handler))
 
 	return mux
 }
