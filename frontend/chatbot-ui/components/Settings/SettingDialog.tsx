@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useReducer, useRef } from 'react';
+import { FC, useContext, useEffect, useReducer, useRef, useState } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
@@ -17,7 +17,7 @@ interface Props {
 
 export const SettingDialog: FC<Props> = ({ open, onClose }) => {
   const { t } = useTranslation('settings');
-  const settings: Settings = getSettings();
+  const [settings, setSettings] = useState<Settings>({ theme: 'dark' }); // default value
   const { state, dispatch } = useCreateReducer<Settings>({
     initialState: settings,
   });
@@ -43,9 +43,19 @@ export const SettingDialog: FC<Props> = ({ open, onClose }) => {
     };
   }, [onClose]);
 
+  // Load settings when component mounts
+  useEffect(() => {
+    const loadSettings = async () => {
+      const loadedSettings = await getSettings();
+      setSettings(loadedSettings);
+    };
+
+    loadSettings();
+  }, []); // Empty dependency array means this useEffect runs once when component mounts
+
   const handleSave = () => {
-    homeDispatch({ field: 'lightMode', value: state.theme });
-    saveSettings(state);
+    homeDispatch({ field: 'lightMode', value: settings.theme }); // use settings from state
+    saveSettings(settings); // use settings from state
   };
 
   // Render nothing if the dialog is not open.

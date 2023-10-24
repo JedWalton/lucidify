@@ -254,7 +254,7 @@ const Home = ({
   useEffect(() => {
     const loadData = async () => {
       try {
-        const settings = getSettings();
+        const settings = await getSettings();
         if (settings.theme) {
           dispatch({
             field: 'lightMode',

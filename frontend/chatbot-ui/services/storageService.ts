@@ -71,8 +71,13 @@ export const storageService = {
   }
 };
 
-async function makeRequest(url: string, method: string, body: any = null): Promise<any> {
+
+const API_BASE_URL = "http://localhost:8080"
+
+async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
   try {
+    const url = `${API_BASE_URL}${endpoint}`;
+
     const options: RequestInit = {
       method,
       headers: {

@@ -48,15 +48,15 @@ export const Chatbar = () => {
   } = chatBarContextValue;
 
   const handleApiKeyChange = useCallback(
-    (apiKey: string) => {
+    async (apiKey: string) => {
       homeDispatch({ field: 'apiKey', value: apiKey });
 
-      storageService.setItem('apiKey', apiKey);
+      await storageService.setItem('apiKey', apiKey);
     },
     [homeDispatch],
   );
 
-  const handlePluginKeyChange = (pluginKey: PluginKey) => {
+  const handlePluginKeyChange = async (pluginKey: PluginKey) => {
     if (pluginKeys.some((key) => key.pluginId === pluginKey.pluginId)) {
       const updatedPluginKeys = pluginKeys.map((key) => {
         if (key.pluginId === pluginKey.pluginId) {
@@ -68,31 +68,31 @@ export const Chatbar = () => {
 
       homeDispatch({ field: 'pluginKeys', value: updatedPluginKeys });
 
-      storageService.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+      await storageService.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
     } else {
       homeDispatch({ field: 'pluginKeys', value: [...pluginKeys, pluginKey] });
 
-      storageService.setItem(
+      await storageService.setItem(
         'pluginKeys',
         JSON.stringify([...pluginKeys, pluginKey]),
       );
     }
   };
 
-  const handleClearPluginKey = (pluginKey: PluginKey) => {
+  const handleClearPluginKey = async (pluginKey: PluginKey) => {
     const updatedPluginKeys = pluginKeys.filter(
       (key) => key.pluginId !== pluginKey.pluginId,
     );
 
     if (updatedPluginKeys.length === 0) {
       homeDispatch({ field: 'pluginKeys', value: [] });
-      storageService.removeItem('pluginKeys');
+      await storageService.removeItem('pluginKeys');
       return;
     }
 
     homeDispatch({ field: 'pluginKeys', value: updatedPluginKeys });
 
-    storageService.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+    await storageService.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
   };
 
   const handleExportData = () => {
@@ -112,7 +112,7 @@ export const Chatbar = () => {
     window.location.reload();
   };
 
-  const handleClearConversations = () => {
+  const handleClearConversations = async () => {
     defaultModelId &&
       homeDispatch({
         field: 'selectedConversation',
@@ -129,8 +129,8 @@ export const Chatbar = () => {
 
     homeDispatch({ field: 'conversations', value: [] });
 
-    storageService.removeItem('conversationHistory');
-    storageService.removeItem('selectedConversation');
+    await storageService.removeItem('conversationHistory');
+    await storageService.removeItem('selectedConversation');
 
     const updatedFolders = folders.filter((f) => f.type !== 'chat');
 
@@ -138,7 +138,7 @@ export const Chatbar = () => {
     saveFolders(updatedFolders);
   };
 
-  const handleDeleteConversation = (conversation: Conversation) => {
+  const handleDeleteConversation = async (conversation: Conversation) => {
     const updatedConversations = conversations.filter(
       (c) => c.id !== conversation.id,
     );
@@ -169,13 +169,13 @@ export const Chatbar = () => {
           },
         });
 
-      storageService.removeItem('selectedConversation');
+      await storageService.removeItem('selectedConversation');
     }
   };
 
-  const handleToggleChatbar = () => {
+  const handleToggleChatbar = async () => {
     homeDispatch({ field: 'showChatbar', value: !showChatbar });
-    storageService.setItem('showChatbar', JSON.stringify(!showChatbar));
+    await storageService.setItem('showChatbar', JSON.stringify(!showChatbar));
   };
 
   const handleDrop = (e: any) => {
