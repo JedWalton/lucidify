@@ -165,6 +165,7 @@ func SetupChatHandler(
 
 	return mux
 }
+
 func SetupSyncHandler(config *config.ServerConfig, chatService chatservice.ChatService, mux *http.ServeMux) *http.ServeMux {
 
 	handler := SyncHandler(chatService)
