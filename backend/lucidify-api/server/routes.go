@@ -6,6 +6,7 @@ import (
 	"lucidify-api/http/chatapi"
 	"lucidify-api/http/clerkapi"
 	"lucidify-api/http/documentsapi"
+	"lucidify-api/http/syncapi"
 	"lucidify-api/server/config"
 	"lucidify-api/service/chatservice"
 	"lucidify-api/service/documentservice"
@@ -26,4 +27,5 @@ func SetupRoutes(
 	chatapi.SetupRoutes(config, mux, chatService, clerkInstance)
 	documentsapi.SetupRoutes(config, mux, documentsService, clerkInstance)
 	clerkapi.SetupRoutes(storeInstance, config, mux)
+	syncapi.SetupRoutes(config, mux, clerkInstance)
 }
