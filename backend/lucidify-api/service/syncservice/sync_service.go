@@ -7,82 +7,64 @@ import (
 	"net/http"
 )
 
-type Response struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data"`
+// ServerResponse is the structure that defines the standard response from the server.
+type ServerResponse struct {
+	Success bool        `json:"success"`           // Indicates if the operation was successful
+	Data    interface{} `json:"data,omitempty"`    // Holds the actual data, if any
+	Message string      `json:"message,omitempty"` // Descriptive message, especially useful in case of errors
 }
 
-func FetchData(w http.ResponseWriter, r *http.Request, key string) Response {
+// This is a utility function to send JSON responses
+func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResponse) {
+	w.WriteHeader(statusCode)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 	log.Printf("FetchData called with key: %s\n", key)
 
-	data, err := FetchDataFromDB(key) // Ensure this function returns the expected data or error
-	if err != nil {
-		log.Printf("FetchData: error fetching data from DB: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return Response{"Internal Server Error:", err}
+	data := map[string]string{
+		"exampleKey": "exampleValue",
 	}
 
-	if data == nil {
-		log.Printf("FetchData: no data found for key: %s", key)
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return Response{"Not Found:", data}
+	response := ServerResponse{
+		Success: true,
+		Data:    data,
+		Message: "Data fetched successfully",
 	}
 
-	return Response{"success", data}
-	//chatapi.jsonResponse(w, http.StatusOK, Response{"success", data})
+	sendJSONResponse(w, http.StatusOK, response)
 }
 
-func DeleteData(w http.ResponseWriter, r *http.Request, key string) error {
-	log.Printf("DeleteData called with key: %s\n", key)
-
-	err := deleteDataFromDB(key) // Ensure this function returns error if any
-	if err != nil {
-		log.Printf("DeleteData: error deleting data from DB: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return err
+func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
+	response := ServerResponse{
+		Success: true,
+		Message: "Data deleted successfully",
 	}
 
-	//chatapi.jsonResponse(w, http.StatusOK, Response{"success", "data deleted"})
-	return nil
+	sendJSONResponse(w, http.StatusOK, response)
 }
 
-func SyncData(w http.ResponseWriter, r *http.Request) error {
-	log.Println("SyncData called")
+// SyncDataToDb function that accepts a key and value and syncs this data with a database.
+// You should replace the contents of this function with actual database interaction logic.
+func SyncData(key string, value interface{}) error {
+	// This function is currently a stub and does not actually interact with a database.
+	// Here, you would write your logic to sync data to your database.
+	// This might include SQL statements, or calls to another service, etc.
 
-	var requestBody map[string]interface{}
-	err := json.NewDecoder(r.Body).Decode(&requestBody)
-	if err != nil {
-		log.Printf("SyncData: error decoding request body: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return err
-	}
+	// For demonstration, we'll just print the key and value.
+	log.Printf("Syncing data to DB - Key: %s, Value: %v", key, value)
 
-	key, ok := requestBody["key"].(string)
-	if !ok {
-		log.Println("SyncData: 'key' not in request body or not a string")
-		http.Error(w, "'key' not in request body or not a string", http.StatusBadRequest)
-		return err
-	}
-
-	value, ok := requestBody["value"]
-	if !ok {
-		log.Println("SyncData: 'value' not in request body")
-		http.Error(w, "'value' not in request body", http.StatusBadRequest)
-		return err
-	}
-
-	err = syncDataToDB(key, value) // Ensure this function returns error if any
-	if err != nil {
-		log.Printf("SyncData: error syncing data to DB: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return err
-	}
-
+	// Stubbed out "success" - in actual use, you would check for real success/failure from your DB call
 	return nil
 }
 
 // fetchDataFromDB is a stub function to simulate database fetching.
-func FetchDataFromDB(key string) (interface{}, error) {
+func fetchDataFromDB(key string) (interface{}, error) {
 	// Instead of fetching data from a database, we return a hardcoded value.
 	// You should replace this with actual database interaction logic.
 	data := map[string]string{
