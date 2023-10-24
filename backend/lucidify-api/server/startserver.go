@@ -52,9 +52,9 @@ func StartServer() {
 		chatService,
 	)
 
-	// Set up CORS middleware with your desired options.
+	// Set up CORS middlware with your desired options.
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}), // Adjust this to the origins you want to allow.
+		handlers.AllowedOrigins(config.AllowedOrigins), // Adjust this to the origins you want to allow.
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)
@@ -67,5 +67,4 @@ func StartServer() {
 	if err := http.ListenAndServe(":"+config.Port, corsEnabledMux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
-	// BasicLogging(config, mux)
 }
