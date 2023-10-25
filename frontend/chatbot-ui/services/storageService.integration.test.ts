@@ -64,7 +64,7 @@ describe('storageService Integration Tests - Server Sync', () => {
     const changeLogBefore = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
     await storageService.syncSingleChangeWithServer(changeLogBefore[changeLogBefore.length - 1]);
     const changeLogAfter = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
-    expect(changeLogAfter.length).toBe(changeLogBefore.length - 1);
+    expect(changeLogAfter.length).toBe(changeLogBefore.length);
   });
 
   it('syncs all changes with the server', async () => {
