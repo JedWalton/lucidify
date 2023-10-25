@@ -68,9 +68,9 @@ export const storageService = {
 
 
     // await this.syncAllChangesWithServer();
-    await this.syncWithServer(key, value).catch(error => {
-      console.error('Failed to sync with server:', error);
-    });
+    // await this.syncWithServer(key, value).catch(error => {
+    //   console.error('Failed to sync with server:', error);
+    // });
   },
 
   async removeItem(key: keyof LocalStorage): Promise<void> {
@@ -90,9 +90,9 @@ export const storageService = {
     //   console.error('Failed to sync with server:', error);
     // });
     // await this.syncAllChangesWithServer();
-    await this.removeFromServer(key).catch(error => {
-      console.error('Failed to remove item from server:', error);
-    });
+    // await this.removeFromServer(key).catch(error => {
+    //   console.error('Failed to remove item from server:', error);
+    // });
   },
 
   async syncAllChangesWithServer(): Promise<void> {
