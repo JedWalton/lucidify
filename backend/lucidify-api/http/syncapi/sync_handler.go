@@ -50,24 +50,17 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservic
 	}
 }
 
-//	func SyncHandler() http.HandlerFunc {
-//		return func(w http.ResponseWriter, r *http.Request) {
-//			w.Header().Set("Content-Type", "application/json")
-//			key := r.URL.Query().Get("key")
-//
-//			// Let syncservice handle all logic, validation, and response generation
-//			switch r.Method {
-//			case http.MethodGet:
-//				syncservice.HandleGet(key)
-//			case http.MethodDelete:
-//				syncservice.HandleRemove(key)
-//			case http.MethodPost:
-//				syncservice.HandleSet(key, r.Body)
-//			default:
-//				syncservice.MethodNotAllowed(w)
-//			}
-//		}
-//	}
+// This is a utility function to send JSON responses
+
+func IsValidKey(key string) bool {
+	switch key {
+	case "apiKey", "ConversationHistory", "SelectedConversation", "Theme", "Folders",
+		"Prompts", "ShowChatbar", "ShowPromptbar", "PluginKeys", "Settings":
+		return true
+	}
+	return false
+}
+
 func SyncHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

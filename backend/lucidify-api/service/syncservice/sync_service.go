@@ -1,28 +1,11 @@
 package syncservice
 
-import "fmt"
-
 // ServerResponse is the structure that defines the standard response from the server.
 type ServerResponse struct {
 	Success bool        `json:"success"`           // Indicates if the operation was successful
 	Data    interface{} `json:"data,omitempty"`    // Holds the actual data, if any
 	Message string      `json:"message,omitempty"` // Descriptive message, especially useful in case of errors
 }
-
-// This is a utility function to send JSON responses
-
-// func IsValidKey(key string) bool {
-// 	switch key {
-// 	case "apiKey", "ConversationHistory", "SelectedConversation", "Theme", "Folders",
-// 		"Prompts", "ShowChatbar", "ShowPromptbar", "PluginKeys", "Settings":
-// 		return true
-// 	}
-// 	return false
-// }
-
-// func HandleFetch(key string) (interface{}, ServerResponse)
-// func HandleDelete(key string) ServerResponse
-// func HandleSync(key string, value interface{}) ServerResponse
 
 func HandleSet(key string, value interface{}) ServerResponse {
 	ok := SetDataInLocalStorage(key, value)
@@ -46,25 +29,6 @@ func HandleRemove(key string) ServerResponse {
 		return ServerResponse{Success: true, Message: "Data deleted successfully"}
 	}
 	return ServerResponse{Success: false, Message: "Data not deleted. unsuccessful"}
-}
-
-// SyncDataToDb function that accepts a key and value and syncs this data with a database.
-// You should replace the contents of this function with actual database interaction logic.
-func SyncData(key string, value interface{}) error {
-	// This function is currently a stub and does not actually interact with a database.
-	// Here, you would write your logic to sync data to your database.
-	// This might include SQL statements, or calls to another service, etc.
-
-	// SetDataInServerDB(key, value)
-	// For demonstration, we'll just print the key and value.
-	// log.Printf("Syncing data to DB - Key: %s, Value: %v", key, value)
-	ok := SetDataInLocalStorage(key, value)
-	if !ok {
-		return fmt.Errorf("invalid key. Not set in localstorage: %s", key)
-	}
-
-	// Stubbed out "success" - in actual use, you would check for real success/failure from your DB call
-	return nil
 }
 
 var Storage LocalStorage // Global variable representing our local storage

@@ -114,6 +114,7 @@ describe('storageService Integration Tests', () => {
       // Handle the null case, maybe throw an error or provide a default value
       throw new Error("Value not found in localStorage");
     }
+    // storageService.syncAllChangesWithServer()
     expect(value).toBe(testValue);
 
     expect(localStorage.getItem(testKey)).toBe(testValue);
