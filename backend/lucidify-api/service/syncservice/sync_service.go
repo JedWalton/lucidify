@@ -90,26 +90,24 @@ func GetDataFromLocalStorage(key string) (interface{}, bool) {
 	switch key {
 	case "apiKey":
 		return Storage.APIKey, true
-	case "ConversationHistory":
+	case "conversationHistory":
 		return Storage.ConversationHistory, true
-	case "SelectedConversation":
+	case "selectedConversation":
 		return Storage.SelectedConversation, true
-	case "Theme":
+	case "theme":
 		return Storage.Theme, true
-	case "Folders":
+	case "folders":
 		return Storage.Folders, true
-	case "Prompts":
+	case "prompts":
 		return Storage.Prompts, true
-	case "ShowChatbar":
+	case "showChatbar":
 		return Storage.ShowChatbar, true
-	case "ShowPromptbar":
+	case "showPromptbar":
 		return Storage.ShowPromptbar, true
-	case "PluginKeys":
+	case "pluginKeys":
 		return Storage.PluginKeys, true
-	case "Settings":
+	case "settings":
 		return Storage.Settings, true
-	case "CHANGELOG":
-		return Storage.CHANGELOG, true
 	default:
 		return nil, false
 	}
@@ -120,26 +118,24 @@ func SetDataInLocalStorage(key string, value interface{}) bool {
 	switch key {
 	case "apiKey":
 		Storage.APIKey = value.(string)
-	case "ConversationHistory":
+	case "conversationHistory":
 		Storage.ConversationHistory = value.([]Conversation)
-	case "SelectedConversation":
+	case "selectedConversation":
 		Storage.SelectedConversation = value.(Conversation)
-	case "Theme":
+	case "theme":
 		Storage.Theme = value.(string)
-	case "Folders":
+	case "folders":
 		Storage.Folders = value.([]FolderInterface)
-	case "Prompts":
+	case "prompts":
 		Storage.Prompts = value.([]Prompt)
-	case "ShowChatbar":
+	case "showChatbar":
 		Storage.ShowChatbar = value.(bool)
-	case "ShowPromptbar":
+	case "showPromptbar":
 		Storage.ShowPromptbar = value.(bool)
-	case "PluginKeys":
+	case "pluginKeys":
 		Storage.PluginKeys = value.([]PluginKey)
-	case "Settings":
+	case "settings":
 		Storage.Settings = value.(Settings)
-	case "CHANGELOG":
-		Storage.CHANGELOG = value.(*[]ChangeLog)
 	default:
 		return false
 	}
@@ -152,35 +148,32 @@ func RemoveDataFromLocalStorage(key string) bool {
 	case "apiKey":
 		Storage.APIKey = ""
 		return true
-	case "ConversationHistory":
+	case "conversationHistory":
 		Storage.ConversationHistory = nil
 		return true
-	case "SelectedConversation":
+	case "selectedConversation":
 		Storage.SelectedConversation = Conversation{}
 		return true
-	case "Theme":
+	case "theme":
 		Storage.Theme = ""
 		return true
-	case "Folders":
+	case "folders":
 		Storage.Folders = nil
 		return true
-	case "Prompts":
+	case "prompts":
 		Storage.Prompts = nil
 		return true
-	case "ShowChatbar":
+	case "showChatbar":
 		Storage.ShowChatbar = false
 		return true
-	case "ShowPromptbar":
+	case "showPromptbar":
 		Storage.ShowPromptbar = false
 		return true
-	case "PluginKeys":
+	case "pluginKeys":
 		Storage.PluginKeys = nil
 		return true
-	case "Settings":
+	case "settings":
 		Storage.Settings = Settings{}
-		return true
-	case "CHANGELOG":
-		Storage.CHANGELOG = nil
 		return true
 	default:
 		return false
