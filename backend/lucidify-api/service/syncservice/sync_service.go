@@ -1,18 +1,5 @@
 package syncservice
 
-import (
-	"encoding/json"
-	"net/http"
-)
-
-func MethodNotAllowed(w http.ResponseWriter) {
-	response := ServerResponse{
-		Success: false,
-		Message: "Method not allowed",
-	}
-	sendJSONResponse(w, http.StatusMethodNotAllowed, response)
-}
-
 // ServerResponse is the structure that defines the standard response from the server.
 type ServerResponse struct {
 	Success bool        `json:"success"`           // Indicates if the operation was successful
@@ -21,23 +8,15 @@ type ServerResponse struct {
 }
 
 // This is a utility function to send JSON responses
-func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResponse) {
-	w.WriteHeader(statusCode)
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
 
-func IsValidKey(key string) bool {
-	switch key {
-	case "apiKey", "ConversationHistory", "SelectedConversation", "Theme", "Folders",
-		"Prompts", "ShowChatbar", "ShowPromptbar", "PluginKeys", "Settings":
-		return true
-	}
-	return false
-}
+// func IsValidKey(key string) bool {
+// 	switch key {
+// 	case "apiKey", "ConversationHistory", "SelectedConversation", "Theme", "Folders",
+// 		"Prompts", "ShowChatbar", "ShowPromptbar", "PluginKeys", "Settings":
+// 		return true
+// 	}
+// 	return false
+// }
 
 // func HandleFetch(key string) (interface{}, ServerResponse)
 // func HandleDelete(key string) ServerResponse
