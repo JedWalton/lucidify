@@ -2,9 +2,16 @@ package syncservice
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
+
+func MethodNotAllowed(w http.ResponseWriter) {
+	response := ServerResponse{
+		Success: false,
+		Message: "Method not allowed",
+	}
+	sendJSONResponse(w, http.StatusMethodNotAllowed, response)
+}
 
 // ServerResponse is the structure that defines the standard response from the server.
 type ServerResponse struct {
@@ -23,53 +30,41 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResp
 	}
 }
 
-func FetchData(w http.ResponseWriter, r *http.Request, key string) {
-	log.Printf("FetchData called with key: %s\n", key)
-
-	data, ok := GetDataFromLocalStorage(key)
-	if ok {
-		if data == "" {
-			response := ServerResponse{
-				Success: false,
-				Message: "No data found for key: " + key,
-			}
-			sendJSONResponse(w, http.StatusNotFound, response)
-			return
-		}
-
-		response := ServerResponse{
-			Success: true,
-			Data:    data,
-			Message: "Data fetched successfully",
-		}
-		sendJSONResponse(w, http.StatusOK, response)
-		return
+func IsValidKey(key string) bool {
+	switch key {
+	case "apiKey", "ConversationHistory", "SelectedConversation", "Theme", "Folders",
+		"Prompts", "ShowChatbar", "ShowPromptbar", "PluginKeys", "Settings":
+		return true
 	}
-	serverResponse := ServerResponse{
-		Success: false,
-		Message: "No data found for key: " + key,
-	}
-
-	sendJSONResponse(w, http.StatusNotFound, serverResponse)
+	return false
 }
 
-func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
+// func HandleFetch(key string) (interface{}, ServerResponse)
+// func HandleDelete(key string) ServerResponse
+// func HandleSync(key string, value interface{}) ServerResponse
+
+func HandleSet(key string, value interface{}) ServerResponse {
+	err := SyncData(key, value)
+	if err != nil {
+		return ServerResponse{Success: false, Message: err.Error()}
+	}
+	return ServerResponse{Success: true, Message: "Data synced successfully"}
+}
+
+func HandleGet(key string) (interface{}, ServerResponse) {
+	data, ok := GetDataFromLocalStorage(key)
+	if ok && data != "" {
+		return data, ServerResponse{Success: true, Message: "Data fetched successfully"}
+	}
+	return nil, ServerResponse{Success: false, Message: "No data found for key: " + key}
+}
+
+func HandleRemove(key string) ServerResponse {
 	ok := RemoveDataFromLocalStorage(key)
 	if ok {
-		response := ServerResponse{
-			Success: true,
-			Data:    "deleted successfully",
-			Message: "Data deleted successfully",
-		}
-		sendJSONResponse(w, http.StatusOK, response)
+		return ServerResponse{Success: true, Message: "Data deleted successfully"}
 	}
-	response := ServerResponse{
-		Success: false,
-		Data:    "deleted fail",
-		Message: "Data not deleted. unsuccessful",
-	}
-
-	sendJSONResponse(w, http.StatusOK, response)
+	return ServerResponse{Success: false, Message: "Data not deleted. unsuccessful"}
 }
 
 // SyncDataToDb function that accepts a key and value and syncs this data with a database.
@@ -154,7 +149,7 @@ func SetDataInLocalStorage(key string, value interface{}) bool {
 // RemoveDataFromLocalStorage removes a value from local storage based on key.
 func RemoveDataFromLocalStorage(key string) bool {
 	switch key {
-	case "APIKey":
+	case "apiKey":
 		Storage.APIKey = ""
 		return true
 	case "ConversationHistory":
