@@ -41,7 +41,7 @@ export const storageService = {
       value = await this.fetchFromServer(key);
       if (value !== null) {
         // If found on the server, save it to local storage
-        localStorage.setItem(key, JSON.parse(value).data.apiKey);
+        localStorage.setItem(key, JSON.parse(value).data);
         return value;
       }
     }

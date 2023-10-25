@@ -23,25 +23,63 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResp
 	}
 }
 
+//	func FetchData(w http.ResponseWriter, r *http.Request, key string) {
+//		log.Printf("FetchData called with key: %s\n", key)
+//
+//		// fetchedData, exists := GetDataFromServerDB(key)
+//		// if !exists {
+//		// 	response := ServerResponse{
+//		// 		Success: false,
+//		// 		Message: "No data found for key: " + key,
+//		// 	}
+//		// 	sendJSONResponse(w, http.StatusInternalServerError, response)
+//		// 	return
+//		// }
+//		data, err := GetDataFromLocalStorage(key)
+//		if err {
+//			response := ServerResponse{
+//				Success: false,
+//				Message: "No data found for key: " + key,
+//			}
+//			sendJSONResponse(w, http.StatusOK, response)
+//			return
+//		}
+//		serverResponse := ServerResponse{
+//			Success: true,
+//			Data:    data,
+//			Message: "Data fetched successfully",
+//		}
+//
+//		sendJSONResponse(w, http.StatusOK, serverResponse)
+//	}
 func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 	log.Printf("FetchData called with key: %s\n", key)
 
-	// fetchedData, exists := GetDataFromServerDB(key)
-	// if !exists {
-	// 	response := ServerResponse{
-	// 		Success: false,
-	// 		Message: "No data found for key: " + key,
-	// 	}
-	// 	sendJSONResponse(w, http.StatusInternalServerError, response)
-	// 	return
-	// }
+	data, ok := GetDataFromLocalStorage(key)
+	if ok {
+		if data == "" {
+			response := ServerResponse{
+				Success: false,
+				Message: "No data found for key: " + key,
+			}
+			sendJSONResponse(w, http.StatusNotFound, response)
+			return
+		}
+
+		response := ServerResponse{
+			Success: true,
+			Data:    data,
+			Message: "Data fetched successfully",
+		}
+		sendJSONResponse(w, http.StatusOK, response)
+		return
+	}
 	serverResponse := ServerResponse{
-		Success: true,
-		Data:    "hello",
-		Message: "Data fetched successfully",
+		Success: false,
+		Message: "No data found for key: " + key,
 	}
 
-	sendJSONResponse(w, http.StatusOK, serverResponse)
+	sendJSONResponse(w, http.StatusNotFound, serverResponse)
 }
 
 func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
@@ -63,7 +101,8 @@ func SyncData(key string, value interface{}) error {
 
 	// SetDataInServerDB(key, value)
 	// For demonstration, we'll just print the key and value.
-	log.Printf("Syncing data to DB - Key: %s, Value: %v", key, value)
+	// log.Printf("Syncing data to DB - Key: %s, Value: %v", key, value)
+	SetDataInLocalStorage(key, value)
 
 	// Stubbed out "success" - in actual use, you would check for real success/failure from your DB call
 	return nil
@@ -74,7 +113,7 @@ var Storage LocalStorage // Global variable representing our local storage
 // GetDataFromLocalStorage retrieves a value from local storage based on key.
 func GetDataFromLocalStorage(key string) (interface{}, bool) {
 	switch key {
-	case "APIKey":
+	case "apiKey":
 		return Storage.APIKey, true
 	case "ConversationHistory":
 		return Storage.ConversationHistory, true
@@ -104,7 +143,7 @@ func GetDataFromLocalStorage(key string) (interface{}, bool) {
 // SetDataInLocalStorage sets a value in local storage based on key.
 func SetDataInLocalStorage(key string, value interface{}) bool {
 	switch key {
-	case "APIKey":
+	case "apiKey":
 		Storage.APIKey = value.(string)
 	case "ConversationHistory":
 		Storage.ConversationHistory = value.([]Conversation)
