@@ -1,6 +1,6 @@
 // storageService.integration.test.ts
 import { storageService } from '@/services/storageService';
-import { describe, expect, it, afterAll } from 'vitest';
+import { describe, expect, it, afterAll, beforeEach } from 'vitest';
 
 // Define an interface for the mock storage, which replicates the Storage interface
 interface IMockStorage {
@@ -29,6 +29,35 @@ const localStorageMock = (function() {
 (global as any).localStorage = localStorageMock;
 
 describe('storageService Integration Tests - Server Sync', () => {
+
+  beforeEach(() => {
+    // Clear local storage before each test for a consistent starting point
+    localStorage.clear();
+  });
+
+  const testKey = 'apiKey';
+  const testValue = 'integration_test_value';
+
+  it('setItem - sets item in local storage and syncs with server', async () => {
+    await storageService.setItem(testKey, testValue);
+
+    const locallyStoredValue = localStorage.getItem(testKey);
+    expect(locallyStoredValue).toBe(testValue); // Assuming you're storing JSON strings
+
+    const valueFromServer = await storageService.getItem(testKey);
+    expect(valueFromServer).toBe(testValue);
+  });
+
+  it('getItem - retrieves item from server when not in local storage', async () => {
+    localStorage.removeItem(testKey);
+    
+    const value = await storageService.getItem(testKey);
+    if (!value) {
+        throw new Error('Expected value to not be null.');
+    }
+
+    expect(JSON.parse(value).data.exampleKey).toBe("exampleValue");
+});
 
   it('syncs individual changes with the server', async () => {
     await storageService.setItem('apiKey', 'valueToSync');

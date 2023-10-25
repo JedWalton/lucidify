@@ -3,6 +3,8 @@ import { FolderInterface } from './folder';
 import { PluginKey } from './plugin';
 import { Prompt } from './prompt';
 import { Settings } from '@/types/settings';
+import { ChangeLog } from './changelog';
+
 
 // keep track of local storage schema
 export interface LocalStorage {
@@ -21,4 +23,5 @@ export interface LocalStorage {
   pluginKeys: PluginKey[];
   // added settings (10/23/23)
   settings: Settings;
+   __CHANGE_LOG__?: ChangeLog[];
 }

@@ -5,17 +5,10 @@ import { FolderInterface } from '@/types/folder';
 import { PluginKey } from '@/types/plugin';
 import { Prompt } from '@/types/prompt';
 import { Settings } from '@/types/settings';
+import { ChangeLog } from '@/types/changelog';
 
-interface ChangeLog {
-  changeId: number;
-  key: keyof LocalStorage;
-  operation: 'INSERT' | 'UPDATE' | 'DELETE';
-  oldValue?: any;
-  newValue?: any;
-  timestamp: number;
-}
 
-const CHANGE_LOG_KEY = '__CHANGE_LOG__';
+const CHANGE_LOG_KEY: keyof LocalStorage = '__CHANGE_LOG__';
 
 function getChangeLog(): ChangeLog[] {
   const log = localStorage.getItem(CHANGE_LOG_KEY);
@@ -24,7 +17,9 @@ function getChangeLog(): ChangeLog[] {
 
 function addToChangeLog(change: Omit<ChangeLog, 'changeId'>): void {
   const log = getChangeLog();
-  const changeId = log.length > 0 ? log[log.length - 1].changeId + 1 : 1; // Simple incremental IDs.
+  const lastChange = log[log.length - 1];
+  const changeId = lastChange?.changeId ? lastChange.changeId + 1 : 1;
+
   log.push({ ...change, changeId });
   localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(log));
 }
@@ -70,7 +65,7 @@ export const storageService = {
     addToChangeLog({
       key,
       operation: oldValue ? 'UPDATE' : 'INSERT',
-      oldValue,
+      oldValue: oldValue || '',
       newValue: value,
       timestamp: Date.now(),
     });
@@ -87,7 +82,7 @@ export const storageService = {
     addToChangeLog({
       key,
       operation: 'DELETE',
-      oldValue,
+      oldValue: oldValue || '',
       timestamp: Date.now(),
     });
 
@@ -101,7 +96,9 @@ export const storageService = {
     for (const change of changeLog) {
       try {
         await this.syncSingleChangeWithServer(change);
-        removeFromChangeLog(change.changeId);
+        if (typeof change.changeId !== 'undefined') {
+          removeFromChangeLog(change.changeId);
+        }
       } catch (error) {
         console.error(`Failed to sync change ${change.changeId} with server:`, error);
       }
