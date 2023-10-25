@@ -49,8 +49,7 @@ describe('storageService Integration Tests - Server Sync', () => {
   });
 
   it('getItem - retrieves item from server when not in local storage', async () => {
-    localStorage.removeItem(testKey);
-    
+    expect(localStorage.getItem(testKey)).toBeNull();
     const value = await storageService.getItem(testKey);
     if (!value) {
         throw new Error('Expected value to not be null.');
@@ -101,6 +100,8 @@ describe('storageService Integration Tests', () => {
   });
 
   it('getItem - retrieves item from server when not in local storage', async () => {
+    await storageService.setItem(testKey, testValue);
+    expect(localStorage.getItem(testKey)).toBe(testValue);
     localStorage.removeItem(testKey); // Ensure the item is not in local storage
 
     const value = await storageService.getItem(testKey);
