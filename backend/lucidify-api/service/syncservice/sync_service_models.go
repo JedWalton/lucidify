@@ -93,15 +93,6 @@ type Settings struct {
 	Theme string // Consider using a custom type for strict values like in TypeScript
 }
 
-type ChangeLog struct {
-	ChangeID  *int
-	Key       string
-	Operation string
-	OldValue  interface{} // This can be better represented based on the context
-	NewValue  interface{} // This can be better represented based on the context
-	Timestamp int64
-}
-
 type LocalStorage struct {
 	APIKey               string
 	ConversationHistory  []Conversation
@@ -113,5 +104,4 @@ type LocalStorage struct {
 	ShowPromptbar        bool
 	PluginKeys           []PluginKey
 	Settings             Settings
-	CHANGELOG            *[]ChangeLog
 }
