@@ -67,7 +67,10 @@ export const storageService = {
     });
 
 
-    await this.syncWithServer(key, value);
+    // await this.syncAllChangesWithServer();
+    await this.syncWithServer(key, value).catch(error => {
+      console.error('Failed to sync with server:', error);
+    });
   },
 
   async removeItem(key: keyof LocalStorage): Promise<void> {
@@ -83,13 +86,17 @@ export const storageService = {
     });
 
 
-    await this.removeFromServer(key).catch(error => {
-      console.error('Failed to remove item from server:', error);
-    });
+    await this.syncAllChangesWithServer();
+    // await this.removeFromServer(key).catch(error => {
+    //   console.error('Failed to remove item from server:', error);
+    // });
   },
 
   async syncAllChangesWithServer(): Promise<void> {
-    const changeLog = getChangeLog();
+    const changeLog = getChangeLog() as ChangeLog[];
+    if (!changeLog || !changeLog.length) {
+      throw new Error("ChangeLog is empty or not valid");
+    }
     for (const change of changeLog) {
       try {
         await this.syncSingleChangeWithServer(change);
@@ -103,6 +110,9 @@ export const storageService = {
   },
 
   async syncSingleChangeWithServer(change: ChangeLog): Promise<void> {
+    if (!change) {
+      throw new Error("Change is undefined");
+    }
     switch (change.operation) {
       case 'INSERT':
       case 'UPDATE':
@@ -191,8 +201,6 @@ export const storageService = {
     }
   },
 
-  // async removeFromServer(key: keyof LocalStorage): Promise<void> {
-  //   const result = await makeRequest(`/api/sync/${key}`, 'DELETE');
   async removeFromServer(key: keyof LocalStorage): Promise<void> {
     const result = await makeRequest(`/api/sync?key=${key}`, 'DELETE'); // Sending 'key' in query parameters
     if (result !== null) {

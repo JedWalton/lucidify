@@ -49,30 +49,33 @@ describe('storageService Integration Tests - Server Sync', () => {
   });
 
   it('getItem - retrieves item from server when not in local storage', async () => {
+    expect(localStorage.getItem(testKey)).toBeNull();
     await storageService.setItem(testKey, testValue);
     const value = await storageService.getItem(testKey);
     if (!value) {
-        throw new Error('Expected value to not be null.');
+      throw new Error('Expected value to not be null.');
     }
 
     expect(value).toBe("exampleValue");
     const locallyStoredValue = localStorage.getItem(testKey);
     expect(locallyStoredValue).toBe("exampleValue");
-});
+  });
 
   it('syncs individual changes with the server', async () => {
     await storageService.setItem('apiKey', 'valueToSync');
     const changeLogBefore = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
+    expect(changeLogBefore).toBeDefined(); // Add this check
+    expect(changeLogBefore.length).toBeGreaterThan(0); // Check that there's at least one entry
     await storageService.syncSingleChangeWithServer(changeLogBefore[changeLogBefore.length - 1]);
     const changeLogAfter = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
     expect(changeLogAfter.length).toBe(changeLogBefore.length);
-  });
+});
 
   it('syncs all changes with the server', async () => {
     await storageService.setItem('apiKey', 'firstValue');
     await storageService.setItem('folders', 'secondValue');
     const changeLogBefore = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
-    expect(changeLogBefore.length).toBeGreaterThan(1);
+    expect(changeLogBefore.length).toBe(2);
     await storageService.syncAllChangesWithServer();
     const changeLogAfter = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
     expect(changeLogAfter.length).toBe(0);
