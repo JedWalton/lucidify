@@ -1,5 +1,7 @@
 package syncservice
 
+import "fmt"
+
 // ServerResponse is the structure that defines the standard response from the server.
 type ServerResponse struct {
 	Success bool        `json:"success"`           // Indicates if the operation was successful
@@ -23,9 +25,9 @@ type ServerResponse struct {
 // func HandleSync(key string, value interface{}) ServerResponse
 
 func HandleSet(key string, value interface{}) ServerResponse {
-	err := SyncData(key, value)
-	if err != nil {
-		return ServerResponse{Success: false, Message: err.Error()}
+	ok := SetDataInLocalStorage(key, value)
+	if !ok {
+		return ServerResponse{Success: false, Message: "error setting data"}
 	}
 	return ServerResponse{Success: true, Message: "Data synced successfully"}
 }
@@ -56,7 +58,10 @@ func SyncData(key string, value interface{}) error {
 	// SetDataInServerDB(key, value)
 	// For demonstration, we'll just print the key and value.
 	// log.Printf("Syncing data to DB - Key: %s, Value: %v", key, value)
-	SetDataInLocalStorage(key, value)
+	ok := SetDataInLocalStorage(key, value)
+	if !ok {
+		return fmt.Errorf("invalid key. Not set in localstorage: %s", key)
+	}
 
 	// Stubbed out "success" - in actual use, you would check for real success/failure from your DB call
 	return nil
