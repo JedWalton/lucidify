@@ -57,6 +57,8 @@ describe('storageService Integration Tests - Server Sync', () => {
     }
 
     expect(JSON.parse(value).data.exampleKey).toBe("exampleValue");
+    const locallyStoredValue = localStorage.getItem(testKey);
+    expect(locallyStoredValue).toBe("exampleValue");
 });
 
   it('syncs individual changes with the server', async () => {
