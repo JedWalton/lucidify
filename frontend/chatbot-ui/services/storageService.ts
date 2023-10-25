@@ -87,10 +87,10 @@ export const storageService = {
       timestamp: Date.now(),
     });
 
-    //
-    // await this.removeFromServer(key).catch(error => {
-    //   console.error('Failed to remove item from server:', error);
-    // });
+
+    await this.removeFromServer(key).catch(error => {
+      console.error('Failed to remove item from server:', error);
+    });
   },
 
   async syncAllChangesWithServer(): Promise<void> {
