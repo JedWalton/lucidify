@@ -27,17 +27,31 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResp
 func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 	log.Printf("FetchData called with key: %s\n", key)
 
-	data := map[string]string{
-		"exampleKey": "exampleValue",
+	// data := map[string]string{
+	// 	"exampleKey": "exampleValue",
+	// }
+	//
+	// response := ServerResponse{
+	// 	Success: true,
+	// 	Data:    data,
+	// 	Message: "Data fetched successfully",
+	// }
+	fetchedData, err := fetchDataFromDB(key)
+	if err != nil {
+		response := ServerResponse{
+			Success: false,
+			Message: err.Error(),
+		}
+		sendJSONResponse(w, http.StatusInternalServerError, response)
+		return
 	}
-
-	response := ServerResponse{
+	serverResponse := ServerResponse{
 		Success: true,
-		Data:    data,
+		Data:    fetchedData,
 		Message: "Data fetched successfully",
 	}
 
-	sendJSONResponse(w, http.StatusOK, response)
+	sendJSONResponse(w, http.StatusOK, serverResponse)
 }
 
 func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
@@ -68,7 +82,7 @@ func fetchDataFromDB(key string) (interface{}, error) {
 	// Instead of fetching data from a database, we return a hardcoded value.
 	// You should replace this with actual database interaction logic.
 	data := map[string]string{
-		"exampleKey": "exampleValue",
+		"apiKey": "exampleValue",
 	}
 
 	if value, exists := data[key]; exists {

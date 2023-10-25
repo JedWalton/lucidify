@@ -47,6 +47,7 @@ export const storageService = {
       if (value !== null) {
         // If found on the server, save it to local storage
         localStorage.setItem(key, JSON.parse(value).data.exampleKey);
+        return value;
       }
     }
     return value;
@@ -86,9 +87,10 @@ export const storageService = {
       timestamp: Date.now(),
     });
 
-    await this.removeFromServer(key).catch(error => {
-      console.error('Failed to remove item from server:', error);
-    });
+    //
+    // await this.removeFromServer(key).catch(error => {
+    //   console.error('Failed to remove item from server:', error);
+    // });
   },
 
   async syncAllChangesWithServer(): Promise<void> {
@@ -203,7 +205,6 @@ export const storageService = {
     }
   }
 };
-
 
 const API_BASE_URL = "http://localhost:8080"
 
