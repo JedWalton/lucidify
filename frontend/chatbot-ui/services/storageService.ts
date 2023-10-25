@@ -150,6 +150,7 @@ export const storageService = {
         throw new Error(errorMessage);
       }
 
+      // handle response logic, if needed
       console.log('Data synced successfully with server');
     } catch (error) {
       console.error('Failed to sync with server:', error);

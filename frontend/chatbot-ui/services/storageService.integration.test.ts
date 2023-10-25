@@ -28,6 +28,28 @@ const localStorageMock = (function() {
 // This casting is necessary to allow TypeScript to let you add the localStorage to the global object
 (global as any).localStorage = localStorageMock;
 
+describe('storageService Integration Tests - Server Sync', () => {
+
+  it('syncs individual changes with the server', async () => {
+    await storageService.setItem('apiKey', 'valueToSync');
+    const changeLogBefore = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
+    await storageService.syncSingleChangeWithServer(changeLogBefore[changeLogBefore.length - 1]);
+    const changeLogAfter = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
+    expect(changeLogAfter.length).toBe(changeLogBefore.length - 1);
+  });
+
+  it('syncs all changes with the server', async () => {
+    await storageService.setItem('apiKey', 'firstValue');
+    await storageService.setItem('folders', 'secondValue');
+    const changeLogBefore = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
+    expect(changeLogBefore.length).toBeGreaterThan(1);
+    await storageService.syncAllChangesWithServer();
+    const changeLogAfter = JSON.parse(localStorage.getItem('__CHANGE_LOG__')!);
+    expect(changeLogAfter.length).toBe(0);
+  });
+
+});
+
 describe('storageService Integration Tests', () => {
   const testKey = 'apiKey';
   const testValue = 'integration_test_value';
