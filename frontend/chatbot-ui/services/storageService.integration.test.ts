@@ -87,9 +87,10 @@ describe('storageService Integration Tests', () => {
   const testKey = 'apiKey';
   const testValue = 'storageService integration test value';
 
-  afterAll(async () => {
+  beforeEach(async () => {
     // Clean up the test data from the server and local storage
     await storageService.removeItem(testKey);
+    localStorage.removeItem(testKey);
   });
 
   it('setItem - sets item in local storage and syncs with server', async () => {
@@ -112,15 +113,15 @@ describe('storageService Integration Tests', () => {
     expect(value).toBe(`{"success":true,"data":"storageService integration test value","message":"Data fetched successfully"}`); // Server should return the original value
   });
 
-  it('removeItem - removes item from local storage and server And is expected to fail due to backend not having data persistance implemented', async () => {
+  it('removeItem - removes item from local storage and this should be reflected on server', async () => {
     await storageService.setItem(testKey, testValue); // Ensure the item is set before removing it
+    expect(localStorage.getItem(testKey)).toBe(testValue);
     await storageService.removeItem(testKey);
-
     expect(localStorage.getItem(testKey)).toBeNull();
-
     // Verify that the item is also removed from the server
     const valueFromServer = await storageService.getItem(testKey);
-    expect(valueFromServer).toBeNull();
+    expect(valueFromServer).toBeNull(); // Adjust based on how your server responds
+    // expect(valueFromServer).toBe();
   });
 
   // ...additional tests...
