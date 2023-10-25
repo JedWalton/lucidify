@@ -151,6 +151,7 @@ func SyncHandler() http.HandlerFunc {
 
 			switch r.Method {
 			case http.MethodGet:
+				// syncservice.FetchData(w, r, string(key))
 				syncservice.FetchData(w, r, string(key))
 			case http.MethodDelete:
 				syncservice.DeleteData(w, r, string(key))
