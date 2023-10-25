@@ -2,7 +2,6 @@ package syncservice
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -28,20 +27,11 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResp
 func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 	log.Printf("FetchData called with key: %s\n", key)
 
-	// data := map[string]string{
-	// 	"exampleKey": "exampleValue",
-	// }
-	//
-	// response := ServerResponse{
-	// 	Success: true,
-	// 	Data:    data,
-	// 	Message: "Data fetched successfully",
-	// }
-	fetchedData, err := fetchDataFromDB(key)
-	if err != nil {
+	fetchedData, exists := GetDataFromServerDB(key)
+	if !exists {
 		response := ServerResponse{
 			Success: false,
-			Message: err.Error(),
+			Message: "No data found for key: " + key,
 		}
 		sendJSONResponse(w, http.StatusInternalServerError, response)
 		return
@@ -71,42 +61,12 @@ func SyncData(key string, value interface{}) error {
 	// Here, you would write your logic to sync data to your database.
 	// This might include SQL statements, or calls to another service, etc.
 
+	SetDataInServerDB(key, value)
 	// For demonstration, we'll just print the key and value.
 	log.Printf("Syncing data to DB - Key: %s, Value: %v", key, value)
 
 	// Stubbed out "success" - in actual use, you would check for real success/failure from your DB call
 	return nil
-}
-
-// fetchDataFromDB is a stub function to simulate database fetching.
-func fetchDataFromDB(key string) (interface{}, error) {
-	// Instead of fetching data from a database, we return a hardcoded value.
-	// You should replace this with actual database interaction logic.
-	data := map[string]string{
-		"apiKey": "exampleValue",
-	}
-
-	if value, exists := data[key]; exists {
-		return value, nil
-	}
-
-	return nil, fmt.Errorf("no data found for key: %s", key)
-}
-
-// deleteDataFromDB is a stub function to simulate database deletion.
-func deleteDataFromDB(key string) error {
-	// Instead of deleting data from a database, we just log the action and pretend it succeeded.
-	// You should replace this with actual database interaction logic.
-	log.Printf("Data with key '%s' is supposed to be deleted here.", key)
-	return nil // no error, means it was "successful"
-}
-
-// syncDataToDB is a stub function to simulate database sync/insert/update.
-func syncDataToDB(key string, value interface{}) error {
-	// Instead of syncing data to a database, we just log the action and pretend it succeeded.
-	// You should replace this with actual database interaction logic.
-	log.Printf("Data with key '%s' and value '%v' is supposed to be synced here.", key, value)
-	return nil // no error, means it was "successful"
 }
 
 // Global LocalStorage and its mutex
@@ -116,7 +76,7 @@ var (
 )
 
 // SetData sets a key-value pair in the local storage
-func SetData(key string, value interface{}) {
+func SetDataInServerDB(key string, value interface{}) {
 	localStorageMutex.Lock()
 	defer localStorageMutex.Unlock()
 
@@ -124,7 +84,7 @@ func SetData(key string, value interface{}) {
 }
 
 // GetData retrieves the value for a given key from the local storage
-func GetData(key string) (interface{}, bool) {
+func GetDataFromServerDB(key string) (interface{}, bool) {
 	localStorageMutex.RLock()
 	defer localStorageMutex.RUnlock()
 
@@ -133,9 +93,9 @@ func GetData(key string) (interface{}, bool) {
 }
 
 // DeleteData removes a key-value pair from the local storage
-// func DeleteData(key string) {
-// 	localStorageMutex.Lock()
-// 	defer localStorageMutex.Unlock()
-//
-// 	delete(localStorage, key)
-// }
+func DeleteDataFromServerDB(key string) {
+	localStorageMutex.Lock()
+	defer localStorageMutex.Unlock()
+
+	delete(localStorage, key)
+}
