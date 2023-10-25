@@ -2,7 +2,6 @@ package syncapi
 
 import (
 	"encoding/json"
-	"log"
 	"lucidify-api/service/syncservice"
 	"net/http"
 )
@@ -53,72 +52,18 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResp
 func SyncHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		log.Printf("Request method: %s, URL: %s, RemoteAddr: %s", r.Method, r.URL.String(), r.RemoteAddr)
+		key := r.URL.Query().Get("key")
 
+		// Let syncservice handle all logic, validation, and response generation
 		switch r.Method {
-		case http.MethodGet, http.MethodDelete, http.MethodPost:
-			key := LocalStorageKey(r.URL.Query().Get("key"))
-			if !key.IsValid() {
-				sendJSONResponse(w, http.StatusBadRequest, ServerResponse{
-					Success: false,
-					Message: "Invalid key provided",
-				})
-				return
-			}
-			if key == "" {
-				sendJSONResponse(w, http.StatusBadRequest, ServerResponse{
-					Success: false,
-					Message: "Key not provided",
-				})
-				return
-			}
-
-			switch r.Method {
-			case http.MethodGet:
-				// syncservice.FetchData(w, r, string(key))
-				syncservice.FetchData(w, r, string(key))
-			case http.MethodDelete:
-				syncservice.DeleteData(w, r, string(key))
-			case http.MethodPost:
-				var requestData map[string]interface{}
-				err := json.NewDecoder(r.Body).Decode(&requestData)
-				if err != nil {
-					sendJSONResponse(w, http.StatusBadRequest, ServerResponse{
-						Success: false,
-						Message: "Bad request data",
-					})
-					return
-				}
-
-				value, valueExists := requestData["value"]
-				if !valueExists {
-					sendJSONResponse(w, http.StatusBadRequest, ServerResponse{
-						Success: false,
-						Message: "Value not provided in request body",
-					})
-					return
-				}
-
-				err = syncservice.SyncData(string(key), value)
-				if err != nil {
-					sendJSONResponse(w, http.StatusInternalServerError, ServerResponse{
-						Success: false,
-						Message: err.Error(),
-					})
-					return
-				}
-
-				sendJSONResponse(w, http.StatusOK, ServerResponse{
-					Success: true,
-					Message: "Data synced successfully",
-				})
-			}
-
+		case http.MethodGet:
+			syncservice.HandleGet(key)
+		case http.MethodDelete:
+			syncservice.HandleRemove(key)
+		case http.MethodPost:
+			syncservice.HandleSet(key, r.Body)
 		default:
-			sendJSONResponse(w, http.StatusMethodNotAllowed, ServerResponse{
-				Success: false,
-				Message: "Method not allowed",
-			})
+			syncservice.MethodNotAllowed(w)
 		}
 	}
 }
