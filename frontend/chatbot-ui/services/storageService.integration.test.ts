@@ -106,6 +106,7 @@ describe('storageService Integration Tests', () => {
     await storageService.setItem(testKey, testValue);
     expect(localStorage.getItem(testKey)).toBe(testValue);
     localStorage.removeItem(testKey); // Ensure the item is not in local storage
+    expect(localStorage.getItem(testKey)).toBe(null);
 
     const value = await storageService.getItem(testKey);
     expect(value).toBe(`{"success":true,"data":"storageService integration test value","message":"Data fetched successfully"}`); // Server should return the original value
