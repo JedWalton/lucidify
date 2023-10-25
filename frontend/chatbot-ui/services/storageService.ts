@@ -1,10 +1,5 @@
 // storageService.ts
 import { LocalStorage } from '@/types/storage';
-import { Conversation } from '@/types/chat';
-import { FolderInterface } from '@/types/folder';
-import { PluginKey } from '@/types/plugin';
-import { Prompt } from '@/types/prompt';
-import { Settings } from '@/types/settings';
 import { ChangeLog } from '@/types/changelog';
 
 

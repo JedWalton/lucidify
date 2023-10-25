@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 )
 
 // ServerResponse is the structure that defines the standard response from the server.
@@ -107,3 +108,34 @@ func syncDataToDB(key string, value interface{}) error {
 	log.Printf("Data with key '%s' and value '%v' is supposed to be synced here.", key, value)
 	return nil // no error, means it was "successful"
 }
+
+// Global LocalStorage and its mutex
+var (
+	localStorage      = make(map[string]interface{})
+	localStorageMutex sync.RWMutex
+)
+
+// SetData sets a key-value pair in the local storage
+func SetData(key string, value interface{}) {
+	localStorageMutex.Lock()
+	defer localStorageMutex.Unlock()
+
+	localStorage[key] = value
+}
+
+// GetData retrieves the value for a given key from the local storage
+func GetData(key string) (interface{}, bool) {
+	localStorageMutex.RLock()
+	defer localStorageMutex.RUnlock()
+
+	value, exists := localStorage[key]
+	return value, exists
+}
+
+// DeleteData removes a key-value pair from the local storage
+// func DeleteData(key string) {
+// 	localStorageMutex.Lock()
+// 	defer localStorageMutex.Unlock()
+//
+// 	delete(localStorage, key)
+// }
