@@ -23,35 +23,6 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response ServerResp
 	}
 }
 
-//	func FetchData(w http.ResponseWriter, r *http.Request, key string) {
-//		log.Printf("FetchData called with key: %s\n", key)
-//
-//		// fetchedData, exists := GetDataFromServerDB(key)
-//		// if !exists {
-//		// 	response := ServerResponse{
-//		// 		Success: false,
-//		// 		Message: "No data found for key: " + key,
-//		// 	}
-//		// 	sendJSONResponse(w, http.StatusInternalServerError, response)
-//		// 	return
-//		// }
-//		data, err := GetDataFromLocalStorage(key)
-//		if err {
-//			response := ServerResponse{
-//				Success: false,
-//				Message: "No data found for key: " + key,
-//			}
-//			sendJSONResponse(w, http.StatusOK, response)
-//			return
-//		}
-//		serverResponse := ServerResponse{
-//			Success: true,
-//			Data:    data,
-//			Message: "Data fetched successfully",
-//		}
-//
-//		sendJSONResponse(w, http.StatusOK, serverResponse)
-//	}
 func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 	log.Printf("FetchData called with key: %s\n", key)
 
@@ -83,10 +54,19 @@ func FetchData(w http.ResponseWriter, r *http.Request, key string) {
 }
 
 func DeleteData(w http.ResponseWriter, r *http.Request, key string) {
+	ok := RemoveDataFromLocalStorage(key)
+	if ok {
+		response := ServerResponse{
+			Success: true,
+			Data:    "deleted successfully",
+			Message: "Data deleted successfully",
+		}
+		sendJSONResponse(w, http.StatusOK, response)
+	}
 	response := ServerResponse{
-		Success: true,
-		Data:    "deleted placeholder",
-		Message: "Data deleted successfully",
+		Success: false,
+		Data:    "deleted fail",
+		Message: "Data not deleted. unsuccessful",
 	}
 
 	sendJSONResponse(w, http.StatusOK, response)
