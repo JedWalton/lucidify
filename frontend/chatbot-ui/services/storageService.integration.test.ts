@@ -10,13 +10,13 @@ beforeEach(() => {
   store = {};
 
   let localStorageMock = {
-    getItem: function (key: string) {
+    getItem: function(key: string) {
       return store[key] || null;
     },
-    setItem: function (key: string, value: string) {
+    setItem: function(key: string, value: string) {
       store[key] = value.toString();
     },
-    removeItem: function (key: string) {
+    removeItem: function(key: string) {
       delete store[key];
     }
   };
@@ -41,6 +41,20 @@ describe('storageService', () => {
     await storageService.setItem(testKey, 'testValue');
     expect(await storageService.getItem(testKey)).toBe('testValue');
   });
+
+  it('should fetch from server if item not in local storage and store in local storage', async () => {
+    // Ensure the key doesn't exist in the mock localStorage
+    localStorage.removeItem(testKey);
+    expect(localStorage.getItem(testKey)).toBeNull();
+    expect(await storageService.getItem(testKey)).toBeNull();
+    await storageService.setItem(testKey, 'testValue');
+    expect(localStorage.getItem(testKey)).toBe('testValue');
+    localStorage.removeItem(testKey);
+    expect(localStorage.getItem(testKey)).toBeNull();
+    await storageService.getItem(testKey);
+    expect(localStorage.getItem(testKey)).toBe('testValue');
+  });
+
 
   it('should update change log on setItem', async () => {
     await storageService.setItem(testKey, 'testValue');
