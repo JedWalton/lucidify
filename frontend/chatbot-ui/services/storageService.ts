@@ -5,53 +5,96 @@ import { changeLogService } from './changeLogService';
 
 export const storageService = {
   async getItem(key: keyof LocalStorage): Promise<string | null> {
-    let value = localStorage.getItem(key);
+    // localStorage.getItem(key) returns null if the key does not exist
+    return await this.getItemFromServer(key);
+  },
 
-    if (value === null) {
-      // If the value doesn't exist in local storage, try fetching from the server
-      value = await this.fetchFromServer(key);
-      if (value !== null) {
-        // If found on the server, save it to local storage
-        localStorage.setItem(key, JSON.parse(value).data);
-        return value;
+  async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
+    //   localStorage.setItem(key, String(value));
+    return await this.setItemOnServer(key, value);
+
+  },
+
+  async removeItem(key: keyof LocalStorage): Promise<string | null> {
+    // localStorage.removeItem(key);
+    return await this.removeItemFromServer(key);
+  },
+
+  async getItemFromServer(key: keyof LocalStorage): Promise<string | null> {
+    try {
+      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+
+      const options: RequestInit = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      };
+
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        // You can first attempt to decode the response as JSON, and then fall back to text if it fails.
+        let errorMessage = 'Server responded with an error';
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || `Server responded with ${response.status}`;
+        } catch (jsonError) {
+          errorMessage = await response.text(); // If response is not in JSON format
+        }
+
+        throw new Error(errorMessage);
       }
+
+      // If the response is OK, we decode it from JSON
+      const data = await response.json();
+      return JSON.stringify(data);  // or just `return data;` if you don't need to stringify the response
+    } catch (error) {
+      console.error(`Request failed: ${error}`);
+      return null;
     }
-    return value;
   },
 
-  async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<void> {
-    const oldValue = await this.getItem(key);
+  async setItemOnServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
+    try {
+      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage?key=${encodeURIComponent(key as string)}`;
 
-    if (typeof value === 'object' && value !== null) {
-      localStorage.setItem(key, JSON.stringify(value));
-    } else {
-      localStorage.setItem(key, String(value));
+      const options: RequestInit = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+        body: JSON.stringify({ value }), // We send only the value in the body as the key is already in the URL.
+      };
+
+      const response = await fetch(url, options);
+      const responseClone = response.clone(); // Clone the response to read it multiple times
+
+      if (!response.ok) {
+        let errorMessage = 'Server responded with an error';
+        try {
+          const errorBody = await responseClone.json(); // Try to parse as JSON first
+          errorMessage = errorBody.message || `Server responded with status code ${response.status}`;
+        } catch (jsonError) {
+          errorMessage = await responseClone.text(); // If response is not JSON, read as text
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      // handle response logic, if needed
+      const data = await response.json();
+      return JSON.stringify(data);  // or just `return data;` if you don't need to stringify the response
+
+    } catch (error) {
+      console.error('Failed to sync with server:', error);
+      return null;
     }
-
-    // Add to change log
-    changeLogService.addToChangeLog({
-      key,
-      operation: oldValue ? 'UPDATE' : 'INSERT',
-      oldValue: oldValue || '',
-      newValue: value,
-      timestamp: Date.now(),
-    });
   },
 
-  async removeItem(key: keyof LocalStorage): Promise<void> {
-    const oldValue = await this.getItem(key);
-    localStorage.removeItem(key);
-
-    // Add to change log
-    changeLogService.addToChangeLog({
-      key,
-      operation: 'DELETE',
-      oldValue: oldValue || '',
-      timestamp: Date.now(),
-    });
-  },
-
-  async fetchFromServer(key: keyof LocalStorage): Promise<string | null> {
+  async removeItemFromServer(key: keyof LocalStorage): Promise<string | null> {
     try {
       const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
@@ -158,41 +201,34 @@ export const storageService = {
 //
 //
 //
-//   async removeFromServer(key: keyof LocalStorage): Promise<void> {
-//     const result = await makeRequest(`/api/sync?key=${key}`, 'DELETE'); // Sending 'key' in query parameters
-//     if (result !== null) {
-//       console.log(`Data associated with '${key}' successfully deleted from the server.`);
-//     }
-//   }
-// };
 //
 // const API_BASE_URL = "http://localhost:8080"
 //
-// async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
-//   try {
-//     const url = `${API_BASE_URL}${endpoint}`;
-//
-//     const options: RequestInit = {
-//       method,
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       mode: 'cors',
-//     };
-//     if (body) {
-//       options.body = JSON.stringify(body);
-//     }
-//
-//     const response = await fetch(url, options);
-//
-//     if (!response.ok) {
-//       const errBody = await response.json();
-//       throw new Error(errBody.message || `Server responded with ${response.status}`);
-//     }
-//
-//     return method === 'GET' ? response.json() : null;
-//   } catch (error) {
-//     console.error(`Request failed: ${error}`);
-//     return null;
-//   }
-// }
+async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
+  try {
+    const url = `${API_BASE_URL}${endpoint}`;
+
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors',
+    };
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const errBody = await response.json();
+      throw new Error(errBody.message || `Server responded with ${response.status}`);
+    }
+
+    return method === 'GET' ? response.json() : null;
+  } catch (error) {
+    console.error(`Request failed: ${error}`);
+    return null;
+  }
+}

@@ -2,6 +2,8 @@ package syncapi
 
 import (
 	"encoding/json"
+	"io"
+	"log"
 	"lucidify-api/service/syncservice"
 	"net/http"
 )
@@ -55,19 +57,27 @@ func SyncHandler() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		key := r.URL.Query().Get("key")
 
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Println("Error reading request body:", err)
+			// Handle the error, maybe return a response indicating the error.
+			return
+		}
+		value := string(bodyBytes)
+
 		var response syncservice.ServerResponse
 
 		switch r.Method {
 		case http.MethodGet:
-			data, resp := syncservice.HandleGet(key)
+			resp := syncservice.HandleGet(key)
 			response = resp
 			if response.Success {
-				response.Data = data
+				response.Data = resp.Data
 			}
 		case http.MethodDelete:
 			response = syncservice.HandleRemove(key)
 		case http.MethodPost:
-			response = syncservice.HandleSet(key, r.Body)
+			response = syncservice.HandleSet(key, value)
 		default:
 			response = syncservice.ServerResponse{
 				Success: false,
