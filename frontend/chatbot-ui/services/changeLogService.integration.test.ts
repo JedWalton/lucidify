@@ -3,16 +3,21 @@ import { changeLogService } from './changeLogService';
 import { ChangeLog } from '@/types/changelog';
 import { describe, expect, it, beforeEach } from 'vitest';
 
-global.localStorage = (() => {
-    let store: { [key: string]: string } = {};
-    return {
-        getItem: (key: string) => store[key] || null,
-        setItem: (key: string, value: string) => { store[key] = value },
-        removeItem: (key: string) => { delete store[key] },
-        clear: () => { store = {} },
-    };
-})();
+let store: { [key: string]: string } = {};
 
+global.localStorage = {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => { store[key] = value },
+    removeItem: (key: string) => { delete store[key] },
+    clear: () => { store = {} },
+    get length() {
+        return Object.keys(store).length;
+    },
+    key: (index: number) => {
+        const keys = Object.keys(store);
+        return keys[index] || null;
+    }
+};
 
 // Only mock if window is defined
 if (typeof window !== 'undefined') {
