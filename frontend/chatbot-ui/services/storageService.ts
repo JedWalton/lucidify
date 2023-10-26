@@ -86,6 +86,7 @@ export const storageService = {
       return null;
     }
   },
+};
 //   async syncAllChangesWithServer(): Promise<void> {
 //     const changeLog = getChangeLog() as ChangeLog[];
 //     if (!changeLog || !changeLog.length) {
@@ -156,7 +157,6 @@ export const storageService = {
 //   },
 //
 //
-};
 //
 //   async removeFromServer(key: keyof LocalStorage): Promise<void> {
 //     const result = await makeRequest(`/api/sync?key=${key}`, 'DELETE'); // Sending 'key' in query parameters

@@ -8,11 +8,11 @@ type ServerResponse struct {
 }
 
 func HandleGet(key string) (interface{}, ServerResponse) {
-	// data, ok := GetDataFromLocalStorage(key)
-	// if ok && data != "" {
-	// 	return data, ServerResponse{Success: true, Message: "Data fetched successfully"}
-	// }
-	return nil, ServerResponse{Success: true, Message: "placeholder success: " + key}
+	data, ok := GetDataFromLocalStorage(key)
+	if ok && data != "" {
+		return data, ServerResponse{Success: true, Message: "Data fetched successfully"}
+	}
+	return nil, ServerResponse{Success: false, Message: "Failed to get from server"}
 }
 
 func HandleSet(key string, value interface{}) ServerResponse {
@@ -31,64 +31,65 @@ func HandleRemove(key string) ServerResponse {
 	return ServerResponse{Success: false, Message: "Data not deleted. unsuccessful"}
 }
 
-// var Storage LocalStorage // Global variable representing our local storage
-//
-// // GetDataFromLocalStorage retrieves a value from local storage based on key.
-// func GetDataFromLocalStorage(key string) (interface{}, bool) {
-// 	switch key {
-// 	case "apiKey":
-// 		return Storage.APIKey, true
-// 	case "conversationHistory":
-// 		return Storage.ConversationHistory, true
-// 	case "selectedConversation":
-// 		return Storage.SelectedConversation, true
-// 	case "theme":
-// 		return Storage.Theme, true
-// 	case "folders":
-// 		return Storage.Folders, true
-// 	case "prompts":
-// 		return Storage.Prompts, true
-// 	case "showChatbar":
-// 		return Storage.ShowChatbar, true
-// 	case "showPromptbar":
-// 		return Storage.ShowPromptbar, true
-// 	case "pluginKeys":
-// 		return Storage.PluginKeys, true
-// 	case "settings":
-// 		return Storage.Settings, true
-// 	default:
-// 		return nil, false
-// 	}
-// }
-//
-// // SetDataInLocalStorage sets a value in local storage based on key.
-// func SetDataInLocalStorage(key string, value interface{}) bool {
-// 	switch key {
-// 	case "apiKey":
-// 		Storage.APIKey = value.(string)
-// 	case "conversationHistory":
-// 		Storage.ConversationHistory = value.([]Conversation)
-// 	case "selectedConversation":
-// 		Storage.SelectedConversation = value.(Conversation)
-// 	case "theme":
-// 		Storage.Theme = value.(string)
-// 	case "folders":
-// 		Storage.Folders = value.([]FolderInterface)
-// 	case "prompts":
-// 		Storage.Prompts = value.([]Prompt)
-// 	case "showChatbar":
-// 		Storage.ShowChatbar = value.(bool)
-// 	case "showPromptbar":
-// 		Storage.ShowPromptbar = value.(bool)
-// 	case "pluginKeys":
-// 		Storage.PluginKeys = value.([]PluginKey)
-// 	case "settings":
-// 		Storage.Settings = value.(Settings)
-// 	default:
-// 		return false
-// 	}
-// 	return true
-// }
+var Storage LocalStorage // Global variable representing our local storage
+
+// GetDataFromLocalStorage retrieves a value from local storage based on key.
+func GetDataFromLocalStorage(key string) (interface{}, bool) {
+	switch key {
+	case "apiKey":
+		return Storage.APIKey, true
+	case "conversationHistory":
+		return Storage.ConversationHistory, true
+	case "selectedConversation":
+		return Storage.SelectedConversation, true
+	case "theme":
+		return Storage.Theme, true
+	case "folders":
+		return Storage.Folders, true
+	case "prompts":
+		return Storage.Prompts, true
+	case "showChatbar":
+		return Storage.ShowChatbar, true
+	case "showPromptbar":
+		return Storage.ShowPromptbar, true
+	case "pluginKeys":
+		return Storage.PluginKeys, true
+	case "settings":
+		return Storage.Settings, true
+	default:
+		return nil, false
+	}
+}
+
+// SetDataInLocalStorage sets a value in local storage based on key.
+func SetDataInLocalStorage(key string, value interface{}) bool {
+	switch key {
+	case "apiKey":
+		Storage.APIKey = value.(string)
+	case "conversationHistory":
+		Storage.ConversationHistory = value.([]Conversation)
+	case "selectedConversation":
+		Storage.SelectedConversation = value.(Conversation)
+	case "theme":
+		Storage.Theme = value.(string)
+	case "folders":
+		Storage.Folders = value.([]FolderInterface)
+	case "prompts":
+		Storage.Prompts = value.([]Prompt)
+	case "showChatbar":
+		Storage.ShowChatbar = value.(bool)
+	case "showPromptbar":
+		Storage.ShowPromptbar = value.(bool)
+	case "pluginKeys":
+		Storage.PluginKeys = value.([]PluginKey)
+	case "settings":
+		Storage.Settings = value.(Settings)
+	default:
+		return false
+	}
+	return true
+}
+
 //
 // // RemoveDataFromLocalStorage removes a value from local storage based on key.
 // func RemoveDataFromLocalStorage(key string) bool {
