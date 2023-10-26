@@ -7,20 +7,20 @@ type ServerResponse struct {
 	Message string      `json:"message,omitempty"` // Descriptive message, especially useful in case of errors
 }
 
-func HandleSet(key string, value interface{}) ServerResponse {
-	// ok := SetDataInLocalStorage(key, value)
-	// if !ok {
-	// 	return ServerResponse{Success: false, Message: "error setting data"}
-	// }
-	return ServerResponse{Success: true, Message: "Data synced successfully"}
-}
-
 func HandleGet(key string) (interface{}, ServerResponse) {
 	// data, ok := GetDataFromLocalStorage(key)
 	// if ok && data != "" {
 	// 	return data, ServerResponse{Success: true, Message: "Data fetched successfully"}
 	// }
 	return nil, ServerResponse{Success: true, Message: "placeholder success: " + key}
+}
+
+func HandleSet(key string, value interface{}) ServerResponse {
+	// ok := SetDataInLocalStorage(key, value)
+	// if !ok {
+	// 	return ServerResponse{Success: false, Message: "error setting data"}
+	// }
+	return ServerResponse{Success: true, Message: "Data synced successfully"}
 }
 
 func HandleRemove(key string) ServerResponse {
