@@ -50,17 +50,6 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservic
 	}
 }
 
-// This is a utility function to send JSON responses
-
-func IsValidKey(key string) bool {
-	switch key {
-	case "apiKey", "ConversationHistory", "SelectedConversation", "Theme", "Folders",
-		"Prompts", "ShowChatbar", "ShowPromptbar", "PluginKeys", "Settings":
-		return true
-	}
-	return false
-}
-
 func SyncHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
