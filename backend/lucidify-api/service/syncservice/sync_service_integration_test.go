@@ -3,6 +3,7 @@
 package syncservice
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -74,12 +75,55 @@ func TestIntegration(t *testing.T) {
 			t.Fatalf("Expected to fetch APIKey correctly but got: %v, data: %v", resp, data)
 		}
 
+		data, resp = HandleGet("conversationHistory")
+		if !resp.Success || resp.Message != "Data fetched successfully" || !reflect.DeepEqual(data, []Conversation{}) {
+			t.Fatalf("Expected to fetch conversationHistory correctly but got: %v, data: %v", resp, data)
+		}
+
+		data, resp = HandleGet("selectedConversation")
+		conv, ok := data.(Conversation)
+		if !resp.Success || resp.Message != "Data fetched successfully" || !ok || !reflect.DeepEqual(conv, Conversation{}) {
+			t.Fatalf("Expected to fetch selectedConversation correctly but got: %v, data: %v", resp, data)
+		}
+
 		data, resp = HandleGet("theme")
 		if !resp.Success || resp.Message != "Data fetched successfully" || data != "dark" {
 			t.Fatalf("Expected to fetch theme correctly but got: %v, data: %v", resp, data)
 		}
 
-		// Insert more HandleGet tests for other keys as needed...
+		data, resp = HandleGet("folders")
+		folders, ok := data.([]FolderInterface)
+		if !resp.Success || resp.Message != "Data fetched successfully" || !ok || !reflect.DeepEqual(folders, []FolderInterface{}) {
+			t.Fatalf("Expected to fetch folders correctly but got: %v, data: %v", resp, data)
+		}
+
+		data, resp = HandleGet("prompts")
+		prompts, ok := data.([]Prompt)
+		if !resp.Success || resp.Message != "Data fetched successfully" || !ok || !reflect.DeepEqual(prompts, []Prompt{}) {
+			t.Fatalf("Expected to fetch prompts correctly but got: %v, data: %v", resp, data)
+		}
+
+		data, resp = HandleGet("showChatbar")
+		if !resp.Success || resp.Message != "Data fetched successfully" || data != true {
+			t.Fatalf("Expected to fetch showChatbar correctly but got: %v, data: %v", resp, data)
+		}
+
+		data, resp = HandleGet("showPromptbar")
+		if !resp.Success || resp.Message != "Data fetched successfully" || data != true {
+			t.Fatalf("Expected to fetch showPromptbar correctly but got: %v, data: %v", resp, data)
+		}
+
+		data, resp = HandleGet("pluginKeys")
+		pKeys, ok := data.([]PluginKey)
+		if !resp.Success || resp.Message != "Data fetched successfully" || !ok || !reflect.DeepEqual(pKeys, []PluginKey{}) {
+			t.Fatalf("Expected to fetch pluginKeys correctly but got: %v, data: %v", resp, data)
+		}
+
+		data, resp = HandleGet("settings")
+		settings, ok := data.(Settings)
+		if !resp.Success || resp.Message != "Data fetched successfully" || !ok || !reflect.DeepEqual(settings, Settings{}) {
+			t.Fatalf("Expected to fetch settings correctly but got: %v, data: %v", resp, data)
+		}
 	})
 
 	// Testing HandleRemove
