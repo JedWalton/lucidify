@@ -30,6 +30,24 @@ export const changeLogService = {
       log.splice(index, 1);
       localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(log));
     }
-  }
+  },
+
+  async syncChangeLogToServer() {
+    const changelog = changeLogService.getChangeLog();
+
+    const response = await fetch(process.env.PUBLIC_BACKEND_API_URL + '/api/sync/changelog', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(changelog)
+    });
+
+    if (!response.ok) {
+        // Handle error
+        const data = await response.json();
+        console.error(data.message);
+    }
+}
 }
 
