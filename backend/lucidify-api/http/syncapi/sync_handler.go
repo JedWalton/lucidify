@@ -8,40 +8,6 @@ import (
 	"net/http"
 )
 
-// LocalStorageKey defines valid keys for LocalStorage operations.
-type LocalStorageKey string
-
-const (
-	apiKey               LocalStorageKey = "apiKey"
-	conversationHistory  LocalStorageKey = "conversationHistory"
-	selectedConversation LocalStorageKey = "selectedConversation"
-	theme                LocalStorageKey = "theme"
-	folders              LocalStorageKey = "folders"
-	prompts              LocalStorageKey = "prompts"
-	showChatbar          LocalStorageKey = "showChatbar"
-	showPromptbar        LocalStorageKey = "showPromptbar"
-	pluginKeys           LocalStorageKey = "pluginKeys"
-	settings             LocalStorageKey = "settings"
-)
-
-// IsValid checks if the provided key is a valid LocalStorageKey.
-func (key LocalStorageKey) IsValid() bool {
-	switch key {
-	case apiKey, conversationHistory, selectedConversation, theme, folders,
-		prompts, showChatbar, showPromptbar, pluginKeys, settings:
-		return true
-	}
-	return false
-}
-
-func MethodNotAllowed(w http.ResponseWriter) {
-	response := syncservice.ServerResponse{
-		Success: false,
-		Message: "Method not allowed",
-	}
-	sendJSONResponse(w, http.StatusMethodNotAllowed, response)
-}
-
 // This is a utility function to send JSON responses
 func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservice.ServerResponse) {
 	w.WriteHeader(statusCode)
