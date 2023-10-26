@@ -20,7 +20,7 @@ func HandleGet(key string) (interface{}, ServerResponse) {
 	// if ok && data != "" {
 	// 	return data, ServerResponse{Success: true, Message: "Data fetched successfully"}
 	// }
-	return nil, ServerResponse{Success: false, Message: "No data found for key: " + key}
+	return nil, ServerResponse{Success: true, Message: "placeholder success: " + key}
 }
 
 func HandleRemove(key string) ServerResponse {
