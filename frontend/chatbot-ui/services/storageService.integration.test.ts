@@ -32,52 +32,6 @@ beforeEach(() => {
   }
 });
 
-describe('storageService - changeLog functions', () => {
-  it('should return empty change log if none exists', () => {
-    const log = storageService.getChangeLog();
-    expect(log).toEqual([]);
-  });
-
-  it('should return correct change log if it exists', () => {
-    const dummyLog = [{ changeId: 1, key: 'testKey', newValue: 'testValue', operation: 'INSERT' }];
-    localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(dummyLog));
-    const log = getChangeLog();
-    expect(log).toEqual(dummyLog);
-  });
-
-  it('should add an entry to an empty change log', () => {
-    addToChangeLog({ key: 'testKey', newValue: 'testValue', operation: 'INSERT' });
-    const log = getChangeLog();
-    expect(log).toEqual([{ changeId: 1, key: 'testKey', newValue: 'testValue', operation: 'INSERT' }]);
-  });
-
-  it('should have incrementing change IDs for consecutive entries', () => {
-    addToChangeLog({ key: 'testKey2', newValue: 'testValue2', operation: 'UPDATE' });
-    const log = getChangeLog();
-    expect(log[1].changeId).toBe(2);
-  });
-
-  it('should clear the change log', () => {
-    clearChangeLog();
-    const log = getChangeLog();
-    expect(log).toEqual([]);
-  });
-
-  it('should remove specified entry from the change log', () => {
-    addToChangeLog({ key: 'testKey', newValue: 'testValue', operation: 'INSERT' });
-    const initialLog = getChangeLog();
-    removeFromChangeLog(initialLog[0].changeId);
-    const updatedLog = getChangeLog();
-    expect(updatedLog).toEqual([]);
-  });
-
-  it('should do nothing if trying to remove a nonexistent entry', () => {
-    addToChangeLog({ key: 'testKey', newValue: 'testValue', operation: 'INSERT' });
-    removeFromChangeLog(9999); // Using a nonexistent changeId
-    const log = getChangeLog();
-    expect(log).toHaveLength(1);
-  });
-});
 
 describe('storageService', () => {
   const testKey = 'testKey' as keyof LocalStorage;

@@ -1,36 +1,7 @@
 // storageService.ts
 import { LocalStorage } from '@/types/storage';
-import { ChangeLog } from '@/types/changelog';
+import { changeLogService } from './changeLogService';
 
-
-const CHANGE_LOG_KEY: keyof LocalStorage = '__CHANGE_LOG__';
-
-function getChangeLog(): ChangeLog[] {
-  const log = localStorage.getItem(CHANGE_LOG_KEY);
-  return log ? JSON.parse(log) : [];
-}
-
-function addToChangeLog(change: Omit<ChangeLog, 'changeId'>): void {
-  const log = getChangeLog();
-  const lastChange = log[log.length - 1];
-  const changeId = lastChange?.changeId ? lastChange.changeId + 1 : 1;
-
-  log.push({ ...change, changeId });
-  localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(log));
-}
-
-function clearChangeLog(): void {
-  localStorage.removeItem(CHANGE_LOG_KEY);
-}
-
-function removeFromChangeLog(changeId: number): void {
-  const log = getChangeLog();
-  const index = log.findIndex(change => change.changeId === changeId);
-  if (index !== -1) {
-    log.splice(index, 1);
-    localStorage.setItem(CHANGE_LOG_KEY, JSON.stringify(log));
-  }
-}
 
 export const storageService = {
   async getItem(key: keyof LocalStorage): Promise<string | null> {
@@ -58,7 +29,7 @@ export const storageService = {
     }
 
     // Add to change log
-    addToChangeLog({
+    changeLogService.addToChangeLog({
       key,
       operation: oldValue ? 'UPDATE' : 'INSERT',
       oldValue: oldValue || '',
@@ -72,7 +43,7 @@ export const storageService = {
     localStorage.removeItem(key);
 
     // Add to change log
-    addToChangeLog({
+    changeLogService.addToChangeLog({
       key,
       operation: 'DELETE',
       oldValue: oldValue || '',
