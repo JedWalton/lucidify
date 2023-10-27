@@ -23,10 +23,15 @@ export const storageService = {
     return await this.setItemOnServer(key, value);
   },
 
-  // async removeItem(key: keyof LocalStorage): Promise<string | null> {
   async removeItem(key: keyof LocalStorage) {
     localStorage.removeItem(key);
+    await this.removeItemWrapper(key);
   },
+
+  async removeItemWrapper(key: keyof LocalStorage): Promise<string | null> {
+    return await this.removeItemFromServer(key);
+  },
+
 
   async getItemFromServer(key: keyof LocalStorage): Promise<string | null> {
     try {
