@@ -73,6 +73,8 @@ func SyncHandler() http.HandlerFunc {
 		}
 		value := string(bodyBytes)
 
+		log.Println("Received method:", r.Method)
+
 		var response syncservice.ServerResponse
 
 		switch r.Method {
