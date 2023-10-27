@@ -39,7 +39,14 @@ describe('storageService set and get', () => {
 
   it('should set and get an item', async () => {
     let resp = await storageService.setItem(testKey, 'testValue');
-    expect(resp).toBe('testValue');
+
+    if (resp === null) {
+      fail('resp is null');
+    }
+    if (resp !== null) {
+      const parsedResp: any = JSON.parse(resp);
+      expect(parsedResp.success).toBe(true);
+    }
     // expect(await storageService.getItem(testKey)).toBe('testValue');
   });
 
