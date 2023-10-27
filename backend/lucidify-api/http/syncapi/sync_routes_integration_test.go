@@ -3,7 +3,7 @@
 package syncapi
 
 import (
-	"io/ioutil"
+	"io"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
 	"net/http"
@@ -11,75 +11,56 @@ import (
 	"testing"
 )
 
-func TestIntegrationRoutes(t *testing.T) {
-	// Setup the routes and server
-	cfg := &config.ServerConfig{} // Assuming default values or mock values for this test
+func setupServer(t *testing.T) *httptest.Server {
+	cfg := &config.ServerConfig{}
 	clerkInstance, err := clerkservice.NewClerkClient()
 	if err != nil {
 		t.Fatalf("Failed to create Clerk client: %v", err)
 	}
 	mux := http.NewServeMux()
-	server := httptest.NewServer(SetupRoutes(cfg, mux, clerkInstance))
+	return httptest.NewServer(SetupRoutes(cfg, mux, clerkInstance))
+}
+
+func makeGetRequest(t *testing.T, server *httptest.Server, endpoint string) (*http.Response, string) {
+	res, err := http.Get(server.URL + endpoint)
+	if err != nil {
+		t.Fatalf("Failed to make a GET request: %v", err)
+	}
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
+	return res, string(bodyBytes)
+}
+
+func TestInvalidEndpoint(t *testing.T) {
+	server := setupServer(t)
 	defer server.Close()
 
-	// Invalid endpoint
-	// Make a request to the /api/sync/localstorage endpoint
-	res, err := http.Get(server.URL + "/api/sync/localstorage/?key=test")
-	if err != nil {
-		t.Fatalf("Failed to make a GET request: %v", err)
-	}
-	defer res.Body.Close()
-
-	// Reading the response body
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("Failed to read response body: %v", err)
-	}
+	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=test")
 
 	expectedResponse := `{"success":false,"message":"Invalid key"}` + "\n"
-	actualResponse := string(bodyBytes)
-	if actualResponse != expectedResponse {
-		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, string(bodyBytes))
+	if responseBody != expectedResponse {
+		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
 	}
-
-	// Asserting status code and possibly response body (if needed)
 	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("bodybye: %v", string(bodyBytes))
-		t.Fatalf("Expected status OK; got %v", res.StatusCode)
+		t.Fatalf("Expected status BAD REQUEST; got %v", res.StatusCode)
 	}
+}
 
-	// Valid endpoint
-	// Make a request to the /api/sync/localstorage endpoint
-	res, err = http.Get(server.URL + "/api/sync/localstorage/?key=apiKey")
-	if err != nil {
-		t.Fatalf("Failed to make a GET request: %v", err)
+func TestValidEndpoint(t *testing.T) {
+	server := setupServer(t)
+	defer server.Close()
+
+	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=apiKey")
+
+	expectedResponse := `{"success":true,"message":"Successful Get placeholder for key: apiKey"}` + "\n"
+	if responseBody != expectedResponse {
+		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
 	}
-	defer res.Body.Close()
-
-	// Reading the response body
-	bodyBytes, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("Failed to read response body: %v", err)
-	}
-
-	expectedResponse = `{"success":true,"message":"Successful Get placeholder for key: apiKey"}` + "\n"
-	actualResponse = string(bodyBytes)
-	if actualResponse != expectedResponse {
-		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, string(bodyBytes))
-	}
-
-	// Asserting status code and possibly response body (if needed)
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("bodybye: %v", string(bodyBytes))
 		t.Fatalf("Expected status OK; got %v", res.StatusCode)
 	}
-
-	// If you want to check the response body as well, you can read and assert it here
-	// body, _ := io.ReadAll(res.Body)
-	// Perform assertions based on the expected response body
-	// e.g., assert.Equal(t, "ExpectedResponse", string(body))
 }
 
-func TestHandlerIntegration(t *testing.T) {
-
-}
+// Further tests can be added in a similar manner
