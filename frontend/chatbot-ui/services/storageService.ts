@@ -4,25 +4,34 @@ import { changeLogService } from './changeLogService';
 
 
 export const storageService = {
-  async getItem(key: keyof LocalStorage): Promise<string | null> {
-    // localStorage.getItem(key) returns null if the key does not exist
+  async getItem(key: keyof LocalStorage) {
+    localStorage.getItem(key)
+    await this.getItemWrapper(key);
+  },
+  async getItemWrapper(key: keyof LocalStorage): Promise<string | null> {
     return await this.getItemFromServer(key);
   },
 
-  async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
-    //   localStorage.setItem(key, String(value));
-    return await this.setItemOnServer(key, value);
-
+  // async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
+  async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]) {
+    localStorage.setItem(key, String(value));
+    await this.setItemWrapper(key, value);
+    // return await this.setItemOnServer(key, value);
   },
 
-  async removeItem(key: keyof LocalStorage): Promise<string | null> {
-    // localStorage.removeItem(key);
-    return await this.removeItemFromServer(key);
+  async setItemWrapper(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
+    return await this.setItemOnServer(key, value);
+  },
+
+  // async removeItem(key: keyof LocalStorage): Promise<string | null> {
+  async removeItem(key: keyof LocalStorage) {
+    localStorage.removeItem(key);
   },
 
   async getItemFromServer(key: keyof LocalStorage): Promise<string | null> {
     try {
-      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
       const options: RequestInit = {
         method: 'GET',
@@ -58,7 +67,8 @@ export const storageService = {
 
   async setItemOnServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
     try {
-      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
       console.log(JSON.stringify({ value }));
       const options: RequestInit = {
@@ -97,7 +107,8 @@ export const storageService = {
 
   async removeItemFromServer(key: keyof LocalStorage): Promise<string | null> {
     try {
-      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
       const options: RequestInit = {
         method: 'DELETE',

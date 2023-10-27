@@ -38,7 +38,7 @@ describe('storageService set and get', () => {
   process.env.PUBLIC_BACKEND_API_URL = 'http://localhost:8080';
 
   it('should set and get an item', async () => {
-    let resp = await storageService.setItem(testKey, 'testValue');
+    let resp = await storageService.setItemWrapper(testKey, 'testValue');
 
     if (resp === null) {
       fail('resp is null');
@@ -47,7 +47,16 @@ describe('storageService set and get', () => {
       const parsedResp: any = JSON.parse(resp);
       expect(parsedResp.success).toBe(true);
     }
-    // expect(await storageService.getItem(testKey)).toBe('testValue');
+
+    let respGet = await storageService.getItemWrapper(testKey)
+    if (respGet === null) {
+      fail('respGet is null');
+    }
+    if (respGet !== null) {
+      const parsedRespGet: any = JSON.parse(respGet);
+      expect(parsedRespGet.success).toBe(true);
+    }
+
   });
 
   // it('should set item, remove and verify removed through get', async () => {
