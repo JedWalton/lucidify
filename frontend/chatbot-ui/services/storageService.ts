@@ -4,7 +4,7 @@ import { changeLogService } from './changeLogService';
 
 
 export const storageService = {
-  async getItem(key: keyof LocalStorage): Promise<string | null> {
+  async getItem(key: keyof LocalStorage): Promise<string> {
     // localStorage.getItem(key) returns null if the key does not exist
     return await this.getItemFromServer(key);
   },
@@ -20,7 +20,7 @@ export const storageService = {
     return await this.removeItemFromServer(key);
   },
 
-  async getItemFromServer(key: keyof LocalStorage): Promise<string | null> {
+  async getItemFromServer(key: keyof LocalStorage): Promise<string> {
     try {
       const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
@@ -52,7 +52,7 @@ export const storageService = {
       return JSON.stringify(data);  // or just `return data;` if you don't need to stringify the response
     } catch (error) {
       console.error(`Request failed: ${error}`);
-      return null;
+      throw Error();
     }
   },
 

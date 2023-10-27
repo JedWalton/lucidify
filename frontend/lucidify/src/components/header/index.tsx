@@ -60,7 +60,7 @@ const Header = () => {
           Lucidify your business.
         </h1>
         <div className={tw(`max-w-xl mx-auto`)}>
-          <p className={tw(`mt-10 text-gray-500 text-center text-xl lg:text-3xl`)}>Chat securely with your business with your private ChatGPT.</p>
+          <p className={tw(`mt-10 text-gray-500 text-center text-xl lg:text-3xl`)}>Chat securely with your private ChatGPT.</p>
         </div>
 
         <div className={tw(`mt-10 flex justify-center items-center w-full mx-auto`)}>
