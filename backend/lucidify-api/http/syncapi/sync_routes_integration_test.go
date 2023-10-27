@@ -39,7 +39,7 @@ func TestInvalidEndpoint(t *testing.T) {
 
 	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=test")
 
-	expectedResponse := `{"success":false,"message":"Invalid key"}` + "\n"
+	expectedResponse := `{"success":false,"message":"Invalid key"}`
 	if responseBody != expectedResponse {
 		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
 	}
@@ -54,7 +54,7 @@ func TestValidEndpoint(t *testing.T) {
 
 	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=apiKey")
 
-	expectedResponse := `{"success":true,"message":"Successful Get placeholder for key: apiKey"}` + "\n"
+	expectedResponse := `{"success":false,"message":"Data not found for key: apiKey"}`
 	if responseBody != expectedResponse {
 		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
 	}

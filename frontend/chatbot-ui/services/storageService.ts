@@ -5,7 +5,7 @@ import { changeLogService } from './changeLogService';
 
 export const storageService = {
   async getItem(key: keyof LocalStorage) {
-    localStorage.getItem(key)
+    // localStorage.getItem(key)
     await this.getItemWrapper(key);
   },
   async getItemWrapper(key: keyof LocalStorage): Promise<string | null> {
@@ -14,7 +14,7 @@ export const storageService = {
 
   // async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
   async setItem(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]) {
-    localStorage.setItem(key, String(value));
+    // localStorage.setItem(key, String(value));
     await this.setItemWrapper(key, value);
     // return await this.setItemOnServer(key, value);
   },
@@ -24,7 +24,7 @@ export const storageService = {
   },
 
   async removeItem(key: keyof LocalStorage) {
-    localStorage.removeItem(key);
+    // localStorage.removeItem(key);
     await this.removeItemWrapper(key);
   },
 

@@ -42,15 +42,30 @@ func MethodNotAllowed(w http.ResponseWriter) {
 	sendJSONResponse(w, http.StatusMethodNotAllowed, response)
 }
 
-// This is a utility function to send JSON responses
 func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservice.ServerResponse) {
 	w.WriteHeader(statusCode)
-	err := json.NewEncoder(w).Encode(response)
+	responseBytes, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	_, err = w.Write(responseBytes)
+	if err != nil {
+		log.Println("Error writing response:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
+
+// // This is a utility function to send JSON responses
+// func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservice.ServerResponse) {
+// 	w.WriteHeader(statusCode)
+// 	err := json.NewEncoder(w).Encode(response)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+// }
 
 func SyncHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
