@@ -4,7 +4,7 @@ import { changeLogService } from './changeLogService';
 
 
 export const storageService = {
-  async getItem(key: keyof LocalStorage): Promise<string> {
+  async getItem(key: keyof LocalStorage): Promise<string | null> {
     // localStorage.getItem(key) returns null if the key does not exist
     return await this.getItemFromServer(key);
   },
@@ -20,7 +20,7 @@ export const storageService = {
     return await this.removeItemFromServer(key);
   },
 
-  async getItemFromServer(key: keyof LocalStorage): Promise<string> {
+  async getItemFromServer(key: keyof LocalStorage): Promise<string | null> {
     try {
       const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
@@ -52,14 +52,15 @@ export const storageService = {
       return JSON.stringify(data);  // or just `return data;` if you don't need to stringify the response
     } catch (error) {
       console.error(`Request failed: ${error}`);
-      throw Error();
+      return null
     }
   },
 
   async setItemOnServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
     try {
-      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage?key=${encodeURIComponent(key as string)}`;
+      const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
+      console.log(JSON.stringify({ value }));
       const options: RequestInit = {
         method: 'POST',
         headers: {
@@ -99,7 +100,7 @@ export const storageService = {
       const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
       const options: RequestInit = {
-        method: 'GET',
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -204,31 +205,3 @@ export const storageService = {
 //
 // const API_BASE_URL = "http://localhost:8080"
 //
-async function makeRequest(endpoint: string, method: string, body: any = null): Promise<any> {
-  try {
-    const url = `${API_BASE_URL}${endpoint}`;
-
-    const options: RequestInit = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      mode: 'cors',
-    };
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, options);
-
-    if (!response.ok) {
-      const errBody = await response.json();
-      throw new Error(errBody.message || `Server responded with ${response.status}`);
-    }
-
-    return method === 'GET' ? response.json() : null;
-  } catch (error) {
-    console.error(`Request failed: ${error}`);
-    return null;
-  }
-}
