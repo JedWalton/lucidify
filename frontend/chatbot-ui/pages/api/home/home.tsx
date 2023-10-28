@@ -40,7 +40,6 @@ import HomeContext from './home.context';
 import { HomeInitialState, initialState } from './home.state';
 
 import { v4 as uuidv4 } from 'uuid';
-import { storageService } from '@/services/storageService';
 
 interface Props {
   serverSideApiKeyIsSet: boolean;
@@ -262,15 +261,15 @@ const Home = ({
           });
         }
 
-        const apiKey = await storageService.getItem('apiKey');
+        const apiKey = localStorage.getItem('apiKey');
         if (serverSideApiKeyIsSet) {
           dispatch({ field: 'apiKey', value: '' });
-          await storageService.removeItem('apiKey');
+          localStorage.removeItem('apiKey');
         } else if (apiKey) {
           dispatch({ field: 'apiKey', value: apiKey });
         }
 
-        const pluginKeys = await storageService.getItem('pluginKeys');
+        const pluginKeys = localStorage.getItem('pluginKeys');
         if (serverSidePluginKeysSet) {
           dispatch({ field: 'pluginKeys', value: [] });
           localStorage.removeItem('pluginKeys');
@@ -284,27 +283,27 @@ const Home = ({
           dispatch({ field: 'showPromptbar', value: false });
         }
 
-        const showChatbar = await storageService.getItem('showChatbar');
+        const showChatbar = localStorage.getItem('showChatbar');
         if (showChatbar) {
           dispatch({ field: 'showChatbar', value: showChatbar === 'true' });
         }
 
-        const showPromptbar = await storageService.getItem('showPromptbar');
+        const showPromptbar = localStorage.getItem('showPromptbar');
         if (showPromptbar) {
           dispatch({ field: 'showPromptbar', value: showPromptbar === 'true' });
         }
 
-        const folders = await storageService.getItem('folders');
+        const folders = localStorage.getItem('folders');
         if (folders) {
           dispatch({ field: 'folders', value: JSON.parse(folders) });
         }
 
-        const prompts = await storageService.getItem('prompts');
+        const prompts = localStorage.getItem('prompts');
         if (prompts) {
           dispatch({ field: 'prompts', value: JSON.parse(prompts) });
         }
 
-        const conversationHistory = await storageService.getItem('conversationHistory');
+        const conversationHistory = localStorage.getItem('conversationHistory');
         if (conversationHistory) {
           const parsedConversationHistory: Conversation[] =
             JSON.parse(conversationHistory);
@@ -315,7 +314,7 @@ const Home = ({
           dispatch({ field: 'conversations', value: cleanedConversationHistory });
         }
 
-        const selectedConversation = await storageService.getItem('selectedConversation');
+        const selectedConversation = localStorage.getItem('selectedConversation');
         if (selectedConversation) {
           const parsedSelectedConversation: Conversation =
             JSON.parse(selectedConversation);

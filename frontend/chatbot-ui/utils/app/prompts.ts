@@ -1,4 +1,3 @@
-import { storageService } from '@/services/storageService';
 import { Prompt } from '@/types/prompt';
 
 export const updatePrompt = (updatedPrompt: Prompt, allPrompts: Prompt[]) => {
@@ -19,5 +18,5 @@ export const updatePrompt = (updatedPrompt: Prompt, allPrompts: Prompt[]) => {
 };
 
 export const savePrompts = (prompts: Prompt[]) => {
-  storageService.setItem('prompts', JSON.stringify(prompts));
+  localStorage.setItem('prompts', JSON.stringify(prompts));
 };
