@@ -19,7 +19,6 @@ import PromptbarContext from './PromptBar.context';
 import { PromptbarInitialState, initialState } from './Promptbar.state';
 
 import { v4 as uuidv4 } from 'uuid';
-import { storageService } from '@/services/storageService';
 
 const Promptbar = () => {
   const { t } = useTranslation('promptbar');
@@ -41,7 +40,7 @@ const Promptbar = () => {
 
   const handleTogglePromptbar = () => {
     homeDispatch({ field: 'showPromptbar', value: !showPromptbar });
-    storageService.setItem('showPromptbar', JSON.stringify(!showPromptbar));
+    localStorage.setItem('showPromptbar', JSON.stringify(!showPromptbar));
   };
 
   const handleCreatePrompt = () => {

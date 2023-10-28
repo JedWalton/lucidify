@@ -1,4 +1,3 @@
-import { storageService } from '@/services/storageService';
 import { Settings } from '@/types/settings';
 
 const STORAGE_KEY = 'settings';
@@ -9,7 +8,7 @@ export const getSettings = async (): Promise<Settings> => {
   };
 
   try {
-    const settingsJson = await storageService.getItem(STORAGE_KEY); // await the Promise
+    const settingsJson = localStorage.getItem(STORAGE_KEY); // await the Promise
     if (settingsJson) {
       const savedSettings = JSON.parse(settingsJson) as Settings;
       settings = Object.assign(settings, savedSettings);
@@ -23,7 +22,7 @@ export const getSettings = async (): Promise<Settings> => {
 
 export const saveSettings = async (settings: Settings) => {
   try {
-    await storageService.setItem(STORAGE_KEY, JSON.stringify(settings));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch (e) {
     console.error('Failed to save settings:', e);
   }
