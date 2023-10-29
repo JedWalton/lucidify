@@ -28,5 +28,5 @@ export const saveConversation = (conversation: Conversation) => {
 
 export const saveConversations = async (conversations: Conversation[]) => {
   localStorage.setItem('conversationHistory', JSON.stringify(conversations));
-  console.log(await storageService.setItemOnServer('conversationHistory', JSON.stringify(conversations)));
+  await storageService.setItemOnServer('conversationHistory', JSON.stringify(conversations));
 };
