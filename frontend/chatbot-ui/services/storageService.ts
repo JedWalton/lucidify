@@ -1,6 +1,12 @@
 // storageService.ts
 import { LocalStorage } from '@/types/storage';
 
+type ServerResponse = {
+  success: boolean;
+  data?: any;  // You can be more specific with this type if you know the expected structure
+  message?: string;
+};
+
 
 export const storageService = {
   // async getItem(key: keyof LocalStorage) {
@@ -32,56 +38,56 @@ export const storageService = {
   // },
 
 
-  // async getItemFromServer(key: keyof LocalStorage): Promise<string | null> {
-  //   try {
-  //     // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
-  //     const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
-  //
-  //     const options: RequestInit = {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       mode: 'cors',
-  //     };
-  //
-  //     const response = await fetch(url, options);
-  //
-  //     if (!response.ok) {
-  //       // You can first attempt to decode the response as JSON, and then fall back to text if it fails.
-  //       let errorMessage = 'Server responded with an error';
-  //       try {
-  //         const errorBody = await response.json();
-  //         errorMessage = errorBody.message || `Server responded with ${response.status}`;
-  //       } catch (jsonError) {
-  //         errorMessage = await response.text(); // If response is not in JSON format
-  //       }
-  //
-  //       throw new Error(errorMessage);
-  //     }
-  //
-  //     // If the response is OK, we decode it from JSON
-  //     const data = await response.json();
-  //     return data.value
-  //   } catch (error) {
-  //     console.error(`Request failed: ${error}`);
-  //     return null
-  //   }
-  // },
+  async getItemFromServer(key: keyof LocalStorage): Promise<ServerResponse | null> {
+    try {
+      // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+      const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
+
+      const options: RequestInit = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      };
+
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        // You can first attempt to decode the response as JSON, and then fall back to text if it fails.
+        let errorMessage = 'Server responded with an error';
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || `Server responded with ${response.status}`;
+        } catch (jsonError) {
+          errorMessage = await response.text(); // If response is not in JSON format
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      // If the response is OK, we decode it from JSON
+      const data: ServerResponse = await response.json();
+      return data;
+
+    } catch (error) {
+      console.error(`Request failed: ${error}`);
+      return null
+    }
+  },
 
   async setItemOnServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
-      console.log(JSON.stringify({ value }));
       const options: RequestInit = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         mode: 'cors',
-        body: JSON.stringify({ value }), // We send only the value in the body as the key is already in the URL.
+        body: value as string,
       };
 
       const response = await fetch(url, options);
@@ -101,6 +107,7 @@ export const storageService = {
 
       // handle response logic, if needed
       const data = await response.json();
+      // console.log(data);
       return JSON.stringify(data);  // or just `return data;` if you don't need to stringify the response
 
     } catch (error) {

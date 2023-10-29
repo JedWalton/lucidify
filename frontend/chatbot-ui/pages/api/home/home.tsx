@@ -40,6 +40,7 @@ import HomeContext from './home.context';
 import { HomeInitialState, initialState } from './home.state';
 
 import { v4 as uuidv4 } from 'uuid';
+import { storageService } from '@/services/storageService';
 
 interface Props {
   serverSideApiKeyIsSet: boolean;
@@ -303,16 +304,38 @@ const Home = ({
           dispatch({ field: 'prompts', value: JSON.parse(prompts) });
         }
 
-        const conversationHistory = localStorage.getItem('conversationHistory');
-        if (conversationHistory) {
-          const parsedConversationHistory: Conversation[] =
-            JSON.parse(conversationHistory);
-          const cleanedConversationHistory = cleanConversationHistory(
-            parsedConversationHistory,
-          );
 
-          dispatch({ field: 'conversations', value: cleanedConversationHistory });
+        // const conversationHistory = localStorage.getItem('conversationHistory');
+        // if (conversationHistory) {
+        //   const parsedConversationHistory: Conversation[] =
+        //     JSON.parse(conversationHistory);
+        //   const cleanedConversationHistory = cleanConversationHistory(
+        //     parsedConversationHistory,
+        //   );
+        //
+        //   dispatch({ field: 'conversations', value: cleanedConversationHistory });
+        // }
+
+
+
+        // EXPERIMENTAL BLOCK FOR LOADING CONVERSATION HISTORY FROM SERVER AFTER LOADING FROM LOCAL STORAGE
+        //
+        const conversationHistoryFromServer = await storageService.getItemFromServer('conversationHistory');
+        console.log('conversationHistoryFromServer', conversationHistoryFromServer);
+        if (conversationHistoryFromServer && conversationHistoryFromServer.success) {
+          try {
+            const parsedConversationHistoryFromServer: Conversation[] = JSON.parse(conversationHistoryFromServer.data);
+            const cleanedConversationHistoryFromServer = cleanConversationHistory(
+              parsedConversationHistoryFromServer,
+            );
+
+            dispatch({ field: 'conversations', value: cleanedConversationHistoryFromServer });
+          } catch (error) {
+            console.error('Error parsing conversation history from server:', error);
+          }
         }
+        // End of experimental block
+
 
         const selectedConversation = localStorage.getItem('selectedConversation');
         if (selectedConversation) {
