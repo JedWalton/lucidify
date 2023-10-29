@@ -72,9 +72,6 @@ function currentDate() {
 }
 
 export const exportData = async () => {
-  // let history = await storageService.getItem('conversationHistory');
-  // let folders = await storageService.getItem('folders');
-  // let prompts = await storageService.getItem('prompts');
   let history = localStorage.getItem('conversationHistory');
   let folders = localStorage.getItem('folders');
   let prompts = localStorage.getItem('prompts');
@@ -166,3 +163,5 @@ export const importData = async (
   };
 };
 
+
+// New exportData for syncing only changes since last sync (not yet implemented)
