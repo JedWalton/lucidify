@@ -70,6 +70,9 @@ func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
 			return
 		}
 
+		userID := r.Header.Get("X-User-ID")
+		log.Println("Received userID:", userID)
+
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Println("Error reading request body:", err)
@@ -84,10 +87,13 @@ func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
 
 		switch r.Method {
 		case http.MethodGet:
+			// response = syncService.HandleGet(userID, key)
 			response = syncService.HandleGet(key)
 		case http.MethodDelete:
+			// response = syncService.HandleRemove(userID, key)
 			response = syncService.HandleRemove(key)
 		case http.MethodPost:
+			// response = syncService.HandleSet(userID, key, value)
 			response = syncService.HandleSet(key, value)
 		default:
 			response = syncservice.ServerResponse{

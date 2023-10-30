@@ -43,6 +43,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '@/services/storageService';
 import { SupportedExportFormats } from '@/types/export';
 import { importData } from '@/utils/app/importExport';
+import { useAuth } from '@clerk/nextjs';
 
 interface Props {
   serverSideApiKeyIsSet: boolean;
@@ -101,6 +102,13 @@ const Home = ({
   useEffect(() => {
     dispatch({ field: 'modelError', value: getModelsError(error) });
   }, [dispatch, error, getModelsError]);
+
+
+  // Set userId in localStorage
+  const { userId } = useAuth();
+  if (userId) {
+    localStorage.setItem('userId', userId);
+  }
 
   // FETCH MODELS ----------------------------------------------
 
@@ -255,6 +263,7 @@ const Home = ({
 
   useEffect(() => {
     const loadData = async () => {
+
       try {
         const settings = await getSettings();
         if (settings.theme) {
@@ -451,6 +460,7 @@ const Home = ({
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
   ]);
+
 
 
   return (

@@ -30,13 +30,11 @@ func NewSyncService() (SyncService, error) {
 var store = make(map[string]string)
 
 func (s *SyncServiceImpl) HandleSet(key string, value string) ServerResponse {
-	// Set in postgres for user_id
 	store[key] = value
 	return ServerResponse{Success: true, Message: "Data set successfully for key: " + key}
 }
 
 func (s *SyncServiceImpl) HandleGet(key string) ServerResponse {
-	// Get in postgres for user_id
 	if data, ok := store[key]; ok {
 		return ServerResponse{Success: true, Data: data, Message: "Data fetched successfully"}
 	}
@@ -44,7 +42,6 @@ func (s *SyncServiceImpl) HandleGet(key string) ServerResponse {
 }
 
 func (s *SyncServiceImpl) HandleRemove(key string) ServerResponse {
-	// Remove in postgres for user_id
 	if _, ok := store[key]; ok {
 		delete(store, key)
 		return ServerResponse{Success: true, Message: "Data deleted successfully for key: " + key}
