@@ -166,16 +166,16 @@ func TestUploadDocumentIntegration(t *testing.T) {
 	db.DeleteUserInUsersTable(userID)
 
 	// 4. Cleanup
-	t.Cleanup(func() {
-		db.DeleteUserInUsersTable(userID)
-	})
+	// t.Cleanup(func() {
+	// 	db.DeleteUserInUsersTable(userID)
+	// })
+
+	chunksFromWeaviate, err = weaviateClient.GetChunks(chunks)
+	if err != nil || len(chunksFromWeaviate) == 0 {
+		t.Error("Chunks were not deleted from Weaviate")
+	}
 }
 
-// chunksFromWeaviate, err := weaviateClient.GetChunks(chunks)
-// if err != nil || len(chunksFromWeaviate) == 0 {
-// 	t.Error("Chunks were not uploaded to Weaviate")
-// }
-//
 // err = db.DeleteDocumentByUUID(document.DocumentUUID)
 // if err != nil {
 // 	t.Errorf("Failed to delete test document: %v", err)
