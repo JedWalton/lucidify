@@ -320,9 +320,6 @@ const Home = ({
 
 
         // EXPERIMENTAL BLOCK FOR LOADING CONVERSATION HISTORY FROM SERVER AFTER LOADING FROM LOCAL STORAGE
-        //
-        //
-        //
         const conversationHistoryFromServer = await storageService.getItemFromServer('conversationHistory');
         console.log('conversationHistoryFromServer', conversationHistoryFromServer);
         if (conversationHistoryFromServer && conversationHistoryFromServer.success) {
@@ -350,6 +347,38 @@ const Home = ({
             dispatch({ field: 'conversations', value: importedData.history });
           } catch (error) {
             console.error('Error parsing conversation history from server:', error);
+          }
+        }
+
+        const foldersFromServer = await storageService.getItemFromServer('folders');
+        console.log('foldersFromServer', foldersFromServer);
+        if (foldersFromServer && foldersFromServer.success) {
+          try {
+            const parsedFoldersFromServer: FolderInterface[] = JSON.parse(foldersFromServer.data);
+
+            // const cleanedFoldersFromServer = cleanConversationHistory(
+            //   parsedConversationHistoryFromServer,
+            // );
+
+            console.log('parsedFoldersFromServer', parsedFoldersFromServer)
+            // console.log('cleanedConversationHistoryFromServer', cleanedConversationHistoryFromServer)
+
+            // Prepare the data structure for importData
+            const inputData: SupportedExportFormats = {
+              version: 4,
+              history: [],
+              folders: parsedFoldersFromServer,// Assuming no folder data from the server for this example
+              prompts: []   // Assuming no prompt data from the server for this example
+            };
+
+            const importedData = await importData(inputData);
+            console.log('importedData', importedData);
+
+            console.log('importedData.folders', importedData.folders);
+
+            dispatch({ field: 'folders', value: importedData.folders });
+          } catch (error) {
+            console.error('Error parsing folders from server:', error);
           }
         }
         // End of experimental block
