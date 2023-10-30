@@ -23,5 +23,6 @@ export interface LocalStorage {
   pluginKeys: PluginKey[];
   // added settings (10/23/23)
   settings: Settings;
+  userId: string;
    // __CHANGE_LOG__?: ChangeLog[];
 }

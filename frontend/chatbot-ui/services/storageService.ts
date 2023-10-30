@@ -1,5 +1,6 @@
 // storageService.ts
 import { LocalStorage } from '@/types/storage';
+import { currentUser } from '@clerk/nextjs';
 
 type ServerResponse = {
   success: boolean;
@@ -10,15 +11,26 @@ type ServerResponse = {
 
 export const storageService = {
   async getItemFromServer(key: keyof LocalStorage): Promise<ServerResponse | null> {
+    const userId = localStorage.getItem('userId')
+    console.log('userId:', userId)
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (userId) {
+        headers['X-User-ID'] = userId;
+      }
+      console.log('headers:', headers)
+      console.log('userId:', userId)
+
+
       const options: RequestInit = {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         mode: 'cors',
       };
 
@@ -48,15 +60,22 @@ export const storageService = {
   },
 
   async setItemOnServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
+    const userId = localStorage.getItem('userId')
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (userId) {
+        headers['X-User-ID'] = userId;
+      }
+
       const options: RequestInit = {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         mode: 'cors',
         body: value as string,
       };
