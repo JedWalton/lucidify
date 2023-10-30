@@ -41,6 +41,8 @@ import { HomeInitialState, initialState } from './home.state';
 
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '@/services/storageService';
+import { SupportedExportFormats } from '@/types/export';
+import { importData } from '@/utils/app/importExport';
 
 interface Props {
   serverSideApiKeyIsSet: boolean;
@@ -317,19 +319,35 @@ const Home = ({
         // }
 
 
-
         // EXPERIMENTAL BLOCK FOR LOADING CONVERSATION HISTORY FROM SERVER AFTER LOADING FROM LOCAL STORAGE
+        //
+        //
         //
         const conversationHistoryFromServer = await storageService.getItemFromServer('conversationHistory');
         console.log('conversationHistoryFromServer', conversationHistoryFromServer);
         if (conversationHistoryFromServer && conversationHistoryFromServer.success) {
           try {
             const parsedConversationHistoryFromServer: Conversation[] = JSON.parse(conversationHistoryFromServer.data);
+
             const cleanedConversationHistoryFromServer = cleanConversationHistory(
               parsedConversationHistoryFromServer,
             );
 
-            dispatch({ field: 'conversations', value: cleanedConversationHistoryFromServer });
+            console.log('cleanedConversationHistoryFromServer', cleanedConversationHistoryFromServer)
+            // Prepare the data structure for importData
+            const inputData: SupportedExportFormats = {
+              version: 4,
+              history: cleanedConversationHistoryFromServer,
+              folders: [],  // Assuming no folder data from the server for this example
+              prompts: []   // Assuming no prompt data from the server for this example
+            };
+
+            const importedData = await importData(inputData);
+            console.log('importedData', importedData);
+
+            console.log('importedData.history', importedData.history);
+
+            dispatch({ field: 'conversations', value: importedData.history });
           } catch (error) {
             console.error('Error parsing conversation history from server:', error);
           }
