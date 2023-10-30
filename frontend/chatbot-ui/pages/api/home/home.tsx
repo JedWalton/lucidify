@@ -363,7 +363,7 @@ const Home = ({
 
         // Fetch folders from server
         const foldersFromServer = await storageService.getItemFromServer('folders');
-        console.log('foldersFromServer', foldersFromServer);
+        // console.log('foldersFromServer', foldersFromServer);
         if (foldersFromServer && foldersFromServer.success) {
           try {
             const parsedFoldersFromServer: FolderInterface[] = JSON.parse(foldersFromServer.data);
@@ -392,7 +392,7 @@ const Home = ({
 
         // Fetch prompts from server
         const promptsFromServer = await storageService.getItemFromServer('prompts');
-        console.log('promptsFromServer', promptsFromServer);
+        // console.log('promptsFromServer', promptsFromServer);
         if (promptsFromServer && promptsFromServer.success) {
           try {
             const parsedPromptsFromServer: Prompt[] = JSON.parse(promptsFromServer.data);

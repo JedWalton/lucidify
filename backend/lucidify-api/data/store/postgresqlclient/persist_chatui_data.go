@@ -2,6 +2,7 @@ package postgresqlclient
 
 import (
 	"errors"
+	"log"
 	"strings"
 )
 
@@ -46,8 +47,11 @@ func (s *PostgreSQL) GetData(userID, key string) (string, error) {
 	query := `SELECT data FROM ` + table + ` WHERE user_id = $1`
 	err = s.db.QueryRow(query, userID).Scan(&data)
 	if err != nil {
+		log.Println("Error fetching data:", err)
 		return "", err
 	}
+	log.Println("Data fetched successfully for key:", key)
+	log.Println("Data:", data)
 	return data, nil
 }
 
