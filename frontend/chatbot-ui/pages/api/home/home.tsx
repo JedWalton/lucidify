@@ -320,6 +320,8 @@ const Home = ({
 
 
         // EXPERIMENTAL BLOCK FOR LOADING CONVERSATION HISTORY FROM SERVER AFTER LOADING FROM LOCAL STORAGE
+        //
+        // Fetch conversation history from server
         const conversationHistoryFromServer = await storageService.getItemFromServer('conversationHistory');
         console.log('conversationHistoryFromServer', conversationHistoryFromServer);
         if (conversationHistoryFromServer && conversationHistoryFromServer.success) {
@@ -350,18 +352,14 @@ const Home = ({
           }
         }
 
+        // Fetch folders from server
         const foldersFromServer = await storageService.getItemFromServer('folders');
         console.log('foldersFromServer', foldersFromServer);
         if (foldersFromServer && foldersFromServer.success) {
           try {
             const parsedFoldersFromServer: FolderInterface[] = JSON.parse(foldersFromServer.data);
 
-            // const cleanedFoldersFromServer = cleanConversationHistory(
-            //   parsedConversationHistoryFromServer,
-            // );
-
             console.log('parsedFoldersFromServer', parsedFoldersFromServer)
-            // console.log('cleanedConversationHistoryFromServer', cleanedConversationHistoryFromServer)
 
             // Prepare the data structure for importData
             const inputData: SupportedExportFormats = {
@@ -379,6 +377,35 @@ const Home = ({
             dispatch({ field: 'folders', value: importedData.folders });
           } catch (error) {
             console.error('Error parsing folders from server:', error);
+          }
+        }
+
+
+        // Fetch prompts from server
+        const promptsFromServer = await storageService.getItemFromServer('prompts');
+        console.log('promptsFromServer', promptsFromServer);
+        if (promptsFromServer && promptsFromServer.success) {
+          try {
+            const parsedPromptsFromServer: Prompt[] = JSON.parse(promptsFromServer.data);
+
+            console.log('parsedPromptsFromServer', parsedPromptsFromServer)
+
+            // Prepare the data structure for importData
+            const inputData: SupportedExportFormats = {
+              version: 4,
+              history: [],
+              folders: [],// Assuming no folder data from the server for this example
+              prompts: parsedPromptsFromServer   // Assuming no prompt data from the server for this example
+            };
+
+            const importedData = await importData(inputData);
+            console.log('importedData', importedData);
+
+            console.log('importedData.prompts', importedData.prompts);
+
+            dispatch({ field: 'prompts', value: importedData.prompts });
+          } catch (error) {
+            console.error('Error parsing prompts from server:', error);
           }
         }
         // End of experimental block
