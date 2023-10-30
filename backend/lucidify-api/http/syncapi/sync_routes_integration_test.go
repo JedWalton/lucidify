@@ -6,6 +6,7 @@ import (
 	"io"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
+	"lucidify-api/service/syncservice"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,7 +19,11 @@ func setupServer(t *testing.T) *httptest.Server {
 		t.Fatalf("Failed to create Clerk client: %v", err)
 	}
 	mux := http.NewServeMux()
-	return httptest.NewServer(SetupRoutes(cfg, mux, clerkInstance))
+	syncService, err := syncservice.NewSyncService()
+	if err != nil {
+		t.Fatalf("Failed to create SyncService: %v", err)
+	}
+	return httptest.NewServer(SetupRoutes(cfg, mux, clerkInstance, syncService))
 }
 
 func makeGetRequest(t *testing.T, server *httptest.Server, endpoint string) (*http.Response, string) {

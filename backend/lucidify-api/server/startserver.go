@@ -8,6 +8,7 @@ import (
 	"lucidify-api/service/chatservice"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
+	"lucidify-api/service/syncservice"
 	"net/http"
 
 	"github.com/gorilla/handlers"
@@ -41,6 +42,11 @@ func StartServer() {
 	cvs := chatservice.NewChatVectorService(weaviate, openaiClient, documentService)
 	chatService := chatservice.NewChatService(cvs)
 
+	syncService, err := syncservice.NewSyncService()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	SetupRoutes(
 		config,
 		mux,
@@ -49,9 +55,10 @@ func StartServer() {
 		weaviate,
 		documentService,
 		chatService,
+		syncService,
 	)
 
-	// Set up CORS middlware with your desired options.
+	// Set up CORS middlware
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins(config.AllowedOrigins), // Adjust this to the origins you want to allow.
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),

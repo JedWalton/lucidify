@@ -57,17 +57,7 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservic
 	}
 }
 
-// // This is a utility function to send JSON responses
-// func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservice.ServerResponse) {
-// 	w.WriteHeader(statusCode)
-// 	err := json.NewEncoder(w).Encode(response)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-// }
-
-func SyncHandler() http.HandlerFunc {
+func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		key := r.URL.Query().Get("key")
@@ -94,11 +84,11 @@ func SyncHandler() http.HandlerFunc {
 
 		switch r.Method {
 		case http.MethodGet:
-			response = syncservice.HandleGet(key)
+			response = syncService.HandleGet(key)
 		case http.MethodDelete:
-			response = syncservice.HandleRemove(key)
+			response = syncService.HandleRemove(key)
 		case http.MethodPost:
-			response = syncservice.HandleSet(key, value)
+			response = syncService.HandleSet(key, value)
 		default:
 			response = syncservice.ServerResponse{
 				Success: false,
