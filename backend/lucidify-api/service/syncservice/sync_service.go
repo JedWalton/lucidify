@@ -1,6 +1,9 @@
 package syncservice
 
-import "lucidify-api/data/store/postgresqlclient"
+import (
+	"log"
+	"lucidify-api/data/store/postgresqlclient"
+)
 
 // ServerResponse is the structure that defines the standard response from the server.
 type ServerResponse struct {
@@ -10,8 +13,8 @@ type ServerResponse struct {
 }
 
 type SyncService interface {
-	HandleSet(key, value string) ServerResponse
-	HandleGet(key string) ServerResponse
+	HandleSet(userID, key, value string) ServerResponse
+	HandleGet(userID, key string) ServerResponse
 	HandleRemove(key string) ServerResponse
 }
 
@@ -29,16 +32,60 @@ func NewSyncService() (SyncService, error) {
 
 var store = make(map[string]string)
 
-func (s *SyncServiceImpl) HandleSet(key string, value string) ServerResponse {
-	store[key] = value
+func (s *SyncServiceImpl) HandleSet(userID, key, value string) ServerResponse {
+	log.Println("Setting data for key:", key)
+	switch key {
+	case "conversationHistory":
+		err := s.postgresqlDB.SetData(userID, "conversationHistory", value)
+		if err != nil {
+			return ServerResponse{Success: false, Message: "Error setting data for key: " + key}
+		}
+	case "prompts":
+		err := s.postgresqlDB.SetData(userID, "prompts", value)
+		if err != nil {
+			return ServerResponse{Success: false, Message: "Error setting data for key: " + key}
+		}
+	case "folders":
+		err := s.postgresqlDB.SetData(userID, "folders", value)
+		if err != nil {
+			return ServerResponse{Success: false, Message: "Error setting data for key: " + key}
+		}
+	default:
+		return ServerResponse{Success: false, Message: "Invalid key"}
+	}
+
 	return ServerResponse{Success: true, Message: "Data set successfully for key: " + key}
 }
 
-func (s *SyncServiceImpl) HandleGet(key string) ServerResponse {
-	if data, ok := store[key]; ok {
+func (s *SyncServiceImpl) HandleGet(userID, key string) ServerResponse {
+	log.Println("Getting data for key:", key)
+	switch key {
+	case "conversationHistory":
+		data, err := s.postgresqlDB.GetData(userID, "conversationHistory")
+		if err != nil {
+			return ServerResponse{Success: false, Message: "Error getting data for key: " + key}
+		}
 		return ServerResponse{Success: true, Data: data, Message: "Data fetched successfully"}
+	case "prompts":
+		data, err := s.postgresqlDB.GetData(userID, "prompts")
+		if err != nil {
+			return ServerResponse{Success: false, Message: "Error getting data for key: " + key}
+		}
+		return ServerResponse{Success: true, Data: data, Message: "Data fetched successfully"}
+	case "folders":
+		data, err := s.postgresqlDB.GetData(userID, "folders")
+		if err != nil {
+			return ServerResponse{Success: false, Message: "Error getting data for key: " + key}
+		}
+		return ServerResponse{Success: true, Data: data, Message: "Data fetched successfully"}
+	default:
+		return ServerResponse{Success: false, Message: "Invalid key"}
 	}
-	return ServerResponse{Success: false, Message: "Data not found for key: " + key}
+
+	// if data, ok := store[key]; ok {
+	// 	return ServerResponse{Success: true, Data: data, Message: "Data fetched successfully"}
+	// }
+	// return ServerResponse{Success: false, Message: "Data not found for key: " + key}
 }
 
 func (s *SyncServiceImpl) HandleRemove(key string) ServerResponse {
