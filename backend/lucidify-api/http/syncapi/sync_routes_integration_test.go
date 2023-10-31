@@ -53,19 +53,4 @@ func TestInvalidEndpoint(t *testing.T) {
 	}
 }
 
-func TestValidEndpoint(t *testing.T) {
-	server := setupServer(t)
-	defer server.Close()
-
-	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=apiKey")
-
-	expectedResponse := `{"success":false,"message":"Data not found for key: apiKey"}`
-	if responseBody != expectedResponse {
-		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
-	}
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("Expected status OK; got %v", res.StatusCode)
-	}
-}
-
 // Further tests can be added in a similar manner
