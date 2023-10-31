@@ -81,11 +81,6 @@ func (s *SyncServiceImpl) HandleGet(userID, key string) ServerResponse {
 	default:
 		return ServerResponse{Success: false, Message: "Invalid key"}
 	}
-
-	// if data, ok := store[key]; ok {
-	// 	return ServerResponse{Success: true, Data: data, Message: "Data fetched successfully"}
-	// }
-	// return ServerResponse{Success: false, Message: "Data not found for key: " + key}
 }
 
 func (s *SyncServiceImpl) HandleRemove(userID string) ServerResponse {
