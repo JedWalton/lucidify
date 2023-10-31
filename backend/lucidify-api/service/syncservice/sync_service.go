@@ -15,7 +15,7 @@ type ServerResponse struct {
 type SyncService interface {
 	HandleSet(userID, key, value string) ServerResponse
 	HandleGet(userID, key string) ServerResponse
-	HandleRemove(userID string) ServerResponse
+	HandleClearConversations(userID string) ServerResponse
 }
 
 type SyncServiceImpl struct {
@@ -83,7 +83,7 @@ func (s *SyncServiceImpl) HandleGet(userID, key string) ServerResponse {
 	}
 }
 
-func (s *SyncServiceImpl) HandleRemove(userID string) ServerResponse {
+func (s *SyncServiceImpl) HandleClearConversations(userID string) ServerResponse {
 	err := s.postgresqlDB.ClearConversations(userID)
 	if err != nil {
 		return ServerResponse{Success: true, Message: "Conversations cleared successfully"}

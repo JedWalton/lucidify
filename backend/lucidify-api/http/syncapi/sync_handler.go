@@ -84,7 +84,7 @@ func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
 			response = syncService.HandleGet(userID, key)
 		case http.MethodDelete:
 			// response = syncService.HandleRemove(userID, key)
-			response = syncService.HandleRemove(userID)
+			response = syncService.HandleClearConversations(userID)
 		case http.MethodPost:
 			response = syncService.HandleSet(userID, key, value)
 			// response = syncService.HandleSet(key, value)
