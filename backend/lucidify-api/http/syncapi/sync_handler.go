@@ -6,6 +6,8 @@ import (
 	"log"
 	"lucidify-api/service/syncservice"
 	"net/http"
+
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
 // LocalStorageKey defines valid keys for LocalStorage operations.
@@ -50,8 +52,10 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservic
 	}
 }
 
-func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+//	func SyncHandler(syncService syncservice.SyncService, clerkInstance clerk.Client) http.HandlerFunc {
+//		return func(w http.ResponseWriter, r *http.Request) {
+func SyncHandler(syncService syncservice.SyncService, clerkInstance clerk.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		key := r.URL.Query().Get("key")
 		if !LocalStorageKey(key).IsValid() {
@@ -63,7 +67,26 @@ func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
 			return
 		}
 
-		userID := r.Header.Get("X-User-ID")
+		// userID := r.Header.Get("X-User-ID")
+		ctx := r.Context()
+		log.Println("ctx:", ctx)
+
+		sessClaims, ok := clerk.SessionFromContext(ctx)
+		log.Println("sessClaims:", sessClaims)
+		log.Println("ok:", ok)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
+
+		userID := user.ID
+
 		log.Println("Received userID:", userID)
 
 		bodyBytes, err := io.ReadAll(r.Body)
@@ -97,5 +120,5 @@ func SyncHandler(syncService syncservice.SyncService) http.HandlerFunc {
 			return
 		}
 		sendJSONResponse(w, http.StatusOK, response)
-	}
+	})
 }
