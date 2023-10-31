@@ -11,27 +11,28 @@ type ServerResponse = {
 
 export const storageService = {
   async getItemFromServer(key: keyof LocalStorage): Promise<ServerResponse | null> {
-    const userId = localStorage.getItem('userId')
     // console.log('userId:', userId)
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
+      const sessionToken = localStorage.getItem('sessionToken'); // Adjust this line to wherever your session token is stored
+      console.log('sessionToken:', sessionToken)
+
       const headers: HeadersInit = {
         'Content-Type': 'application/json'
       };
 
-      if (userId) {
-        headers['X-User-ID'] = userId;
+      if (sessionToken) {
+        headers['Authorization'] = `Bearer ${sessionToken}`;
       }
-      console.log('headers:', headers)
-      console.log('userId:', userId)
 
 
       const options: RequestInit = {
         method: 'GET',
         headers: headers,
         mode: 'cors',
+        credentials: 'include',
       };
 
       const response = await fetch(url, options);
@@ -79,6 +80,7 @@ export const storageService = {
         headers: headers,
         mode: 'cors',
         body: value as string,
+        credentials: 'include',
       };
 
       const response = await fetch(url, options);
@@ -113,7 +115,7 @@ export const storageService = {
     console.log('userId:', userId)
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
-      const key = `clearConversations` 
+      const key = `clearConversations`
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
 
       const headers: HeadersInit = {
@@ -128,6 +130,7 @@ export const storageService = {
         method: 'DELETE',
         headers: headers,
         mode: 'cors',
+        credentials: 'include',
       };
 
       const response = await fetch(url, options);

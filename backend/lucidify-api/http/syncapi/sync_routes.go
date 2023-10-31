@@ -15,20 +15,24 @@ func SetupRoutes(
 	clerkInstance clerk.Client,
 	syncService syncservice.SyncService) *http.ServeMux {
 
-	mux = SetupSyncHandler(config, mux, syncService)
+	mux = SetupSyncHandler(config, mux, syncService, clerkInstance)
 
 	return mux
 }
 
 func SetupSyncHandler(config *config.ServerConfig,
-	mux *http.ServeMux, syncService syncservice.SyncService) *http.ServeMux {
+	mux *http.ServeMux,
+	syncService syncservice.SyncService,
+	clerkInstance clerk.Client) *http.ServeMux {
 
-	handler := SyncHandler(syncService)
+	handler := SyncHandler(syncService, clerkInstance)
 
-	handler = middleware.Logging(handler)
+	handler = middleware.LoggingHandler(handler)
+
+	injectActiveSession := clerk.WithSession(clerkInstance)
 
 	// mux.Handle("/api/sync", handler)
-	mux.Handle("/api/sync/localstorage/", http.StripPrefix("/api/sync/localstorage/", handler))
+	mux.Handle("/api/sync/localstorage/", injectActiveSession(http.StripPrefix("/api/sync/localstorage/", handler)))
 
 	return mux
 }
