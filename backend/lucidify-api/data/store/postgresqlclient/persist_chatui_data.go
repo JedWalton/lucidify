@@ -55,13 +55,16 @@ func (s *PostgreSQL) GetData(userID, key string) (string, error) {
 	return data, nil
 }
 
-func (s *PostgreSQL) RemoveData(userID, key string) error {
-	table, err := determineTableFromKey(key)
-	if err != nil {
-		return err
+func (s *PostgreSQL) ClearConversations(userID string) error {
+	query := `DELETE FROM conversation_history WHERE user_id = $1`
+	_, errDelConversationsHistory := s.db.Exec(query, userID)
+	if errDelConversationsHistory != nil {
+		return errDelConversationsHistory
 	}
-
-	query := `DELETE FROM ` + table + ` WHERE id = $1 AND user_id = $2`
-	_, err = s.db.Exec(query, key, userID)
-	return err
+	query2 := `DELETE FROM folders WHERE user_id = $1`
+	_, errDelFolders := s.db.Exec(query2, userID)
+	if errDelFolders != nil {
+		return errDelFolders
+	}
+	return nil
 }

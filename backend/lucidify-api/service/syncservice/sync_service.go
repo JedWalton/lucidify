@@ -15,7 +15,7 @@ type ServerResponse struct {
 type SyncService interface {
 	HandleSet(userID, key, value string) ServerResponse
 	HandleGet(userID, key string) ServerResponse
-	HandleRemove(key string) ServerResponse
+	HandleRemove(userID string) ServerResponse
 }
 
 type SyncServiceImpl struct {
@@ -88,10 +88,10 @@ func (s *SyncServiceImpl) HandleGet(userID, key string) ServerResponse {
 	// return ServerResponse{Success: false, Message: "Data not found for key: " + key}
 }
 
-func (s *SyncServiceImpl) HandleRemove(key string) ServerResponse {
-	if _, ok := store[key]; ok {
-		delete(store, key)
-		return ServerResponse{Success: true, Message: "Data deleted successfully for key: " + key}
+func (s *SyncServiceImpl) HandleRemove(userID string) ServerResponse {
+	err := s.postgresqlDB.ClearConversations(userID)
+	if err != nil {
+		return ServerResponse{Success: true, Message: "Conversations cleared successfully"}
 	}
-	return ServerResponse{Success: false, Message: "No data to delete for key: " + key}
+	return ServerResponse{Success: false, Message: "Something went wrong with clear conversations: " + err.Error()}
 }
