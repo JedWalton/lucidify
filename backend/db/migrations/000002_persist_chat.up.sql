@@ -1,7 +1,7 @@
 -- conversationHistory table
 CREATE TABLE conversation_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id VARCHAR(255) UNIQUE REFERENCES users(user_id),
+    user_id VARCHAR(255) UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
     data TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -10,7 +10,7 @@ CREATE TABLE conversation_history (
 -- folders table
 CREATE TABLE folders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id VARCHAR(255) UNIQUE REFERENCES users(user_id),
+    user_id VARCHAR(255) UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
     data TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -19,7 +19,7 @@ CREATE TABLE folders (
 -- prompts table
 CREATE TABLE prompts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id VARCHAR(255) UNIQUE REFERENCES users(user_id),
+    user_id VARCHAR(255) UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
     data TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
