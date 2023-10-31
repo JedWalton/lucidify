@@ -4,6 +4,7 @@ import { FC, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 
 import { SidebarButton } from '@/components/Sidebar/SidebarButton';
+import { storageService } from '@/services/storageService';
 
 interface Props {
   onClearConversations: () => void;
@@ -33,6 +34,7 @@ export const ClearConversations: FC<Props> = ({ onClearConversations }) => {
           size={18}
           onClick={(e) => {
             e.stopPropagation();
+            storageService.ClearConversationsFromServer();
             handleClearConversations();
           }}
         />
