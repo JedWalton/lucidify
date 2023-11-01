@@ -362,7 +362,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           </div>
           <div className="text-center text-gray-500 dark:text-gray-400">
             <div className="mb-2">
-              Lucidify enables you to talk to your data. You can use your private azure open ai key ensuring your data is safe.
+              Lucidify enables you to talk to your data. You can use your private azure open ai key to talk to your data.
             </div>
             <div className="mb-2">
               It is <span className="italic">only</span> used to communicate
