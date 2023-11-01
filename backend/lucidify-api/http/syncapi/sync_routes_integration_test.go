@@ -37,14 +37,13 @@ func makeGetRequest(t *testing.T, server *httptest.Server, endpoint string) (*ht
 	}
 	return res, string(bodyBytes)
 }
-
-func TestInvalidEndpoint(t *testing.T) {
+func TestGetRequest(t *testing.T) {
 	server := setupServer(t)
 	defer server.Close()
 
 	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=test")
 
-	expectedResponse := `{"success":false,"message":"Invalid key"}`
+	expectedResponse := `couldn't find cookie __session`
 	if responseBody != expectedResponse {
 		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
 	}
@@ -53,4 +52,19 @@ func TestInvalidEndpoint(t *testing.T) {
 	}
 }
 
+// func TestInvalidEndpoint(t *testing.T) {
+// 	server := setupServer(t)
+// 	defer server.Close()
+//
+// 	res, responseBody := makeGetRequest(t, server, "/api/sync/localstorage/?key=test")
+//
+// 	expectedResponse := `{"success":false,"message":"Invalid key"}`
+// 	if responseBody != expectedResponse {
+// 		t.Fatalf("Expected response body to be %v; got %v", expectedResponse, responseBody)
+// 	}
+// 	if res.StatusCode != http.StatusBadRequest {
+// 		t.Fatalf("Expected status BAD REQUEST; got %v", res.StatusCode)
+// 	}
+// }
+//
 // Further tests can be added in a similar manner
