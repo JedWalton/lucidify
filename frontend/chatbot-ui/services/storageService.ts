@@ -11,7 +11,6 @@ type ServerResponse = {
 
 export const storageService = {
   async getItemFromServer(key: keyof LocalStorage): Promise<ServerResponse | null> {
-    // console.log('userId:', userId)
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
@@ -61,8 +60,6 @@ export const storageService = {
   },
 
   async setItemOnServer(key: keyof LocalStorage, value: LocalStorage[keyof LocalStorage]): Promise<string | null> {
-    const userId = localStorage.getItem('userId')
-    console.log('userId:', userId)
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const url = `http://localhost:8080/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
@@ -71,9 +68,6 @@ export const storageService = {
         'Content-Type': 'application/json'
       };
 
-      if (userId) {
-        headers['X-User-ID'] = userId;
-      }
 
       const options: RequestInit = {
         method: 'POST',
@@ -111,8 +105,6 @@ export const storageService = {
 
 
   async ClearConversationsFromServer(): Promise<string | null> {
-    const userId = localStorage.getItem('userId')
-    console.log('userId:', userId)
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
       const key = `clearConversations`
@@ -122,9 +114,6 @@ export const storageService = {
         'Content-Type': 'application/json'
       };
 
-      if (userId) {
-        headers['X-User-ID'] = userId;
-      }
 
       const options: RequestInit = {
         method: 'DELETE',
