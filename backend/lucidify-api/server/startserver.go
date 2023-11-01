@@ -59,12 +59,6 @@ func StartServer() {
 	)
 
 	// Set up CORS middlware
-	// corsHandler := handlers.CORS(
-	// 	handlers.AllowedOrigins(config.AllowedOrigins), // Adjust this to the origins you want to allow.
-	// 	handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-	// 	handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
-	// )
-	// Set up CORS middlware
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins(config.AllowedOrigins), // Adjust this to the origins you want to allow.
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
