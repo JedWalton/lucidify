@@ -31,7 +31,6 @@ func SetupSyncHandler(config *config.ServerConfig,
 
 	injectActiveSession := clerk.WithSession(clerkInstance)
 
-	// mux.Handle("/api/sync", handler)
 	mux.Handle("/api/sync/localstorage/", injectActiveSession(http.StripPrefix("/api/sync/localstorage/", handler)))
 
 	return mux
