@@ -104,11 +104,6 @@ const Home = ({
   }, [dispatch, error, getModelsError]);
 
 
-  // Set userId in localStorage
-  const { userId } = useAuth();
-  if (userId) {
-    localStorage.setItem('userId', userId);
-  }
 
   // FETCH MODELS ----------------------------------------------
 
