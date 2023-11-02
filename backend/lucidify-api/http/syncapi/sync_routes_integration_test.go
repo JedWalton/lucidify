@@ -5,6 +5,7 @@ package syncapi
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
@@ -132,6 +133,17 @@ func TestConversationHistoryIntegration(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
+	// Read the response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+
+	if string(respBody) != `{"success":true,"message":"Data set successfully for key: conversationHistory"}` {
+		t.Errorf("Expected response body %s, got %s", `{"success":true,"message":"Data set successfully for key: conversationHistory"}`, string(respBody))
+	}
+	// Print the response body
+	// t.Fatalf("Response Body: %s", respBody)
 
 	body, _ = json.Marshal("conversationHistory")
 	req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/sync/localstorage/?key=conversationHistory", bytes.NewBuffer(body))
