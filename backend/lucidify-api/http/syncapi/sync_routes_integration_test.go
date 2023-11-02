@@ -97,7 +97,7 @@ func SetupTestEnvironment(t *testing.T) *TestSetup {
 	}
 }
 
-func TestPostConversationHistoryIntegration(t *testing.T) {
+func TestConversationHistoryIntegration(t *testing.T) {
 	setup := SetupTestEnvironment(t)
 	cfg := setup.Config
 	postgresqlDB := setup.PostgresqlDB
@@ -129,6 +129,141 @@ func TestPostConversationHistoryIntegration(t *testing.T) {
 	defer resp.Body.Close()
 
 	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	body, _ = json.Marshal("conversationHistory")
+	req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/sync/localstorage/?key=conversationHistory", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+		// postgresqlDB.DeleteDocument(UserID, "Test Document")
+	})
+}
+
+func TestPromptsIntegration(t *testing.T) {
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
+
+	syncService, err := syncservice.NewSyncService()
+	if err != nil {
+		t.Fatalf("Failed to create SyncService: %v", err)
+	}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, clerkInstance, syncService)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := cfg.TestJWTSessionToken
+
+	// Send a POST request to the server with the JWT token
+	body, _ := json.Marshal("prompts")
+	req, _ := http.NewRequest(http.MethodPost, server.URL+"/api/sync/localstorage/?key=prompts", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Send a GET request to the server with the JWT token
+	body, _ = json.Marshal("prompts")
+	req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/sync/localstorage/?key=prompts", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Cleanup the database
+	t.Cleanup(func() {
+		testconfig := config.NewServerConfig()
+		UserID := testconfig.TestUserID
+		postgresqlDB.DeleteUserInUsersTable(UserID)
+		// postgresqlDB.DeleteDocument(UserID, "Test Document")
+	})
+}
+
+func TestFoldersIntegration(t *testing.T) {
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	postgresqlDB := setup.PostgresqlDB
+	clerkInstance := setup.ClerkInstance
+
+	syncService, err := syncservice.NewSyncService()
+	if err != nil {
+		t.Fatalf("Failed to create SyncService: %v", err)
+	}
+
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, clerkInstance, syncService)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := cfg.TestJWTSessionToken
+
+	// Send a POST request to the server with the JWT token
+	body, _ := json.Marshal("folders")
+	req, _ := http.NewRequest(http.MethodPost, server.URL+"/api/sync/localstorage/?key=folders", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	body, _ = json.Marshal("folders")
+	req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/sync/localstorage/?key=folders", bytes.NewBuffer(body))
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
