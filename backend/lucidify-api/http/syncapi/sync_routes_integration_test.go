@@ -5,7 +5,7 @@ package syncapi
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
@@ -120,7 +120,12 @@ func TestConversationHistoryIntegration(t *testing.T) {
 
 	// Send a POST request to the server with the JWT token
 	body, _ := json.Marshal("conversationHistory")
-	req, _ := http.NewRequest(http.MethodPost, server.URL+"/api/sync/localstorage/?key=conversationHistory", bytes.NewBuffer(body))
+
+	req, _ := http.NewRequest(
+		http.MethodPost,
+		server.URL+"/api/sync/localstorage/?key=conversationHistory",
+		bytes.NewBuffer(body))
+
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -134,19 +139,25 @@ func TestConversationHistoryIntegration(t *testing.T) {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 	// Read the response body
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("Failed to read response body: %v", err)
 	}
 
-	if string(respBody) != `{"success":true,"message":"Data set successfully for key: conversationHistory"}` {
-		t.Errorf("Expected response body %s, got %s", `{"success":true,"message":"Data set successfully for key: conversationHistory"}`, string(respBody))
+	if string(respBody) !=
+		`{"success":true,"message":"Data set successfully for key: conversationHistory"}` {
+		t.Errorf("Expected response body %s, got %s",
+			`{"success":true,"message":"Data set successfully for key: conversationHistory"}`,
+			string(respBody))
 	}
-	// Print the response body
-	// t.Fatalf("Response Body: %s", respBody)
 
 	body, _ = json.Marshal("conversationHistory")
-	req, _ = http.NewRequest(http.MethodGet, server.URL+"/api/sync/localstorage/?key=conversationHistory", bytes.NewBuffer(body))
+
+	req, _ = http.NewRequest(
+		http.MethodGet,
+		server.URL+"/api/sync/localstorage/?key=conversationHistory",
+		bytes.NewBuffer(body))
+
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 	client = &http.Client{}
 	resp, err = client.Do(req)
@@ -158,6 +169,18 @@ func TestConversationHistoryIntegration(t *testing.T) {
 	// Check the response
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	// Read the response body
+	respBody, err = io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+	// t.Fatalf("Response Body: %s", respBody)
+
+	if string(respBody) !=
+		`{"success":true,"data":"\"conversationHistory\"","message":"Data fetched successfully"}` {
+		t.Errorf("Expected response body %s, got %s",
+			`{"success":true,"data":"\"conversationHistory\"","message":"Data fetched successfully"}`, string(respBody))
 	}
 
 	// Cleanup the database
