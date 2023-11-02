@@ -27,9 +27,9 @@ func SetupSyncHandler(config *config.ServerConfig,
 
 	handler := SyncHandler(syncService, clerkInstance)
 
-	handler = middleware.LoggingHandler(handler)
-
 	injectActiveSession := clerk.WithSession(clerkInstance)
+
+	handler = middleware.LoggingHandler(handler)
 
 	mux.Handle("/api/sync/localstorage/", injectActiveSession(http.StripPrefix("/api/sync/localstorage/", handler)))
 
