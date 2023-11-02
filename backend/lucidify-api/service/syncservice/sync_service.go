@@ -86,7 +86,7 @@ func (s *SyncServiceImpl) HandleGet(userID, key string) ServerResponse {
 func (s *SyncServiceImpl) HandleClearConversations(userID string) ServerResponse {
 	err := s.postgresqlDB.ClearConversations(userID)
 	if err != nil {
-		return ServerResponse{Success: true, Message: "Conversations cleared successfully"}
+		return ServerResponse{Success: false, Message: "Something went wrong with clear conversations: " + err.Error()}
 	}
-	return ServerResponse{Success: false, Message: "Something went wrong with clear conversations: " + err.Error()}
+	return ServerResponse{Success: true, Message: "Conversations cleared successfully"}
 }

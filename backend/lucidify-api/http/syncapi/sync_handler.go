@@ -2,6 +2,7 @@ package syncapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"lucidify-api/service/syncservice"
@@ -52,73 +53,71 @@ func sendJSONResponse(w http.ResponseWriter, statusCode int, response syncservic
 	}
 }
 
-//	func SyncHandler(syncService syncservice.SyncService, clerkInstance clerk.Client) http.HandlerFunc {
-//		return func(w http.ResponseWriter, r *http.Request) {
 func SyncHandler(syncService syncservice.SyncService, clerkInstance clerk.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+
 		key := r.URL.Query().Get("key")
 		if !LocalStorageKey(key).IsValid() {
-			response := syncservice.ServerResponse{
-				Success: false,
-				Message: "Invalid key",
-			}
-			sendJSONResponse(w, http.StatusBadRequest, response)
+			sendError(w, "Invalid key", http.StatusBadRequest)
 			return
 		}
 
-		// userID := r.Header.Get("X-User-ID")
-		ctx := r.Context()
-		log.Println("ctx:", ctx)
-
-		sessClaims, ok := clerk.SessionFromContext(ctx)
-		log.Println("sessClaims:", sessClaims)
-		log.Println("ok:", ok)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		userID, err := getUserIDFromSession(r, clerkInstance)
 		if err != nil {
-			panic(err)
+			sendError(w, "Unauthorized", http.StatusUnauthorized)
+			return
 		}
-
-		userID := user.ID
-
-		log.Println("Received userID:", userID)
 
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Println("Error reading request body:", err)
-			// Handle the error, maybe return a response indicating the error.
+			sendError(w, "Failed to read request body", http.StatusInternalServerError)
 			return
 		}
-		value := string(bodyBytes)
-
-		log.Println("Received method:", r.Method)
 
 		var response syncservice.ServerResponse
+		value := string(bodyBytes)
 
 		switch r.Method {
 		case http.MethodGet:
-			// response = syncService.HandleGet(userID, key)
 			response = syncService.HandleGet(userID, key)
 		case http.MethodDelete:
-			// response = syncService.HandleRemove(userID, key)
-			response = syncService.HandleClearConversations(userID)
+			if key == string(clearConversations) {
+				response = syncService.HandleClearConversations(userID)
+			} else {
+				sendError(w, "Method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
 		case http.MethodPost:
 			response = syncService.HandleSet(userID, key, value)
-			// response = syncService.HandleSet(key, value)
 		default:
-			response = syncservice.ServerResponse{
-				Success: false,
-				Message: "Method not allowed",
-			}
-			sendJSONResponse(w, http.StatusMethodNotAllowed, response)
+			sendError(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
+
 		sendJSONResponse(w, http.StatusOK, response)
 	})
+}
+
+func sendError(w http.ResponseWriter, message string, statusCode int) {
+	response := syncservice.ServerResponse{
+		Success: false,
+		Message: message,
+	}
+	sendJSONResponse(w, statusCode, response)
+}
+
+func getUserIDFromSession(r *http.Request, clerkInstance clerk.Client) (string, error) {
+	ctx := r.Context()
+	sessClaims, ok := clerk.SessionFromContext(ctx)
+	if !ok {
+		return "", fmt.Errorf("session not found")
+	}
+
+	user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+	if err != nil {
+		return "", err
+	}
+
+	return user.ID, nil
 }
