@@ -121,6 +121,7 @@ func TestConversationHistoryIntegration(t *testing.T) {
 	// Send a POST request to the server with the JWT token
 	body, _ := json.Marshal("conversationHistory")
 
+	// Authenticated request
 	req, _ := http.NewRequest(
 		http.MethodPost,
 		server.URL+"/api/sync/localstorage/?key=conversationHistory",
@@ -151,8 +152,7 @@ func TestConversationHistoryIntegration(t *testing.T) {
 			string(respBody))
 	}
 
-	body, _ = json.Marshal("conversationHistory")
-
+	// Autheticated Request
 	req, _ = http.NewRequest(
 		http.MethodGet,
 		server.URL+"/api/sync/localstorage/?key=conversationHistory",
@@ -175,12 +175,106 @@ func TestConversationHistoryIntegration(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to read response body: %v", err)
 	}
-	// t.Fatalf("Response Body: %s", respBody)
 
 	if string(respBody) !=
 		`{"success":true,"data":"\"conversationHistory\"","message":"Data fetched successfully"}` {
 		t.Errorf("Expected response body %s, got %s",
 			`{"success":true,"data":"\"conversationHistory\"","message":"Data fetched successfully"}`, string(respBody))
+	}
+
+	// Testing the on conflict (postgres) functionality to update chat
+	// Send a POST request to the server with the JWT token
+	body, _ = json.Marshal("conversationHistory but updated!")
+
+	// Authenticated request
+	req, _ = http.NewRequest(
+		http.MethodPost,
+		server.URL+"/api/sync/localstorage/?key=conversationHistory",
+		bytes.NewBuffer(body))
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	// Read the response body
+	respBody, err = io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+
+	if string(respBody) !=
+		`{"success":true,"message":"Data set successfully for key: conversationHistory"}` {
+		t.Errorf("Expected response body %s, got %s",
+			`{"success":true,"message":"Data set successfully for key: conversationHistory"}`,
+			string(respBody))
+	}
+
+	// Autheticated Request
+	req, _ = http.NewRequest(
+		http.MethodGet,
+		server.URL+"/api/sync/localstorage/?key=conversationHistory",
+		bytes.NewBuffer(body))
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	// Read the response body
+	respBody, err = io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+
+	if string(respBody) !=
+		`{"success":true,"data":"\"conversationHistory but updated!\"","message":"Data fetched successfully"}` {
+		t.Errorf("Expected response body %s, got %s",
+			`{"success":true,"data":"\"conversationHistory but updated!\"","message":"Data fetched successfully"}`, string(respBody))
+	}
+
+	// Unauthenticated request
+	req, _ = http.NewRequest(
+		http.MethodGet,
+		server.URL+"/api/sync/localstorage/?key=conversationHistory",
+		bytes.NewBuffer(body))
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken+"invalid")
+	client = &http.Client{}
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, resp.StatusCode)
+	}
+
+	// Read the response body
+	respBody, err = io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+
+	// This is counter intuitive. Not sure why clerk doesn't return a 401.
+	if string(respBody) != `couldn't find cookie __session` {
+		t.Errorf("Expected response body %s, got %s", `couldn't find cookie __session`, string(respBody))
 	}
 
 	// Cleanup the database
