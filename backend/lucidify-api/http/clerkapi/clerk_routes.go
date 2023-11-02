@@ -12,7 +12,7 @@ import (
 func SetupRoutes(storeInstance *postgresqlclient.PostgreSQL, config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	userService, err := userservice.NewUserService()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Failed to create UserService: %w", err)
 	}
 	handler := ClerkHandler(storeInstance, userService)
 
