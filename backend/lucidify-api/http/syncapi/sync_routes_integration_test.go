@@ -311,7 +311,6 @@ func TestConversationHistoryIntegration(t *testing.T) {
 		testconfig := config.NewServerConfig()
 		UserID := testconfig.TestUserID
 		postgresqlDB.DeleteUserInUsersTable(UserID)
-		// postgresqlDB.DeleteDocument(UserID, "Test Document")
 	})
 }
 
@@ -528,7 +527,6 @@ func TestFoldersIntegration(t *testing.T) {
 		testconfig := config.NewServerConfig()
 		UserID := testconfig.TestUserID
 		postgresqlDB.DeleteUserInUsersTable(UserID)
-		// postgresqlDB.DeleteDocument(UserID, "Test Document")
 	})
 }
 
@@ -748,6 +746,5 @@ func TestPromptsIntegration(t *testing.T) {
 		testconfig := config.NewServerConfig()
 		UserID := testconfig.TestUserID
 		postgresqlDB.DeleteUserInUsersTable(UserID)
-		// postgresqlDB.DeleteDocument(UserID, "Test Document")
 	})
 }
