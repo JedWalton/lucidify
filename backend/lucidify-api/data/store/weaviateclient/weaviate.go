@@ -21,6 +21,7 @@ type WeaviateClient interface {
 	UploadChunks([]storemodels.Chunk) error
 	DeleteChunk(chunkID uuid.UUID) error
 	DeleteChunks([]storemodels.Chunk) error
+	DeleteAllChunksByUserID(userID string) error
 	GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error)
 	SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error)
 }
@@ -186,6 +187,35 @@ func (w *WeaviateClientImpl) DeleteChunk(chunkID uuid.UUID) error {
 		Do(context.Background())
 
 	return err
+}
+
+func (w *WeaviateClientImpl) DeleteAllChunksByUserID(userID string) error {
+	if w.client == nil {
+		log.Println("Client is nil in deleteDocumentsByUserID")
+		return fmt.Errorf("client is nil")
+	}
+
+	// Define the where filter to match all documents with the given userId
+	whereFilter := filters.Where().
+		WithPath([]string{"userId"}).
+		WithOperator(filters.Equal).
+		WithValueText(userID)
+
+	// Perform the batch delete operation
+	response, err := w.client.Batch().ObjectsBatchDeleter().
+		WithClassName("Documents").
+		WithOutput("minimal").
+		WithWhere(whereFilter).
+		Do(context.Background())
+
+	if err != nil {
+		// Handle error
+		// panic(err)
+	}
+
+	// Process the response
+	fmt.Printf("Delete response: %+v\n", *response)
+	return nil
 }
 
 func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels.Chunk) error {
