@@ -9,6 +9,7 @@ import (
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
 	"lucidify-api/service/syncservice"
+	"lucidify-api/service/userservice"
 	"net/http"
 
 	"github.com/gorilla/handlers"
@@ -47,6 +48,11 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
+	userService, err := userservice.NewUserService(weaviate)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	SetupRoutes(
 		config,
 		mux,
@@ -56,6 +62,7 @@ func StartServer() {
 		documentService,
 		chatService,
 		syncService,
+		userService,
 	)
 
 	// Set up CORS middlware

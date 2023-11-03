@@ -11,6 +11,7 @@ import (
 	"lucidify-api/service/chatservice"
 	"lucidify-api/service/documentservice"
 	"lucidify-api/service/syncservice"
+	"lucidify-api/service/userservice"
 	"net/http"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
@@ -24,10 +25,11 @@ func SetupRoutes(
 	weaviateInstance weaviateclient.WeaviateClient,
 	documentsService documentservice.DocumentService,
 	chatService chatservice.ChatService,
-	syncService syncservice.SyncService) {
+	syncService syncservice.SyncService,
+	userService userservice.UserService) {
 
 	chatapi.SetupRoutes(config, mux, chatService, clerkInstance)
 	documentsapi.SetupRoutes(config, mux, documentsService, clerkInstance)
-	clerkapi.SetupRoutes(storeInstance, config, mux)
+	clerkapi.SetupRoutes(storeInstance, userService, config, mux)
 	syncapi.SetupRoutes(config, mux, clerkInstance, syncService)
 }
