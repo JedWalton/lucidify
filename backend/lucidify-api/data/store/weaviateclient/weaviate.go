@@ -204,7 +204,7 @@ func (w *WeaviateClientImpl) DeleteAllChunksByUserID(userID string) error {
 	// Perform the batch delete operation
 	response, err := w.client.Batch().ObjectsBatchDeleter().
 		WithClassName("Documents").
-		WithOutput("minimal").
+		WithOutput("verbose").
 		WithWhere(whereFilter).
 		Do(context.Background())
 
