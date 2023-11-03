@@ -50,7 +50,7 @@ func (u *UserServiceImpl) UpdateUser(user storemodels.User) error {
 	return nil
 }
 
-func (u *UserServiceImpl) deleteDocument(userID string, documentID uuid.UUID) error {
+func (u *UserServiceImpl) deleteDocument(documentID uuid.UUID) error {
 	chunks, err := u.postgresqlDB.GetChunksOfDocumentByDocumentID(documentID)
 	if err != nil {
 		return fmt.Errorf("Failed to get chunks of document: %w", err)
@@ -72,7 +72,7 @@ func (u *UserServiceImpl) DeleteUser(userID string) error {
 		return fmt.Errorf("Failed to get all documents from PostgreSQL: %w", err)
 	}
 	for _, document := range documents {
-		if err := u.deleteDocument(userID, document.DocumentUUID); err != nil {
+		if err := u.deleteDocument(document.DocumentUUID); err != nil {
 			return fmt.Errorf("Failed to delete document: %w", err)
 		}
 	}
