@@ -6,6 +6,7 @@ import (
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/service/userservice"
 	"testing"
 )
@@ -29,7 +30,11 @@ func createTestUserInDb() error {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService, err := userservice.NewUserService()
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}
@@ -64,10 +69,15 @@ func TestSyncServiceIntegration(t *testing.T) {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
 
-	userService, err := userservice.NewUserService()
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}
+
 	defer userService.DeleteUser(testUserID) // Cleanup the test user after the test
 
 	// Initialize SyncService

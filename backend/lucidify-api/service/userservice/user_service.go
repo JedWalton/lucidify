@@ -2,9 +2,13 @@ package userservice
 
 import (
 	"fmt"
+	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/weaviateclient"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserService interface {
@@ -18,13 +22,15 @@ type UserService interface {
 
 type UserServiceImpl struct {
 	postgresqlDB *postgresqlclient.PostgreSQL
+	weaviateDB   weaviateclient.WeaviateClient
 }
 
-func NewUserService() (UserService, error) {
+func NewUserService(weaviateClient weaviateclient.WeaviateClient) (UserService, error) {
 	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
 	if err != nil {
 		return nil, err
 	}
+
 	return &UserServiceImpl{postgresqlDB: postgresqlDB}, nil
 }
 
@@ -44,8 +50,34 @@ func (u *UserServiceImpl) UpdateUser(user storemodels.User) error {
 	return nil
 }
 
+func (u *UserServiceImpl) deleteDocument(userID string, documentID uuid.UUID) error {
+	chunks, err := u.postgresqlDB.GetChunksOfDocumentByDocumentID(documentID)
+	if err != nil {
+		return fmt.Errorf("Failed to get chunks of document: %w", err)
+	}
+	err = u.weaviateDB.DeleteChunks(chunks)
+	if err != nil {
+		return fmt.Errorf("Failed to delete chunks from Weaviate: %w", err)
+	}
+	err = u.postgresqlDB.DeleteDocumentByUUID(documentID)
+	if err != nil {
+		log.Printf("Failed to delete document from PostgreSQL: %v", err)
+	}
+	return nil
+}
+
 func (u *UserServiceImpl) DeleteUser(userID string) error {
-	err := u.postgresqlDB.DeleteUserInUsersTable(userID)
+	documents, err := u.postgresqlDB.GetAllDocuments(userID)
+	if err != nil {
+		return fmt.Errorf("Failed to get all documents from PostgreSQL: %w", err)
+	}
+	for _, document := range documents {
+		if err := u.deleteDocument(userID, document.DocumentUUID); err != nil {
+			return fmt.Errorf("Failed to delete document: %w", err)
+		}
+	}
+
+	err = u.postgresqlDB.DeleteUserInUsersTable(userID)
 	if err != nil {
 		return err
 	}

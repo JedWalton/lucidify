@@ -41,7 +41,11 @@ func createTestUserInDb() error {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService, err := userservice.NewUserService()
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}
@@ -86,7 +90,11 @@ func createASecondTestUserInDb() string {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService, err := userservice.NewUserService()
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}

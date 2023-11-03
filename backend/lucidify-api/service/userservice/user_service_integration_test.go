@@ -3,8 +3,10 @@
 package userservice
 
 import (
+	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/weaviateclient"
 	"testing"
 	"time"
 )
@@ -29,7 +31,12 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 	if err != nil {
 		return nil, user, err, db
 	}
-	userService, err := NewUserService()
+
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := NewUserService(weaviate)
 	if err != nil {
 		return nil, user, err, db
 	}

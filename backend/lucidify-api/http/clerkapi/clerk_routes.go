@@ -1,7 +1,6 @@
 package clerkapi
 
 import (
-	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/server/config"
 	"lucidify-api/server/middleware"
@@ -9,11 +8,7 @@ import (
 	"net/http"
 )
 
-func SetupRoutes(storeInstance *postgresqlclient.PostgreSQL, config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
-	userService, err := userservice.NewUserService()
-	if err != nil {
-		log.Println("Failed to create UserService: %w", err)
-	}
+func SetupRoutes(storeInstance *postgresqlclient.PostgreSQL, userService userservice.UserService, config *config.ServerConfig, mux *http.ServeMux) *http.ServeMux {
 	handler := ClerkHandler(storeInstance, userService)
 
 	handler = middleware.ClerkWebhooksAuthenticationMiddleware(config)(handler)

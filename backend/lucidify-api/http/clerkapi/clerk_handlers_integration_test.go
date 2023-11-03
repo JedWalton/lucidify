@@ -5,6 +5,7 @@ package clerkapi
 import (
 	"fmt"
 	"log"
+	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/userservice"
@@ -31,7 +32,11 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}
-		userService, err := userservice.NewUserService()
+		weaviate, err := weaviateclient.NewWeaviateClientTest()
+		if err != nil {
+			t.Errorf("Failed to create WeaviateClient: %v", err)
+		}
+		userService, err := userservice.NewUserService(weaviate)
 		if err != nil {
 			t.Errorf("Failed to create UserService: %v", err)
 		}
@@ -40,7 +45,11 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		}
 	})
 
-	userService, err := userservice.NewUserService()
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		t.Errorf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(weaviate)
 	if err != nil {
 		t.Errorf("Failed to create UserService: %v", err)
 	}

@@ -9,6 +9,7 @@ import (
 	"log"
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
+	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/syncservice"
@@ -40,7 +41,11 @@ func createTestUserInDb() error {
 		UpdatedAt:        1654012591514,
 	}
 
-	userService, err := userservice.NewUserService()
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		log.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}
