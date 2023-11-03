@@ -347,6 +347,15 @@ func TestDeleteAllChunksByUserID(t *testing.T) {
 	}
 	chunks = append(chunks, chunk1)
 
+	chunk2 := storemodels.Chunk{
+		ChunkID:      uuid.New(),
+		UserID:       uuid.New().String(),
+		DocumentID:   documentID,
+		ChunkContent: "Test chunk content",
+		ChunkIndex:   2,
+	}
+	chunks = append(chunks, chunk2)
+
 	err = weaviateClient.UploadChunks(chunks)
 	if err != nil {
 		t.Errorf("UploadChunks failed: %v", err)
@@ -356,7 +365,7 @@ func TestDeleteAllChunksByUserID(t *testing.T) {
 		t.Errorf("UploadChunks should have failed due to duplication: %v", err)
 	}
 	chunks, err = weaviateClient.GetChunks(chunks)
-	if err != nil || len(chunks) != 2 {
+	if err != nil || len(chunks) != 3 {
 		t.Errorf("GetChunks should have succeeded: %v", err)
 	}
 	err = weaviateClient.DeleteAllChunksByUserID(userID)
@@ -364,7 +373,7 @@ func TestDeleteAllChunksByUserID(t *testing.T) {
 		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
 	}
 	chunks, err = weaviateClient.GetChunks(chunks)
-	if err == nil || len(chunks) != 0 {
-		t.Errorf("GetChunks should have failed: %v", err)
+	if err == nil || len(chunks) != 1 {
+		t.Errorf("Get Chunks should return 1 chunk. returned chunks: %v", len(chunks))
 	}
 }
