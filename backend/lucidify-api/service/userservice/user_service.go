@@ -25,13 +25,13 @@ type UserServiceImpl struct {
 	weaviateDB   weaviateclient.WeaviateClient
 }
 
-func NewUserService(weaviateClient weaviateclient.WeaviateClient) (UserService, error) {
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
-	if err != nil {
-		return nil, err
-	}
+func NewUserService(postgresqlDB *postgresqlclient.PostgreSQL, weaviateClient weaviateclient.WeaviateClient) (UserService, error) {
+	// postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return &UserServiceImpl{postgresqlDB: postgresqlDB}, nil
+	return &UserServiceImpl{postgresqlDB: postgresqlDB, weaviateDB: weaviateClient}, nil
 }
 
 func (u *UserServiceImpl) CreateUser(user storemodels.User) error {
@@ -55,10 +55,12 @@ func (u *UserServiceImpl) deleteDocument(documentID uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("Failed to get chunks of document: %w", err)
 	}
+	// The error happens at this line
 	err = u.weaviateDB.DeleteChunks(chunks)
 	if err != nil {
 		return fmt.Errorf("Failed to delete chunks from Weaviate: %w", err)
 	}
+
 	err = u.postgresqlDB.DeleteDocumentByUUID(documentID)
 	if err != nil {
 		log.Printf("Failed to delete document from PostgreSQL: %v", err)
@@ -67,10 +69,15 @@ func (u *UserServiceImpl) deleteDocument(documentID uuid.UUID) error {
 }
 
 func (u *UserServiceImpl) DeleteUser(userID string) error {
+	// Test chunks must be created by uploading documents!
 	documents, err := u.postgresqlDB.GetAllDocuments(userID)
+	log.Printf("Deleting %d documents", len(documents))
+	log.Printf("Deleting user %s", userID)
+	log.Printf("Deleting documents %s", documents)
 	if err != nil {
 		return fmt.Errorf("Failed to get all documents from PostgreSQL: %w", err)
 	}
+
 	for _, document := range documents {
 		if err := u.deleteDocument(document.DocumentUUID); err != nil {
 			return fmt.Errorf("Failed to delete document: %w", err)

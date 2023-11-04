@@ -5,6 +5,7 @@ package clerkapi
 import (
 	"fmt"
 	"log"
+	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
 	"lucidify-api/service/clerkservice"
@@ -26,33 +27,31 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 		t.Errorf("User not created in Clerk. Reason: %v", err)
 	}
 
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		t.Errorf("Failed to create WeaviateClient: %v", err)
+	}
+
+	postgre, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create PostgreSQLClient: %v", err)
+	}
+	userService, err := userservice.NewUserService(postgre, weaviate)
+	if err != nil {
+		t.Errorf("Failed to create UserService: %v", err)
+	}
+
 	t.Cleanup(func() {
 		log.Printf("Cleaning up test user: %v", userID)
 		err = clerkservice.DeleteUserInClerk(clerkSecretKey, userID)
 		if err != nil {
 			t.Errorf("Failed to delete test user in clerk: %v\n", err)
 		}
-		weaviate, err := weaviateclient.NewWeaviateClientTest()
-		if err != nil {
-			t.Errorf("Failed to create WeaviateClient: %v", err)
-		}
-		userService, err := userservice.NewUserService(weaviate)
-		if err != nil {
-			t.Errorf("Failed to create UserService: %v", err)
-		}
 		if userService.HasUserBeenDeleted(userID, 10) {
 			t.Errorf("Failed to delete test user in users table: %v\n", err)
 		}
 	})
 
-	weaviate, err := weaviateclient.NewWeaviateClientTest()
-	if err != nil {
-		t.Errorf("Failed to create WeaviateClient: %v", err)
-	}
-	userService, err := userservice.NewUserService(weaviate)
-	if err != nil {
-		t.Errorf("Failed to create UserService: %v", err)
-	}
 	_, err = userService.GetUserWithRetries(userID, 10)
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)

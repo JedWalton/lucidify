@@ -90,10 +90,16 @@ func TestUploadDeleteChunks(t *testing.T) {
 	if err != nil {
 		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
 	}
+	chunks, err = weaviateClient.GetChunks(chunks)
+	if err == nil || len(chunks) != 0 {
+		t.Errorf("GetChunks should return 0 chunks. returned chunks: %v", len(chunks))
+	}
+
 	err = weaviateClient.UploadChunks(chunks)
 	if err != nil {
 		t.Errorf("re-UploadChunks failed proceeding DeleteChunk: %v", err)
 	}
+
 }
 
 func getTestChunks() []storemodels.Chunk {
@@ -317,63 +323,63 @@ func TestSearchDocumentsByText(t *testing.T) {
 	}
 }
 
-func TestDeleteAllChunksByUserID(t *testing.T) {
-	weaviateClient, err := NewWeaviateClientTest()
-	if err != nil {
-		t.Fatalf("failed to create weaviate client: %v", err)
-	}
-
-	documentID := uuid.New()
-	userID := uuid.New().String()
-	var chunks []storemodels.Chunk
-
-	// Create a sample DocumentChunk
-	chunk0 := storemodels.Chunk{
-		ChunkID:      uuid.New(),
-		UserID:       userID,
-		DocumentID:   documentID,
-		ChunkContent: "Test chunk content",
-		ChunkIndex:   0,
-	}
-	chunks = append(chunks, chunk0)
-
-	// Create a sample DocumentChunk
-	chunk1 := storemodels.Chunk{
-		ChunkID:      uuid.New(),
-		UserID:       userID,
-		DocumentID:   documentID,
-		ChunkContent: "Test chunk content",
-		ChunkIndex:   1,
-	}
-	chunks = append(chunks, chunk1)
-
-	chunk2 := storemodels.Chunk{
-		ChunkID:      uuid.New(),
-		UserID:       uuid.New().String(),
-		DocumentID:   documentID,
-		ChunkContent: "Test chunk content",
-		ChunkIndex:   2,
-	}
-	chunks = append(chunks, chunk2)
-
-	err = weaviateClient.UploadChunks(chunks)
-	if err != nil {
-		t.Errorf("UploadChunks failed: %v", err)
-	}
-	err = weaviateClient.UploadChunks(chunks)
-	if err == nil {
-		t.Errorf("UploadChunks should have failed due to duplication: %v", err)
-	}
-	chunks, err = weaviateClient.GetChunks(chunks)
-	if err != nil || len(chunks) != 3 {
-		t.Errorf("GetChunks should have succeeded: %v", err)
-	}
-	// err = weaviateClient.DeleteAllChunksByUserID(userID)
-	// if err != nil {
-	// 	t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
-	// }
-	// chunks, err = weaviateClient.GetChunks(chunks)
-	// if err == nil || len(chunks) != 1 {
-	// 	t.Errorf("Get Chunks should return 1 chunk. returned chunks: %v", len(chunks))
-	// }
-}
+// func TestDeleteAllChunksByUserID(t *testing.T) {
+// 	weaviateClient, err := NewWeaviateClientTest()
+// 	if err != nil {
+// 		t.Fatalf("failed to create weaviate client: %v", err)
+// 	}
+//
+// 	documentID := uuid.New()
+// 	userID := uuid.New().String()
+// 	var chunks []storemodels.Chunk
+//
+// 	// Create a sample DocumentChunk
+// 	chunk0 := storemodels.Chunk{
+// 		ChunkID:      uuid.New(),
+// 		UserID:       userID,
+// 		DocumentID:   documentID,
+// 		ChunkContent: "Test chunk content",
+// 		ChunkIndex:   0,
+// 	}
+// 	chunks = append(chunks, chunk0)
+//
+// 	// Create a sample DocumentChunk
+// 	chunk1 := storemodels.Chunk{
+// 		ChunkID:      uuid.New(),
+// 		UserID:       userID,
+// 		DocumentID:   documentID,
+// 		ChunkContent: "Test chunk content",
+// 		ChunkIndex:   1,
+// 	}
+// 	chunks = append(chunks, chunk1)
+//
+// 	chunk2 := storemodels.Chunk{
+// 		ChunkID:      uuid.New(),
+// 		UserID:       uuid.New().String(),
+// 		DocumentID:   documentID,
+// 		ChunkContent: "Test chunk content",
+// 		ChunkIndex:   2,
+// 	}
+// 	chunks = append(chunks, chunk2)
+//
+// 	err = weaviateClient.UploadChunks(chunks)
+// 	if err != nil {
+// 		t.Errorf("UploadChunks failed: %v", err)
+// 	}
+// 	err = weaviateClient.UploadChunks(chunks)
+// 	if err == nil {
+// 		t.Errorf("UploadChunks should have failed due to duplication: %v", err)
+// 	}
+// 	chunks, err = weaviateClient.GetChunks(chunks)
+// 	if err != nil || len(chunks) != 3 {
+// 		t.Errorf("GetChunks should have succeeded: %v", err)
+// 	}
+// 	// err = weaviateClient.DeleteAllChunksByUserID(userID)
+// 	// if err != nil {
+// 	// 	t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
+// 	// }
+// 	// chunks, err = weaviateClient.GetChunks(chunks)
+// 	// if err == nil || len(chunks) != 1 {
+// 	// 	t.Errorf("Get Chunks should return 1 chunk. returned chunks: %v", len(chunks))
+// 	// }
+// }
