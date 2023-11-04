@@ -65,7 +65,8 @@ func (u *UserServiceImpl) deleteDocument(documentID uuid.UUID) error {
 
 func (u *UserServiceImpl) DeleteUser(userID string) error {
 	// Test chunks must be created by uploading documents!
-	documents, err := u.postgresqlDB.GetAllDocuments(userID)
+	// documents, err := u.postgresqlDB.GetAllDocuments(userID)
+	documents, err := u.postgresqlDB.GetAllDocumentsIDs(userID)
 	log.Printf("Deleting %d documents", len(documents))
 	log.Printf("Deleting user %s", userID)
 	log.Printf("Deleting documents %s", documents)
@@ -74,7 +75,8 @@ func (u *UserServiceImpl) DeleteUser(userID string) error {
 	}
 
 	for _, document := range documents {
-		if err := u.deleteDocument(document.DocumentUUID); err != nil {
+		// if err := u.deleteDocument(document.DocumentUUID); err != nil {
+		if err := u.deleteDocument(uuid.MustParse(document)); err != nil {
 			return fmt.Errorf("Failed to delete document: %w", err)
 		}
 	}
