@@ -26,11 +26,6 @@ type UserServiceImpl struct {
 }
 
 func NewUserService(postgresqlDB *postgresqlclient.PostgreSQL, weaviateClient weaviateclient.WeaviateClient) (UserService, error) {
-	// postgresqlDB, err := postgresqlclient.NewPostgreSQL()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	return &UserServiceImpl{postgresqlDB: postgresqlDB, weaviateDB: weaviateClient}, nil
 }
 

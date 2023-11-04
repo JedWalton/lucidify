@@ -247,15 +247,21 @@ func TestDeleteUser(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
+	chunks, err := postgre.GetChunksOfDocument(document)
+	if err != nil || len(chunks) != 4 {
+		t.Errorf("Chunks were not uploaded to PostgreSQL: %v", len(chunks))
+	}
+
 	err = userService.DeleteUser(user.UserID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	// chunks, err := db.GetChunksOfDocument(document)
-	// if err != nil || len(chunks) == 0 {
-	// 	t.Error("Chunks were not uploaded to PostgreSQL")
-	// }
+	chunks, err = postgre.GetChunksOfDocument(document)
+	if err != nil || len(chunks) != 0 {
+		t.Errorf("Chunks were not uploaded to PostgreSQL: %v", len(chunks))
+	}
+
 	// chunksWeaviate, err := weaviateClient.GetChunks(chunks)
 	// if err != nil || len(chunksWeaviate) == 0 {
 	// 	t.Error("Chunks were not uploaded to Weaviate")
