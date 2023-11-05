@@ -9,10 +9,10 @@ type ServerResponse = {
 };
 
 export const chatVecService = {
-  async performVectorSearchOnChatThread(): Promise<string| null> {
+  async performVectorSearchOnChatThread(messages: Message[]): Promise<string> {
     try {
       // const url = `${process.env.PUBLIC_BACKEND_API_URL}/api/sync/localstorage/?key=${encodeURIComponent(key as string)}`;
-      const url = `http://localhost:8080/api/chat`;
+      const url = `http://localhost:8080/api/chat/vector-search`;
 
       const sessionToken = localStorage.getItem('sessionToken'); // Adjust this line to wherever your session token is stored
       console.log('sessionToken:', sessionToken)
@@ -25,10 +25,12 @@ export const chatVecService = {
         headers['Authorization'] = `Bearer ${sessionToken}`;
       }
 
-      let body 
+      let body
+
+      body = JSON.stringify({ messages: messages });
 
       const options: RequestInit = {
-        method: 'GET',
+        method: 'POST',
         headers: headers,
         body: body,
         mode: 'cors',
@@ -38,25 +40,30 @@ export const chatVecService = {
       const response = await fetch(url, options);
 
       if (!response.ok) {
-        // You can first attempt to decode the response as JSON, and then fall back to text if it fails.
         let errorMessage = 'Server responded with an error';
         try {
           const errorBody = await response.json();
           errorMessage = errorBody.message || `Server responded with ${response.status}`;
         } catch (jsonError) {
-          errorMessage = await response.text(); // If response is not in JSON format
+          try {
+            errorMessage = await response.text(); // If response is not in JSON format
+          } catch (textError) {
+            // handle the case where neither json nor text are readable
+            errorMessage = `Server responded with ${response.status}, but the response was not readable.`;
+          }
         }
 
         throw new Error(errorMessage);
       }
 
       // If the response is OK, we decode it from JSON
-      const data: ServerResponse = await response.json();
+      const data = await response.json();
+      console.log('data:', data)
       return data.data;
 
     } catch (error) {
       console.error(`Request failed: ${error}`);
-      return null
+      return "error"
     }
   },
 }

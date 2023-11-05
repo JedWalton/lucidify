@@ -14,7 +14,6 @@ export const config = {
   runtime: 'edge',
 };
 
-
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature } = (await req.json()) as ChatBody;
@@ -26,20 +25,13 @@ const handler = async (req: Request): Promise<Response> => {
       tiktokenModel.pat_str,
     );
 
-        // Determine the prompt to send based on whether it's the first message
     let promptToSend = prompt;
+    // console.log('promptToSend:', promptToSend)
+    console.log('promptToSend:', promptToSend)
     if (!promptToSend) {
-      if (messages.length === 0) {
-        promptToSend = DEFAULT_SYSTEM_PROMPT;
-      } else {
-        let promptFromServer = await chatVecService.performVectorSearchOnChatThread(messages);
-        if (promptFromServer) {
-          promptToSend = promptFromServer;
-        }
-        else {
-          promptToSend = DEFAULT_SYSTEM_PROMPT;
-        }
-      }
+      promptToSend = DEFAULT_SYSTEM_PROMPT;
+      // promptToSend = await chatVecService.performVectorSearchOnChatThread(messages);
+      console.log('promptToSend:', promptToSend)
     }
 
     let temperatureToUse = temperature;

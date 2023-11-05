@@ -34,7 +34,7 @@ func SetupChatHandler(
 
 	handler = middleware.Logging(handler)
 
-	mux.Handle("/chat", injectActiveSession(handler))
+	mux.Handle("/api/chat/vector-search", injectActiveSession(handler))
 	// mux.Handle("/api/sync", handler)
 
 	return mux

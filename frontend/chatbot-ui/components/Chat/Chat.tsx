@@ -33,17 +33,11 @@ import { ModelSelect } from './ModelSelect';
 import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
+import { chatVecService } from '@/services/chatVecService';
 
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
 }
-// Utility function to fetch the system prompt
-async function fetchSystemPrompt(): Promise<string> {
-  // Your logic to fetch the prompt from the backend
-  // ...
-  return systemPromptFromBackend;
-}
-
 
 export const Chat = memo(({ stopConversationRef }: Props) => {
   const { t } = useTranslation('chat');
@@ -100,11 +94,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         });
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
+           // New prompt generation logic
+        let vecPrompt = await chatVecService.performVectorSearchOnChatThread(updatedConversation.messages);
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
           key: apiKey,
-          prompt: updatedConversation.prompt,
+          // prompt: updatedConversation.prompt,
+          prompt: vecPrompt,
           temperature: updatedConversation.temperature,
         };
         const endpoint = getEndpoint(plugin);

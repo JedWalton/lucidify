@@ -9,6 +9,26 @@ import (
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
+type ServerResponse struct {
+	Success bool        `json:"success"`           // Indicates if the operation was successful
+	Data    interface{} `json:"data,omitempty"`    // Holds the actual data, if any
+	Message string      `json:"message,omitempty"` // Descriptive message, especially useful in case of errors
+}
+
+type Role string
+
+const (
+	RoleUser   Role = "user"
+	RoleSystem Role = "system"
+	// Add other roles as needed
+)
+
+// Message corresponds to the TypeScript interface with a role and content.
+type Message struct {
+	Role    Role   `json:"role"`
+	Content string `json:"content"`
+}
+
 func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -33,15 +53,31 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 
 		// w.Write([]byte(*&user.ID))
 
-		var reqBody map[string]string
+		var reqBody struct {
+			Messages []Message `json:"messages"`
+		}
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&reqBody)
 		if err != nil {
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
-		userPrompt := reqBody["message"]
-		fmt.Printf("User prompt: %s\n", userPrompt)
+		// userPrompt := reqBody["message"]
+		// fmt.Printf("User prompt: %s\n", userPrompt)
+
+		// Placeholder response
+		placeholderResponse := map[string]interface{}{
+			"status":  "success",
+			"message": "This is a placeholder response",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK) // Set the status code to 200 OK
+		if err := json.NewEncoder(w).Encode(placeholderResponse); err != nil {
+			// If there is an error when encoding the response, log it and send a server error status
+			fmt.Println("Error encoding placeholder response:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 
 		// Do something with the user prompt here
 		// CreateWeaviateClass()
@@ -55,6 +91,6 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 		// 	"response": responseMessage,
 		// }
 
-		w.Header().Set("Content-Type", "application/json")
+		// w.Header().Set("Content-Type", "application/json")
 	}
 }
