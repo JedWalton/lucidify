@@ -64,8 +64,7 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
 		}
-		// userPrompt := reqBody["message"]
-		// fmt.Printf("User prompt: %s\n", userPrompt)
+
 		log.Printf("User prompt: %s\n", reqBody.Messages)
 		systemPromptFromVecSearch, err := cvs.ConstructSystemMessage(reqBody.Messages[len(reqBody.Messages)-1].Content, user.ID)
 		if err != nil {
@@ -75,8 +74,7 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 
 		// Placeholder response
 		placeholderResponse := map[string]interface{}{
-			"status": "success",
-			// "systemPrompt": string(user.ID),
+			"status":       "success",
 			"systemPrompt": systemPromptFromVecSearch,
 		}
 
@@ -87,19 +85,5 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 			fmt.Println("Error encoding placeholder response:", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
-
-		// Do something with the user prompt here
-		// CreateWeaviateClass()
-		// responseMessage, err := chatService.ProcessCurrentThreadAndReturnSystemPrompt()
-		// if err != nil {
-		// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
-		// 	return
-		// }
-		//
-		// responseBody := map[string]string{
-		// 	"response": responseMessage,
-		// }
-
-		// w.Header().Set("Content-Type", "application/json")
 	}
 }
