@@ -21,7 +21,6 @@ type WeaviateClient interface {
 	UploadChunks([]storemodels.Chunk) error
 	DeleteChunk(chunkID uuid.UUID) error
 	DeleteChunks([]storemodels.Chunk) error
-	DeleteChunksByChunkIDs([]string) error
 	GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error)
 	SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error)
 }
