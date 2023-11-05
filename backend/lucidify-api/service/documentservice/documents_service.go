@@ -20,7 +20,6 @@ type DocumentService interface {
 	GetDocument(userID, name string) (*storemodels.Document, error)
 	GetDocumentByID(userID string, documentID uuid.UUID) (*storemodels.Document, error)
 	GetAllDocuments(userID string) ([]storemodels.Document, error)
-	DeleteAllDocumentsAndChunksFromPostgresAndWeaviate(userID string) error
 	DeleteDocument(userID string, documentID uuid.UUID) error
 	UpdateDocumentName(userID string, documentID uuid.UUID, name string) error
 	UpdateDocumentContent(userID string, documentUUID uuid.UUID, content string) error
@@ -192,19 +191,6 @@ func (d *DocumentServiceImpl) GetDocumentByID(userID string, documentID uuid.UUI
 
 func (d *DocumentServiceImpl) GetAllDocuments(userID string) ([]storemodels.Document, error) {
 	return d.postgresqlDB.GetAllDocuments(userID)
-}
-
-func (d *DocumentServiceImpl) DeleteAllDocumentsAndChunksFromPostgresAndWeaviate(userID string) error {
-	documents, err := d.postgresqlDB.GetAllDocuments(userID)
-	if err != nil {
-		return fmt.Errorf("Failed to get all documents from PostgreSQL: %w", err)
-	}
-	for _, document := range documents {
-		if err := d.DeleteDocument(userID, document.DocumentUUID); err != nil {
-			return fmt.Errorf("Failed to delete document: %w", err)
-		}
-	}
-	return nil
 }
 
 func (d *DocumentServiceImpl) DeleteDocument(userID string, documentID uuid.UUID) error {

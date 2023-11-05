@@ -48,7 +48,7 @@ func StartServer() {
 		log.Fatal(err)
 	}
 
-	userService, err := userservice.NewUserService(weaviate)
+	userService, err := userservice.NewUserService(postgre, weaviate)
 	if err != nil {
 		log.Fatal(err)
 	}

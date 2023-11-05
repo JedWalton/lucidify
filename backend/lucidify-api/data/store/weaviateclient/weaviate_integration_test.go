@@ -25,6 +25,11 @@ func TestUploadDeleteChunk(t *testing.T) {
 		ChunkContent: "Test chunk content",
 		ChunkIndex:   0,
 	}
+	defer func() {
+		if err := weaviateClient.DeleteChunk(chunk.ChunkID); err != nil {
+			t.Logf("teardown failed. Potentially already deleted: %v", err)
+		}
+	}()
 
 	err = weaviateClient.UploadChunk(chunk)
 	if err != nil {
@@ -58,6 +63,11 @@ func TestUploadDeleteChunks(t *testing.T) {
 	userID := uuid.New().String()
 	var chunks []storemodels.Chunk
 
+	defer func() {
+		if err := weaviateClient.DeleteChunks(chunks); err != nil {
+			t.Logf("teardown failed, potentially chunks already deleted: %v", err)
+		}
+	}()
 	// Create a sample DocumentChunk
 	chunk0 := storemodels.Chunk{
 		ChunkID:      uuid.New(),
@@ -90,6 +100,66 @@ func TestUploadDeleteChunks(t *testing.T) {
 	if err != nil {
 		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
 	}
+	chunks, err = weaviateClient.GetChunks(chunks)
+	if err == nil || len(chunks) != 0 {
+		t.Errorf("GetChunks should return 0 chunks. returned chunks: %v", len(chunks))
+	}
+
+}
+
+func TestDeleteChunks(t *testing.T) {
+	weaviateClient, err := NewWeaviateClientTest()
+	if err != nil {
+		t.Fatalf("failed to create weaviate client: %v", err)
+	}
+
+	documentID := uuid.New()
+	userID := uuid.New().String()
+	var chunks []storemodels.Chunk
+
+	defer func() {
+		if err := weaviateClient.DeleteChunks(chunks); err != nil {
+			t.Logf("teardown failed, potentially chunks already deleted: %v", err)
+		}
+	}()
+
+	// Create a sample DocumentChunk
+	chunk0 := storemodels.Chunk{
+		ChunkID:      uuid.New(),
+		UserID:       userID,
+		DocumentID:   documentID,
+		ChunkContent: "Test chunk content",
+		ChunkIndex:   0,
+	}
+	chunks = append(chunks, chunk0)
+
+	// Create a sample DocumentChunk
+	chunk1 := storemodels.Chunk{
+		ChunkID:      uuid.New(),
+		UserID:       userID,
+		DocumentID:   documentID,
+		ChunkContent: "Test chunk content",
+		ChunkIndex:   1,
+	}
+	chunks = append(chunks, chunk1)
+
+	err = weaviateClient.UploadChunks(chunks)
+	if err != nil {
+		t.Errorf("UploadChunks failed: %v", err)
+	}
+	err = weaviateClient.UploadChunks(chunks)
+	if err == nil {
+		t.Errorf("UploadChunks should have failed due to duplication: %v", err)
+	}
+	err = weaviateClient.DeleteChunks(chunks)
+	if err != nil {
+		t.Errorf("DeleteAllChunksByDocumentID failed: %v", err)
+	}
+	chunks, err = weaviateClient.GetChunks(chunks)
+	if err == nil || len(chunks) != 0 {
+		t.Errorf("GetChunks should return 0 chunks. returned chunks: %v", len(chunks))
+	}
+
 	err = weaviateClient.UploadChunks(chunks)
 	if err != nil {
 		t.Errorf("re-UploadChunks failed proceeding DeleteChunk: %v", err)
@@ -277,7 +347,7 @@ func TestSearchDocumentsByText(t *testing.T) {
 
 	defer func() {
 		if err := weaviateClient.DeleteChunks(testChunks); err != nil {
-			t.Errorf("teardown failed: %v", err)
+			t.Logf("teardown failed, potentially chunks already deleted: %v", err)
 		}
 	}()
 	// Define a query and limit for the test

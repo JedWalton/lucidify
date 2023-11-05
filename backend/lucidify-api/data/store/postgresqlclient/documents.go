@@ -116,6 +116,44 @@ func (s *PostgreSQL) GetAllDocuments(userID string) ([]storemodels.Document, err
 	return documents, nil
 }
 
+func (s *PostgreSQL) GetAllDocumentsIDs(userID string) ([]string, error) {
+	if s.db == nil {
+		return nil, errors.New("database connection is nil")
+	}
+
+	var documentsIDs []string
+	query := `SELECT document_id 
+	          FROM documents WHERE user_id = $1`
+	rows, err := s.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var docID string
+		err := rows.Scan(&docID)
+		if err != nil {
+			return nil, err
+		}
+		documentsIDs = append(documentsIDs, docID)
+	}
+
+	// Check for errors from the rows.Next() loop.
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Optionally handle the case where there are no documents.
+	if len(documentsIDs) == 0 {
+		// You can return a custom error if you want to handle this case specifically.
+		// return nil, errors.New("no documents found for the given userID")
+		// Or just return the empty slice without error.
+	}
+
+	return documentsIDs, nil
+}
+
 func (s *PostgreSQL) DeleteDocument(userID string, name string) error {
 	tx, err := s.db.Begin()
 	if err != nil {

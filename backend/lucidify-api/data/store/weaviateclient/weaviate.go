@@ -198,6 +198,16 @@ func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels.Chunk) error {
 	return nil
 }
 
+func (w *WeaviateClientImpl) DeleteChunksByChunkIDs(chunkIDs []string) error {
+	for _, chunkID := range chunkIDs {
+		err := w.DeleteChunk(uuid.MustParse(chunkID))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (w *WeaviateClientImpl) GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error) {
 	var chunksFromWeaviate []storemodels.Chunk
 	for _, chunk := range chunksFromPostgresql {

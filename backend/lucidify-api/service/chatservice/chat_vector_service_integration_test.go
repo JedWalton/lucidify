@@ -37,7 +37,7 @@ func createTestUserInDb() string {
 	if err != nil {
 		log.Fatalf("Failed to create WeaviateClient: %v", err)
 	}
-	userService, err := userservice.NewUserService(weaviate)
+	userService, err := userservice.NewUserService(db, weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}
