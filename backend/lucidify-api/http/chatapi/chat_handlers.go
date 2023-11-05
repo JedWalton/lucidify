@@ -52,8 +52,6 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 			panic(err)
 		}
 
-		// w.Write([]byte(*&user.ID))
-
 		var reqBody struct {
 			Messages []Message `json:"messages"`
 		}
