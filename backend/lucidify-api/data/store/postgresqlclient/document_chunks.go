@@ -103,3 +103,27 @@ func (s *PostgreSQL) GetChunksOfDocumentByDocumentID(documentID uuid.UUID) ([]st
 
 	return chunks, nil
 }
+
+func (s *PostgreSQL) GetChunkIDsOfDocumentByDocumentID(documentID uuid.UUID) ([]string, error) {
+	// Modify the SELECT statement to retrieve all fields of the chunks
+	query := `SELECT chunk_id
+	          FROM document_chunks WHERE document_id = $1`
+	rows, err := s.db.Query(query, documentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chunks []string
+	for rows.Next() {
+		var chunk string
+		// Scan all the fields into the Chunk struct
+		err = rows.Scan(chunk)
+		if err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, chunk)
+	}
+
+	return chunks, nil
+}

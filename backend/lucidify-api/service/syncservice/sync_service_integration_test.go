@@ -34,7 +34,7 @@ func createTestUserInDb() error {
 	if err != nil {
 		log.Fatalf("Failed to create WeaviateClient: %v", err)
 	}
-	userService, err := userservice.NewUserService(weaviate)
+	userService, err := userservice.NewUserService(db, weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}
@@ -69,11 +69,16 @@ func TestSyncServiceIntegration(t *testing.T) {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
 
+	postgre, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		log.Fatalf("Failed to create PostgreSQLClient: %v", err)
+	}
+
 	weaviate, err := weaviateclient.NewWeaviateClientTest()
 	if err != nil {
 		log.Fatalf("Failed to create WeaviateClient: %v", err)
 	}
-	userService, err := userservice.NewUserService(weaviate)
+	userService, err := userservice.NewUserService(postgre, weaviate)
 	if err != nil {
 		log.Fatalf("Failed to create UserService: %v", err)
 	}

@@ -1,5 +1,3 @@
-// //go:build integration
-// // +build integration
 package userservice
 
 import (
@@ -7,13 +5,13 @@ import (
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
+	"lucidify-api/service/documentservice"
 	"testing"
-	"time"
 )
 
 func setupTests() (UserService, storemodels.User, error, *postgresqlclient.PostgreSQL) {
 	user := storemodels.User{
-		UserID:           "TestCreateUserTableUserServiceUserID",
+		UserID:           "TestUserServiceTestUserID",
 		ExternalID:       "TestCreateUserTableExternalID",
 		Username:         "TestCreateUserableUsername",
 		PasswordEnabled:  true,
@@ -31,20 +29,15 @@ func setupTests() (UserService, storemodels.User, error, *postgresqlclient.Postg
 	if err != nil {
 		return nil, user, err, db
 	}
-
 	weaviate, err := weaviateclient.NewWeaviateClientTest()
 	if err != nil {
 		log.Fatalf("Failed to create WeaviateClient: %v", err)
 	}
-	userService, err := NewUserService(weaviate)
+	userService, err := NewUserService(db, weaviate)
 	if err != nil {
 		return nil, user, err, db
 	}
 	return userService, user, nil, db
-}
-
-func cleanupTests(user storemodels.User, db *postgresqlclient.PostgreSQL) error {
-	return db.DeleteUserInUsersTable(user.UserID)
 }
 
 func TestCreateUser(t *testing.T) {
@@ -65,10 +58,9 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		userService.DeleteUser(user.UserID)
 	})
 }
-
 func TestUpdateUser(t *testing.T) {
 	userService, user, err, db := setupTests()
 	if err != nil {
@@ -79,7 +71,7 @@ func TestUpdateUser(t *testing.T) {
 		t.Error(err)
 	}
 	userUpdated := storemodels.User{
-		UserID:           "TestCreateUserTableUserServiceUserID",
+		UserID:           "TestUserServiceTestUserID",
 		ExternalID:       "TestCreateUserTableExternalIDUpdated",
 		Username:         "TestCreateUserableUsernameUpdated",
 		PasswordEnabled:  true,
@@ -138,15 +130,41 @@ func TestUpdateUser(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		userService.DeleteUser(user.UserID)
 	})
 }
 
 func TestDeleteUser(t *testing.T) {
-	userService, user, err, db := setupTests()
-	if err != nil {
-		t.Error(err)
+	user := storemodels.User{
+		UserID:           "TestDeleteUserAndAssociatedDocumentsUserID",
+		ExternalID:       "TestCreateUserTableExternalID",
+		Username:         "TestCreateUserableUsername",
+		PasswordEnabled:  true,
+		Email:            "TestCreateUser@example.com",
+		FirstName:        "TestCreateUserCreateTest",
+		LastName:         "TestCreateUserUser",
+		ImageURL:         "https://TestCreateUser.com/image.jpg",
+		ProfileImageURL:  "https://TestCreateUser.com/profile.jpg",
+		TwoFactorEnabled: false,
+		CreatedAt:        1654012591514,
+		UpdatedAt:        1654012591514,
 	}
+
+	weaviateClient, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		t.Fatalf("failed to create weaviate client: %v", err)
+	}
+
+	postgre, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+	// userService, err := userservice.NewUserService(weaviateClient)
+	userService, err := NewUserService(postgre, weaviateClient)
+	if err != nil {
+		t.Errorf("Failed to create test userservice: %v", err)
+	}
+
 	err = userService.CreateUser(user)
 	if err != nil {
 		t.Error(err)
@@ -155,21 +173,101 @@ func TestDeleteUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("User not found after creation: %v", err)
 	}
+	// _, err = weaviateclient.NewWeaviateClientTest()
+	postgres, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		t.Errorf("Failed to create test postgresqlclient: %v", err)
+	}
+
+	documentService := documentservice.NewDocumentService(postgres, weaviateClient)
+
+	// // 2. Call the function
+	document, err := documentService.UploadDocument("TestDeleteUserAndAssociatedDocumentsUserID", "Dog Knowledge",
+		`Introduction to Dogs: Dogs, often referred to as "man's best friend," have been
+		companions to humans for thousands of years. Originating from wild wolves,
+		these loyal creatures have been domesticated and bred for various roles
+		throughout history, from hunting and herding to companionship. Their keen
+		senses, especially their sense of smell, combined with their innate
+		intelligence, make them invaluable partners in numerous tasks. Today, dogs are
+		found in countless households worldwide, providing joy, comfort, and sometimes
+		even protection to their human families.
+
+		Diverse Breeds: The world of dogs is incredibly diverse, with over 340
+		recognized breeds, each with its unique characteristics, temperament, and
+		appearance. From the tiny Chihuahua to the majestic Great Dane, dogs come in
+		all shapes and sizes. Some breeds, like the Border Collie, are known for their
+		intelligence and agility, while others, such as the Saint Bernard, are
+		celebrated for their strength and gentle nature. This vast diversity ensures
+		that there's a perfect dog breed for almost every individual and lifestyle.
+
+		Roles and Responsibilities: Beyond being mere pets, dogs play various roles in
+		human societies. Service dogs assist individuals with disabilities, guiding the
+		visually impaired or alerting those with hearing loss. Therapy dogs provide
+		emotional support in hospitals, schools, and nursing homes, offering comfort to
+		those in need. Working dogs, like police K9 units or search and rescue teams,
+		perform critical tasks that save lives. However, with these roles comes the
+		responsibility for owners to provide proper training, care, and attention to
+		their canine companions.
+
+		Health and Care: Just like humans, dogs have specific health and care needs
+		that owners must address. Regular veterinary check-ups, vaccinations, and a
+		balanced diet are essential for a dog's well-being. Grooming, depending on the
+		breed, can range from daily brushing to occasional baths. Exercise is crucial
+		for a dog's physical and mental health, with daily walks and playtime being
+		beneficial. Additionally, training and socialization from a young age ensure
+		that dogs are well-behaved and can interact positively with other animals and
+		people.
+
+		The Bond Between Humans and Dogs: The relationship between humans and dogs is
+		profound and multifaceted. Dogs offer unconditional love, loyalty, and
+		companionship, often becoming integral members of the family. In return, humans
+		provide care, shelter, and affection. Numerous studies have shown that owning a
+		dog can reduce stress, increase physical activity, and bring joy to their
+		owners. This symbiotic relationship, built on mutual trust and respect,
+		showcases the incredible bond that has existed between our two species for
+		millennia.`)
+	if err != nil {
+		t.Fatalf("Failed to upload document: %v", err)
+	}
+	t.Logf("document: %v", document)
+
+	// time.Sleep(2 * time.Second)
+
+	chunks, err := postgre.GetChunksOfDocument(document)
+	if err != nil || len(chunks) != 4 {
+		t.Errorf("Chunks were not uploaded to PostgreSQL: %v", len(chunks))
+	}
+
+	chunksWeaviate, err := weaviateClient.GetChunks(chunks)
+	if err != nil || len(chunksWeaviate) != 4 {
+		t.Errorf("Chunks were not uploaded to Weaviate: %v", len(chunksWeaviate))
+	}
+
 	err = userService.DeleteUser(user.UserID)
 	if err != nil {
 		t.Error(err)
 	}
-	if !userService.HasUserBeenDeleted(user.UserID, 5) {
-		t.Errorf("User not deleted after deletion: %v", err)
+	// weaviateClient.DeleteAllChunksByUserID(user.UserID)
+
+	chunks, err = postgre.GetChunksOfDocument(document)
+	if err != nil || len(chunks) != 0 {
+		t.Errorf("Chunks were not deleted from postgre: %v", len(chunks))
+	}
+
+	chunksWeaviate, err = weaviateClient.GetChunks(chunks)
+	if err != nil || len(chunksWeaviate) != 0 {
+		t.Errorf("Chunks were not deleted from Weaviate: %v", len(chunksWeaviate))
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		userService.DeleteUser(user.UserID)
+		weaviateClient.DeleteChunks(chunks)
+		postgre.DeleteAllChunksByDocumentID(document.DocumentUUID)
 	})
 }
 
 func TestGetUser(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -190,12 +288,12 @@ func TestGetUser(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		userService.DeleteUser(user.UserID)
 	})
 }
 
 func TestGetUserWithRetries(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -211,8 +309,8 @@ func TestGetUserWithRetries(t *testing.T) {
 	}
 	// Case 2: User is not found even after retries
 	nonExistentUserID := "non-existent-user-id"
-	// Delay the start of the next case to avoid immediate execution after user creation
-	time.Sleep(2 * time.Second)
+	// // Delay the start of the next case to avoid immediate execution after user creation
+	// time.Sleep(2 * time.Second)
 
 	_, err = userService.GetUserWithRetries(nonExistentUserID, 5)
 	if err == nil {
@@ -220,12 +318,12 @@ func TestGetUserWithRetries(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		userService.DeleteUser(user.UserID)
 	})
 }
 
 func TestHasUserBeenDeleted(t *testing.T) {
-	userService, user, err, db := setupTests()
+	userService, user, err, _ := setupTests()
 	if err != nil {
 		t.Error(err)
 	}
@@ -251,6 +349,6 @@ func TestHasUserBeenDeleted(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cleanupTests(user, db)
+		userService.DeleteUser(user.UserID)
 	})
 }
