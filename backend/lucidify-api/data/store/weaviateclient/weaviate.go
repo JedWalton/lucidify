@@ -21,6 +21,7 @@ type WeaviateClient interface {
 	UploadChunks([]storemodels.Chunk) error
 	DeleteChunk(chunkID uuid.UUID) error
 	DeleteChunks([]storemodels.Chunk) error
+	DeleteChunksByChunkIDs([]string) error
 	GetChunks(chunksFromPostgresql []storemodels.Chunk) ([]storemodels.Chunk, error)
 	SearchDocumentsByText(limit int, userID string, concepts []string) ([]storemodels.ChunkFromVectorSearch, error)
 }
@@ -191,6 +192,16 @@ func (w *WeaviateClientImpl) DeleteChunk(chunkID uuid.UUID) error {
 func (w *WeaviateClientImpl) DeleteChunks(chunks []storemodels.Chunk) error {
 	for _, chunk := range chunks {
 		err := w.DeleteChunk(chunk.ChunkID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (w *WeaviateClientImpl) DeleteChunksByChunkIDs(chunkIDs []string) error {
+	for _, chunkID := range chunkIDs {
+		err := w.DeleteChunk(uuid.MustParse(chunkID))
 		if err != nil {
 			return err
 		}

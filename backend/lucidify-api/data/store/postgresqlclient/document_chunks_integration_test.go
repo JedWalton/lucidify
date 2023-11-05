@@ -90,6 +90,16 @@ func TestChunkFunctions(t *testing.T) {
 			t.Errorf("Expected chunks to be equal, but got %v and %v", chunk, retrievedChunks[i])
 		}
 	}
+	retrievedChunkIDsOfDocumentByDocumentID, err := store.GetChunkIDsOfDocumentByDocumentID(insertedDoc.DocumentUUID)
+	if err != nil {
+		t.Fatalf("Failed to retrieve chunks by document ID: %v", err)
+	}
+
+	for i, chunkID := range retrievedChunkIDsOfDocumentByDocumentID {
+		if chunkID != retrievedChunks[i].ChunkID.String() {
+			t.Errorf("Expected chunk IDs to be equal, but got %v and %v", chunkID, retrievedChunks[i].ChunkID.String())
+		}
+	}
 
 	t.Cleanup(func() {
 		// Note, deleting user in users table will delete all associated records
