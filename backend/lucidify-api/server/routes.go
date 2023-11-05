@@ -24,11 +24,11 @@ func SetupRoutes(
 	clerkInstance clerk.Client,
 	weaviateInstance weaviateclient.WeaviateClient,
 	documentsService documentservice.DocumentService,
-	chatService chatservice.ChatService,
+	cvs chatservice.ChatVectorService,
 	syncService syncservice.SyncService,
 	userService userservice.UserService) {
 
-	chatapi.SetupRoutes(config, mux, chatService, clerkInstance)
+	chatapi.SetupRoutes(config, mux, cvs, clerkInstance)
 	documentsapi.SetupRoutes(config, mux, documentsService, clerkInstance)
 	clerkapi.SetupRoutes(storeInstance, userService, config, mux)
 	syncapi.SetupRoutes(config, mux, clerkInstance, syncService)

@@ -37,6 +37,13 @@ import { MemoizedChatMessage } from './MemoizedChatMessage';
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
 }
+// Utility function to fetch the system prompt
+async function fetchSystemPrompt(): Promise<string> {
+  // Your logic to fetch the prompt from the backend
+  // ...
+  return systemPromptFromBackend;
+}
+
 
 export const Chat = memo(({ stopConversationRef }: Props) => {
   const { t } = useTranslation('chat');

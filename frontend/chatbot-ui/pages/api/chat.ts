@@ -8,10 +8,12 @@ import wasm from '../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module
 
 import tiktokenModel from '@dqbd/tiktoken/encoders/cl100k_base.json';
 import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
+import { chatVecService } from '@/services/chatVecService';
 
 export const config = {
   runtime: 'edge',
 };
+
 
 const handler = async (req: Request): Promise<Response> => {
   try {
@@ -24,9 +26,20 @@ const handler = async (req: Request): Promise<Response> => {
       tiktokenModel.pat_str,
     );
 
+        // Determine the prompt to send based on whether it's the first message
     let promptToSend = prompt;
     if (!promptToSend) {
-      promptToSend = DEFAULT_SYSTEM_PROMPT;
+      if (messages.length === 0) {
+        promptToSend = DEFAULT_SYSTEM_PROMPT;
+      } else {
+        let promptFromServer = await chatVecService.performVectorSearchOnChatThread(messages);
+        if (promptFromServer) {
+          promptToSend = promptFromServer;
+        }
+        else {
+          promptToSend = DEFAULT_SYSTEM_PROMPT;
+        }
+      }
     }
 
     let temperatureToUse = temperature;

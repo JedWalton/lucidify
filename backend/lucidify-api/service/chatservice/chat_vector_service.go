@@ -1,7 +1,6 @@
 package chatservice
 
 import (
-	"context"
 	"fmt"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/service/documentservice"
@@ -10,7 +9,7 @@ import (
 )
 
 type ChatVectorService interface {
-	GetAnswerFromFiles(string, string) (string, error)
+	ConstructSystemMessage(string, string) (string, error)
 }
 
 type ChatVectorServiceImpl struct {
@@ -26,10 +25,10 @@ func NewChatVectorService(
 	return &ChatVectorServiceImpl{weaviateDB: weaviateDB, openaiClient: *openaiClient, documentService: documentService}
 }
 
-func (c *ChatVectorServiceImpl) GetAnswerFromFiles(question string, userID string) (string, error) {
+func (c *ChatVectorServiceImpl) ConstructSystemMessage(question string, userID string) (string, error) {
 	// Get the vector embedding for the question. You'll need a Go function equivalent to 'get_embedding' in Python.
 	concepts := []string{question}
-	TOP_K := 2
+	TOP_K := 4
 
 	// Query your vector database
 	results, err := c.weaviateDB.SearchDocumentsByText(TOP_K, userID, concepts)
@@ -64,29 +63,5 @@ func (c *ChatVectorServiceImpl) GetAnswerFromFiles(question string, userID strin
 		`Question: %s`+
 		`Files: %s`+
 		`Answer:`, question, filesString)
-
-	// Construct the messages
-	messages := []openai.ChatCompletionMessage{
-		{
-			Role:    "system",
-			Content: systemMessage,
-		},
-		{
-			Role:    "user",
-			Content: question,
-		},
-	}
-
-	// Get the completion from OpenAI
-	resp, err := c.openaiClient.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model:    openai.GPT3Dot5Turbo,
-			Messages: messages,
-		},
-	)
-	if err != nil {
-		return "", err
-	}
-	return resp.Choices[0].Message.Content, nil
+	return systemMessage, nil
 }

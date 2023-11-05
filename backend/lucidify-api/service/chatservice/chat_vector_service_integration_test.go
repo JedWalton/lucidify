@@ -10,6 +10,7 @@ import (
 	"lucidify-api/server/config"
 	"lucidify-api/service/documentservice"
 	"lucidify-api/service/userservice"
+	"testing"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -62,7 +63,7 @@ func createTestUserInDb() string {
 	return user.UserID
 }
 
-func setupTestChatService() ChatService {
+func setupTestChatService() ChatVectorService {
 	// Initialize PostgreSQL for tests
 	postgresqlDB, err := postgresqlclient.NewPostgreSQL() // Adjust this to match your actual constructor
 	if err != nil {
@@ -82,7 +83,6 @@ func setupTestChatService() ChatService {
 
 	// Create instance of ChatVectorService
 	cvs := NewChatVectorService(weaviateDB, openaiClient, documentService)
-	chatService := NewChatService(cvs)
 
 	createTestUserInDb()
 
@@ -172,7 +172,28 @@ func setupTestChatService() ChatService {
 		showcases the incredible bond that has existed between our two species for
 		millennia.`)
 
-	return chatService
+	return cvs
+}
+
+func TestConstructSystemMessage(t *testing.T) {
+	cvs := setupTestChatService()
+
+	_, err := cvs.ConstructSystemMessage("Tell me about dogs", "TestChatServiceIntegrationTestUUID")
+
+	if err != nil {
+		t.Errorf("Error was not expected while processing current thread: %v", err)
+	}
+
+	// expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
+	// if response != expectedResponse {
+	// 	t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
+	// }
+
+	// Optionally, you might want to query your databases here to assert that the expected
+	// updates have been made as a result of calling the method.
+
+	// Cleanup after test
+	// Here you would clean up your database from any records you created for your test.
 }
 
 // func TestChatCompletion(t *testing.T) {

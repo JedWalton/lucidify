@@ -9,7 +9,7 @@ import (
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 )
 
-func ChatHandler(clerkInstance clerk.Client, chatService chatservice.ChatService) http.HandlerFunc {
+func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

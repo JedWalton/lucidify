@@ -12,10 +12,10 @@ import (
 func SetupRoutes(
 	config *config.ServerConfig,
 	mux *http.ServeMux,
-	chatService chatservice.ChatService,
+	cvs chatservice.ChatVectorService,
 	clerkInstance clerk.Client) *http.ServeMux {
 
-	mux = SetupChatHandler(config, mux, chatService, clerkInstance)
+	mux = SetupChatHandler(config, mux, cvs, clerkInstance)
 
 	return mux
 }
@@ -25,10 +25,10 @@ func SetupRoutes(
 func SetupChatHandler(
 	config *config.ServerConfig,
 	mux *http.ServeMux,
-	chatService chatservice.ChatService,
+	cvs chatservice.ChatVectorService,
 	clerkInstance clerk.Client) *http.ServeMux {
 
-	handler := ChatHandler(clerkInstance, chatService)
+	handler := ChatHandler(clerkInstance, cvs)
 
 	injectActiveSession := clerk.WithSession(clerkInstance)
 

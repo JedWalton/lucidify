@@ -41,7 +41,6 @@ func StartServer() {
 	openaiClient := openai.NewClient(config.OPENAI_API_KEY)
 
 	cvs := chatservice.NewChatVectorService(weaviate, openaiClient, documentService)
-	chatService := chatservice.NewChatService(cvs)
 
 	syncService, err := syncservice.NewSyncService()
 	if err != nil {
@@ -60,7 +59,7 @@ func StartServer() {
 		clerk,
 		weaviate,
 		documentService,
-		chatService,
+		cvs,
 		syncService,
 		userService,
 	)
