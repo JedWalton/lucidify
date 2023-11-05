@@ -37,19 +37,19 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 		}
 
 		// How to get currently active user id from clerk
-		// ctx := r.Context()
-		//
-		// sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
-		// if !ok {
-		// 	w.WriteHeader(http.StatusUnauthorized)
-		// 	w.Write([]byte("Unauthorized"))
-		// 	return
-		// }
-		//
-		// user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
-		// if err != nil {
-		// 	panic(err)
-		// }
+		ctx := r.Context()
+
+		sessClaims, ok := ctx.Value(clerk.ActiveSessionClaims).(*clerk.SessionClaims)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		user, err := clerkInstance.Users().Read(sessClaims.Claims.Subject)
+		if err != nil {
+			panic(err)
+		}
 
 		// w.Write([]byte(*&user.ID))
 
@@ -57,7 +57,7 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 			Messages []Message `json:"messages"`
 		}
 		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&reqBody)
+		err = decoder.Decode(&reqBody)
 		if err != nil {
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
@@ -68,7 +68,7 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 		// Placeholder response
 		placeholderResponse := map[string]interface{}{
 			"status":  "success",
-			"message": "This is a placeholder response",
+			"message": string(user.ID),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
