@@ -3,6 +3,7 @@ package chatapi
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"lucidify-api/service/chatservice"
 	"net/http"
 
@@ -56,6 +57,7 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 		var reqBody struct {
 			Messages []Message `json:"messages"`
 		}
+
 		decoder := json.NewDecoder(r.Body)
 		err = decoder.Decode(&reqBody)
 		if err != nil {
@@ -64,11 +66,18 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 		}
 		// userPrompt := reqBody["message"]
 		// fmt.Printf("User prompt: %s\n", userPrompt)
+		log.Printf("User prompt: %s\n", reqBody.Messages)
+		systemPromptFromVecSearch, err := cvs.ConstructSystemMessage(reqBody.Messages[len(reqBody.Messages)-1].Content, user.ID)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		// Placeholder response
 		placeholderResponse := map[string]interface{}{
-			"status":  "success",
-			"message": string(user.ID),
+			"status": "success",
+			// "systemPrompt": string(user.ID),
+			"systemPrompt": systemPromptFromVecSearch,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

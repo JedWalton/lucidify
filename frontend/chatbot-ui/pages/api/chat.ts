@@ -26,12 +26,8 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     let promptToSend = prompt;
-    // console.log('promptToSend:', promptToSend)
-    console.log('promptToSend:', promptToSend)
     if (!promptToSend) {
       promptToSend = DEFAULT_SYSTEM_PROMPT;
-      // promptToSend = await chatVecService.performVectorSearchOnChatThread(messages);
-      console.log('promptToSend:', promptToSend)
     }
 
     let temperatureToUse = temperature;
