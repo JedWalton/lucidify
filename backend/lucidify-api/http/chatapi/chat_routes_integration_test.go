@@ -175,9 +175,27 @@ func TestChatHandlerIntegration(t *testing.T) {
 		t.Errorf("Server responded with failure: %s", serverResp.Message)
 	}
 
-	t.Logf("serverResp status: %v", serverResp.Status)
-	t.Logf("serverResp data: %v", serverResp.Data)
-	t.Logf("serverResp message: %v", serverResp.Message)
+	if serverResp.Status != "success" {
+		t.Errorf("Expected successful response, got %+v", serverResp.Status)
+	}
+	if serverResp.Message == "" {
+		t.Errorf("Expected message in response, got %+v", serverResp.Message)
+	}
+	if serverResp.Data == `Given a question, try to answer it using the content `+
+		`of the file extracts below, and if you cannot answer, or find a relevant file, `+
+		`just output "I couldn't find the answer to that question in your files.".If the `+
+		`answer is not contained in the files or if there are no file extracts, respond `+
+		`with "I couldn't find the answer to that question in your files." If the `+
+		`question is not actually a question, respond with "That's not a valid question."`+
+		`In the cases where you can find the answer, first give the answer. Then explain `+
+		`how you found the answer from the source or sources, and use the exact filenames `+
+		`of the source files you mention. Do not make up the names of any other files `+
+		`other than those mentioned in the files context. Give the answer in markdown `+
+		`format.Use the following format:Question: Hello, how can I help you?Files: `+
+		`Answer: ` {
+		t.Errorf("Expected data in response, got %+v", serverResp)
+	}
+
 }
 
 // 	// // Read the response body
