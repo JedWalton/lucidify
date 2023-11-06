@@ -10,6 +10,7 @@ import (
 	"lucidify-api/server/config"
 	"lucidify-api/service/documentservice"
 	"lucidify-api/service/userservice"
+	"strings"
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
@@ -175,27 +176,66 @@ func setupTestChatService() ChatVectorService {
 	return cvs
 }
 
-func TestConstructSystemMessage(t *testing.T) {
+func TestConstructSystemMessageTemp(t *testing.T) {
+	// Set up the ChatVectorService with test data.
 	cvs := setupTestChatService()
 
-	_, err := cvs.ConstructSystemMessage("Tell me about dogs", "TestChatServiceIntegrationTestUUID")
+	// Define the test user ID that is consistent with the setupTestChatService.
+	testUserID := "TestChatServiceIntegrationTestUUID"
 
+	// Call ConstructSystemMessage with a test question.
+	systemMessage, err := cvs.ConstructSystemMessage("Tell me about dogs", testUserID)
+
+	// Check for unexpected errors.
 	if err != nil {
-		t.Errorf("Error was not expected while processing current thread: %v", err)
+		t.Fatalf("Error was not expected while constructing system message: %v", err)
 	}
 
-	// expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
-	// if response != expectedResponse {
-	// 	t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
-	// }
+	// Validate the content of the system message.
+	if !strings.Contains(systemMessage, "Tell me about dogs") {
+		t.Errorf("System message did not contain the question, got: %s", systemMessage)
+	}
 
-	// Optionally, you might want to query your databases here to assert that the expected
-	// updates have been made as a result of calling the method.
+	// Check if the document information about "Dog Knowledge" is included in the message.
+	if !strings.Contains(systemMessage, "Dog Knowledge") {
+		t.Errorf("System message did not contain the expected document title 'Dog Knowledge', got: %s", systemMessage)
+	}
 
-	// Cleanup after test
-	// Here you would clean up your database from any records you created for your test.
+	// Check if the content includes the proper instructions format.
+	expectedInstructions := "Given a question, try to answer it using the content of the file extracts below"
+	if !strings.Contains(systemMessage, expectedInstructions) {
+		t.Errorf("System message did not contain the expected instructions, got: %s", systemMessage)
+	}
+
+	// Check if the answer section is included in the message.
+	if !strings.Contains(systemMessage, "Answer:") {
+		t.Errorf("System message did not contain the 'Answer:' prompt, got: %s", systemMessage)
+	}
+
+	// More assertions can be added here to validate the system message content.
 }
 
+// func TestConstructSystemMessage(t *testing.T) {
+// 	cvs := setupTestChatService()
+//
+// 	_, err := cvs.ConstructSystemMessage("Tell me about dogs", "TestChatServiceIntegrationTestUUID")
+//
+// 	if err != nil {
+// 		t.Errorf("Error was not expected while processing current thread: %v", err)
+// 	}
+//
+// 	// expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
+// 	// if response != expectedResponse {
+// 	// 	t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
+// 	// }
+//
+// 	// Optionally, you might want to query your databases here to assert that the expected
+// 	// updates have been made as a result of calling the method.
+//
+// 	// Cleanup after test
+// 	// Here you would clean up your database from any records you created for your test.
+// }
+//
 // func TestChatCompletion(t *testing.T) {
 // 	chatService := setupTestChatService()
 //
