@@ -146,11 +146,11 @@ func TestChatHandlerIntegration(t *testing.T) {
 
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 	client := &http.Client{}
-	_, err := client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		t.Errorf("Failed to send request: %v", err)
 	}
-	// defer resp.Body.Close()
+	defer resp.Body.Close()
 }
 
 // 	//
