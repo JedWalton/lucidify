@@ -64,13 +64,7 @@ func ChatHandler(clerkInstance clerk.Client, cvs chatservice.ChatVectorService) 
 		}
 
 		log.Printf("User prompt: %s\n", reqBody.Messages)
-		if len(reqBody.Messages) == 0 {
-			http.Error(w, "No messages provided", http.StatusBadRequest)
-			return
-		}
-		lastMessageContent := reqBody.Messages[len(reqBody.Messages)-1].Content
-
-		systemPromptFromVecSearch, err := cvs.ConstructSystemMessage(lastMessageContent, user.ID)
+		systemPromptFromVecSearch, err := cvs.ConstructSystemMessage(reqBody.Messages[len(reqBody.Messages)-1].Content, user.ID)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
