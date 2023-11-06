@@ -1,35 +1,42 @@
 // //go:build integration
 // // +build integration
-package chatservice
+package chatapi
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"lucidify-api/data/store/postgresqlclient"
 	"lucidify-api/data/store/storemodels"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/server/config"
+	"lucidify-api/service/chatservice"
+	"lucidify-api/service/clerkservice"
 	"lucidify-api/service/documentservice"
 	"lucidify-api/service/userservice"
-	"strings"
-	"testing"
 
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/sashabaranov/go-openai"
 )
 
-func createTestUserInDb() string {
-	db, err := postgresqlclient.NewPostgreSQL()
-
+func createTestUserInDb(cfg *config.ServerConfig, db *postgresqlclient.PostgreSQL) error {
 	// the user id registered by the jwt token must exist in the local database
 	user := storemodels.User{
-		UserID:           "TestChatServiceIntegrationTestUUID",
-		ExternalID:       "TestChatServiceIntegrationTestExternalID",
-		Username:         "TestChatServiceIntegrationTestUsername",
+		UserID:           cfg.TestUserID,
+		ExternalID:       "TestChatAPIUserInUsersTableExternalIDDocuments",
+		Username:         "TestChatAPIUsersTableUsernameDocuments",
 		PasswordEnabled:  true,
-		Email:            "TestChatServiceIntTest@gmail.com",
-		FirstName:        "TestChatServiceIntegrationTestFirstName",
-		LastName:         "TestChatServiceIntegrationTestLastName",
-		ImageURL:         "https://TestChatServiceIntegrationTestURL.com/image.jpg",
-		ProfileImageURL:  "https://TestChatServiceTestProfileURL.com/profile.jpg",
+		Email:            "TestChatAPIUserUsersTableDocuments@example.com",
+		FirstName:        "TestUsersTableCreateTest",
+		LastName:         "TestUsersTableUser",
+		ImageURL:         "https://TestInUsersTable.com/image.jpg",
+		ProfileImageURL:  "https://TestInUsersTable.com/profile.jpg",
 		TwoFactorEnabled: false,
 		CreatedAt:        1654012591514,
 		UpdatedAt:        1654012591514,
@@ -52,42 +59,77 @@ func createTestUserInDb() string {
 		log.Fatalf("Failed to delete user: %v", err)
 	}
 
-	err = db.CreateUserInUsersTable(user)
+	err = userService.CreateUser(user)
 	if err != nil {
 		log.Fatalf("Failed to create user: %v", err)
 	}
 
+	// Check if the user exists
 	_, err = userService.GetUserWithRetries(user.UserID, 3)
 	if err != nil {
 		log.Fatalf("User not found after creation: %v", err)
 	}
-	return user.UserID
+
+	return nil
 }
 
-func setupTestChatService() ChatVectorService {
-	// Initialize PostgreSQL for tests
-	postgresqlDB, err := postgresqlclient.NewPostgreSQL() // Adjust this to match your actual constructor
-	if err != nil {
-		log.Fatalf("Failed to initialize PostgreSQL: %v", err)
-	}
+type TestSetup struct {
+	Config        *config.ServerConfig
+	PostgresqlDB  *postgresqlclient.PostgreSQL
+	ClerkInstance clerk.Client
+	Weaviate      weaviateclient.WeaviateClient
+	DocService    documentservice.DocumentService
+}
 
-	// Initialize Weaviate for tests
-	weaviateDB, err := weaviateclient.NewWeaviateClientTest() // Adjust this to match your actual constructor
-	if err != nil {
-		log.Fatalf("Failed to create Weaviate client: %v", err)
-	}
-
+func SetupTestEnvironment(t *testing.T) *TestSetup {
 	cfg := config.NewServerConfig()
+
+	postgresqlDB, err := postgresqlclient.NewPostgreSQL()
+	if err != nil {
+		t.Fatalf("Failed to create test postgresqlclient: %v", err)
+	}
+
+	clerkInstance, err := clerkservice.NewClerkClient()
+	if err != nil {
+		t.Fatalf("Failed to create Clerk client: %v", err)
+	}
+
+	weaviate, err := weaviateclient.NewWeaviateClientTest()
+	if err != nil {
+		t.Fatalf("Failed to create WeaviateClient: %v", err)
+	}
+
+	docService := documentservice.NewDocumentService(postgresqlDB, weaviate)
+
+	err = createTestUserInDb(cfg, postgresqlDB)
+	if err != nil {
+		t.Fatalf("Failed to create test user in db: %v", err)
+	}
+
+	return &TestSetup{
+		Config:        cfg,
+		PostgresqlDB:  postgresqlDB,
+		ClerkInstance: clerkInstance,
+		Weaviate:      weaviate,
+		DocService:    docService,
+	}
+}
+
+func TestChatHandlerIntegration(t *testing.T) {
+	setup := SetupTestEnvironment(t)
+	cfg := setup.Config
+	clerkInstance := setup.ClerkInstance
 	openaiClient := openai.NewClient(cfg.OPENAI_API_KEY)
+	documentService := setup.DocService
+	chatVectorService := chatservice.NewChatVectorService(setup.Weaviate, openaiClient, documentService)
 
-	documentService := documentservice.NewDocumentService(postgresqlDB, weaviateDB)
+	// Create a test server
+	mux := http.NewServeMux()
+	SetupRoutes(cfg, mux, chatVectorService, clerkInstance)
+	server := httptest.NewServer(mux)
+	defer server.Close()
 
-	// Create instance of ChatVectorService
-	cvs := NewChatVectorService(weaviateDB, openaiClient, documentService)
-
-	createTestUserInDb()
-
-	documentService.UploadDocument("TestChatServiceIntegrationTestUUID", "Cat Knowledge",
+	catDoc, err := setup.DocService.UploadDocument(cfg.TestUserID, "Cat Knowledge",
 		`Cats, with their graceful movements and independent nature,
 		have been revered and adored by many civilizations throughout history. In
 		ancient Egypt, they were considered sacred and were even associated with
@@ -128,7 +170,7 @@ func setupTestChatService() ChatVectorService {
 		ingrained and serve as a reminder that beneath their cuddly exterior lies a
 		skilled predator, honed by millions of years of evolution.`)
 
-	documentService.UploadDocument("TestChatServiceIntegrationTestUUID", "Dog Knowledge",
+	dogDoc, err := setup.DocService.UploadDocument(cfg.TestUserID, "Dog Knowledge",
 		`Introduction to Dogs: Dogs, often referred to as "man's best friend," have been
 		companions to humans for thousands of years. Originating from wild wolves,
 		these loyal creatures have been domesticated and bred for various roles
@@ -173,107 +215,89 @@ func setupTestChatService() ChatVectorService {
 		showcases the incredible bond that has existed between our two species for
 		millennia.`)
 
-	return cvs
-}
+	if _, err := setup.DocService.GetDocument(cfg.TestUserID, "Dog Knowledge"); err != nil {
+		t.Fatalf("Failed to get dog document: %v", err)
+	}
+	if _, err := setup.DocService.GetDocumentByID(cfg.TestUserID, dogDoc.DocumentUUID); err != nil {
+		t.Fatalf("Failed to get dog document: %v", err)
+	}
+	cat, err := setup.DocService.GetDocumentByID(cfg.TestUserID, catDoc.DocumentUUID)
+	if cat == nil || err != nil {
+		t.Fatalf("Failed to get cat document: %v", err)
+	}
 
-func TestConstructSystemMessageTemp(t *testing.T) {
-	// Set up the ChatVectorService with test data.
-	cvs := setupTestChatService()
+	// Obtain a JWT token from Clerk
+	jwtToken := cfg.TestJWTSessionToken
 
-	// Define the test user ID that is consistent with the setupTestChatService.
-	testUserID := "TestChatServiceIntegrationTestUUID"
+	// Construct a message
+	messages := []Message{
+		{Role: RoleUser, Content: "Hello, what are dogs?"},
+	}
 
-	// Call ConstructSystemMessage with a test question.
-	systemMessage, err := cvs.ConstructSystemMessage("Tell me about dogs", testUserID)
+	// Send a POST request to the server with the JWT token and message
+	body, _ := json.Marshal(map[string][]Message{"messages": messages})
 
-	// Check for unexpected errors.
+	// Authenticated request
+	req, _ := http.NewRequest(
+		http.MethodPost,
+		server.URL+"/api/chat/vector-search",
+		bytes.NewBuffer(body))
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		t.Fatalf("Error was not expected while constructing system message: %v", err)
+		t.Errorf("Failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 
-	// Validate the content of the system message.
-	if !strings.Contains(systemMessage, "Tell me about dogs") {
-		t.Errorf("System message did not contain the question, got: %s", systemMessage)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
 	}
 
-	// Check if the document information about "Dog Knowledge" is included in the message.
-	if !strings.Contains(systemMessage, "Dog Knowledge") {
-		t.Errorf("System message did not contain the expected document title 'Dog Knowledge', got: %s", systemMessage)
+	var serverResp ChatResponse
+	err = json.Unmarshal(respBody, &serverResp)
+	if err != nil {
+		t.Errorf("Failed to unmarshal response body: %v", err)
+		return
 	}
 
-	// Check if the content includes the proper instructions format.
-	expectedInstructions := "Given a question, try to answer it using the content of the file extracts below"
-	if !strings.Contains(systemMessage, expectedInstructions) {
-		t.Errorf("System message did not contain the expected instructions, got: %s", systemMessage)
+	// Now you can use serverResp to make assertions or further logic
+	if serverResp.Status == "fail" {
+		t.Errorf("Server responded with failure: %s", serverResp.Message)
+	}
+	if serverResp.Status != "success" {
+		t.Errorf("Expected successful response, got %+v", serverResp.Status)
+	}
+	if serverResp.Message == "" {
+		t.Errorf("Expected message in response, got %+v", serverResp.Message)
 	}
 
-	// Check if the answer section is included in the message.
-	if !strings.Contains(systemMessage, "Answer:") {
-		t.Errorf("System message did not contain the 'Answer:' prompt, got: %s", systemMessage)
+	// t.Fatalf("serverResp.Data: %+v", serverResp.Data)
+	data, ok := serverResp.Data.(string)
+	if !ok {
+		t.Fatalf("Expected serverResp.Data to be a string, got %T", serverResp.Data)
 	}
 
-	// More assertions can be added here to validate the system message content.
+	if !strings.Contains(data, `Dogs, often referred to as "man's best friend,"`) {
+		t.Errorf("Response data does not contain expected dog knowledge: %v", data)
+	}
+
+	if strings.Contains(data, "The purring of a cat is a sound that many find soothing") {
+		t.Errorf("Response data should not contain cat knowledge")
+	}
+
+	t.Cleanup(func() {
+		userService, err := userservice.NewUserService(setup.PostgresqlDB, setup.Weaviate)
+		if err != nil {
+			log.Fatalf("Failed to create UserService: %v", err)
+		}
+		userService.DeleteUser(cfg.TestUserID)
+	})
 }
-
-// func TestConstructSystemMessage(t *testing.T) {
-// 	cvs := setupTestChatService()
-//
-// 	_, err := cvs.ConstructSystemMessage("Tell me about dogs", "TestChatServiceIntegrationTestUUID")
-//
-// 	if err != nil {
-// 		t.Errorf("Error was not expected while processing current thread: %v", err)
-// 	}
-//
-// 	// expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
-// 	// if response != expectedResponse {
-// 	// 	t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
-// 	// }
-//
-// 	// Optionally, you might want to query your databases here to assert that the expected
-// 	// updates have been made as a result of calling the method.
-//
-// 	// Cleanup after test
-// 	// Here you would clean up your database from any records you created for your test.
-// }
-//
-// func TestChatCompletion(t *testing.T) {
-// 	chatService := setupTestChatService()
-//
-// 	response, err := chatService.ChatCompletion("TestChatServiceIntegrationTestUUID")
-//
-// 	if err != nil {
-// 		t.Errorf("Error was not expected while processing current thread: %v", err)
-// 	}
-//
-// 	expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
-// 	if response != expectedResponse {
-// 		t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
-// 	}
-//
-// 	// Optionally, you might want to query your databases here to assert that the expected
-// 	// updates have been made as a result of calling the method.
-//
-// 	// Cleanup after test
-// 	// Here you would clean up your database from any records you created for your test.
-// }
-
-// func TestGetAnswerFromFiles(t *testing.T) {
-// 	chatService := setupTestChatService()
-//
-// 	response, err := chatService.GetAnswerFromFiles("Tell me about dogs", "TestChatServiceIntegrationTestUUID")
-//
-// 	if err != nil {
-// 		t.Errorf("Error was not expected while processing current thread: %v", err)
-// 	}
-//
-// 	expectedResponse := "PLACEHOLDER RESPONSE" // Adjust "EXPECTED RESPONSE" to match what you're actually expecting.
-// 	if response != expectedResponse {
-// 		t.Errorf("Unexpected response: got %v want %v", response, expectedResponse)
-// 	}
-//
-// 	// Optionally, you might want to query your databases here to assert that the expected
-// 	// updates have been made as a result of calling the method.
-//
-// 	// Cleanup after test
-// 	// Here you would clean up your database from any records you created for your test.
-// }

@@ -33,6 +33,7 @@ import { ModelSelect } from './ModelSelect';
 import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
+import { chatVecService } from '@/services/chatVecService';
 
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
@@ -93,11 +94,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         });
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
+           // New prompt generation logic
+        let vecPrompt = await chatVecService.performVectorSearchOnChatThread(updatedConversation.messages);
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
           key: apiKey,
-          prompt: updatedConversation.prompt,
+          // prompt: updatedConversation.prompt,
+          prompt: vecPrompt,
           temperature: updatedConversation.temperature,
         };
         const endpoint = getEndpoint(plugin);

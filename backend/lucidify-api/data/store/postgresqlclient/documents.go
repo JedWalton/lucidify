@@ -1,7 +1,9 @@
 package postgresqlclient
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"lucidify-api/data/store/storemodels"
 
 	"github.com/google/uuid"
@@ -53,9 +55,14 @@ func (s *PostgreSQL) GetDocumentByUUID(documentUUID uuid.UUID) (*storemodels.Doc
 	          WHERE document_id = $1`
 	err := s.db.QueryRow(query, documentUUID).Scan(
 		&doc.DocumentUUID, &doc.UserID, &doc.DocumentName, &doc.Content, &doc.CreatedAt, &doc.UpdatedAt)
-	if err != nil {
+
+	// Handle the case where the query returns no rows
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("no document found with UUID: %s", documentUUID)
+	} else if err != nil {
 		return nil, err
 	}
+
 	return doc, nil
 }
 
