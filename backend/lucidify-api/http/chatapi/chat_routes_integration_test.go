@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"lucidify-api/data/store/postgresqlclient"
@@ -128,12 +129,109 @@ func TestChatHandlerIntegration(t *testing.T) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
+	catDoc, err := setup.DocService.UploadDocument(cfg.TestUserID, "Cat Knowledge",
+		`Cats, with their graceful movements and independent nature,
+		have been revered and adored by many civilizations throughout history. In
+		ancient Egypt, they were considered sacred and were even associated with
+		the goddess Bastet, who was depicted as a lioness or a woman with the head
+		of a lioness. Cats were believed to have protective qualities, and harming
+		one was considered a grave offense. Their sleek and mysterious demeanor
+		earned them a special place in the hearts of the Egyptians, a sentiment
+		that has persisted to modern times.
+
+		One of the most captivating features of a cat is its eyes. With large,
+		round pupils that can expand and contract based on the amount of light, a
+		cat's eyes are a marvel of evolution. This feature allows them to have
+		excellent night vision, making them adept hunters even in low-light
+		conditions. The reflective layer behind their retinas, known as the tapetum
+		lucidum, gives their eyes a distinctive glow in the dark and further
+		enhances their ability to see at night.
+
+		Cats are known for their grooming habits. They spend a significant amount
+		of time each day cleaning their fur with their rough tongues. This not only
+		keeps them clean but also helps regulate their body temperature. The act of
+		grooming also has a calming effect on cats, and it's not uncommon to see
+		them grooming themselves or other cats as a sign of affection and bonding.
+		This meticulous cleaning ritual also aids in reducing scent, making them
+		stealthier hunters.
+
+		The purring of a cat is a sound that many find soothing and comforting.
+		While it's commonly associated with contentment, cats also purr when they
+		are in pain, anxious, or even when they're near death. The exact mechanism
+		and purpose of purring remain a subject of research and speculation. Some
+		theories suggest that purring has healing properties, as the vibrations can
+		stimulate the production of certain growth factors that aid in wound
+		healing.
+
+		Domestic cats, despite being pampered pets in many households, still retain
+		many of their wild instincts. Their tendency to "hunt" toys, pounce on
+		moving objects, or even their habit of bringing back prey to their owners
+		are all remnants of their wild ancestry. These behaviors are deeply
+		ingrained and serve as a reminder that beneath their cuddly exterior lies a
+		skilled predator, honed by millions of years of evolution.`)
+
+	dogDoc, err := setup.DocService.UploadDocument(cfg.TestUserID, "Dog Knowledge",
+		`Introduction to Dogs: Dogs, often referred to as "man's best friend," have been
+		companions to humans for thousands of years. Originating from wild wolves,
+		these loyal creatures have been domesticated and bred for various roles
+		throughout history, from hunting and herding to companionship. Their keen
+		senses, especially their sense of smell, combined with their innate
+		intelligence, make them invaluable partners in numerous tasks. Today, dogs are
+		found in countless households worldwide, providing joy, comfort, and sometimes
+		even protection to their human families.
+
+		Diverse Breeds: The world of dogs is incredibly diverse, with over 340
+		recognized breeds, each with its unique characteristics, temperament, and
+		appearance. From the tiny Chihuahua to the majestic Great Dane, dogs come in
+		all shapes and sizes. Some breeds, like the Border Collie, are known for their
+		intelligence and agility, while others, such as the Saint Bernard, are
+		celebrated for their strength and gentle nature. This vast diversity ensures
+		that there's a perfect dog breed for almost every individual and lifestyle.
+
+		Roles and Responsibilities: Beyond being mere pets, dogs play various roles in
+		human societies. Service dogs assist individuals with disabilities, guiding the
+		visually impaired or alerting those with hearing loss. Therapy dogs provide
+		emotional support in hospitals, schools, and nursing homes, offering comfort to
+		those in need. Working dogs, like police K9 units or search and rescue teams,
+		perform critical tasks that save lives. However, with these roles comes the
+		responsibility for owners to provide proper training, care, and attention to
+		their canine companions.
+
+		Health and Care: Just like humans, dogs have specific health and care needs
+		that owners must address. Regular veterinary check-ups, vaccinations, and a
+		balanced diet are essential for a dog's well-being. Grooming, depending on the
+		breed, can range from daily brushing to occasional baths. Exercise is crucial
+		for a dog's physical and mental health, with daily walks and playtime being
+		beneficial. Additionally, training and socialization from a young age ensure
+		that dogs are well-behaved and can interact positively with other animals and
+		people.
+
+		The Bond Between Humans and Dogs: The relationship between humans and dogs is
+		profound and multifaceted. Dogs offer unconditional love, loyalty, and
+		companionship, often becoming integral members of the family. In return, humans
+		provide care, shelter, and affection. Numerous studies have shown that owning a
+		dog can reduce stress, increase physical activity, and bring joy to their
+		owners. This symbiotic relationship, built on mutual trust and respect,
+		showcases the incredible bond that has existed between our two species for
+		millennia.`)
+
+	if _, err := setup.DocService.GetDocument(cfg.TestUserID, "Dog Knowledge"); err != nil {
+		t.Fatalf("Failed to get dog document: %v", err)
+	}
+	if _, err := setup.DocService.GetDocumentByID(cfg.TestUserID, dogDoc.DocumentUUID); err != nil {
+		t.Fatalf("Failed to get dog document: %v", err)
+	}
+	cat, err := setup.DocService.GetDocumentByID(cfg.TestUserID, catDoc.DocumentUUID)
+	if cat == nil || err != nil {
+		t.Fatalf("Failed to get cat document: %v", err)
+	}
+
 	// Obtain a JWT token from Clerk
 	jwtToken := cfg.TestJWTSessionToken
 
 	// Construct a message
 	messages := []Message{
-		{Role: RoleUser, Content: "Hello, how can I help you?"},
+		{Role: RoleUser, Content: "Hello, what are dogs?"},
 	}
 
 	// Send a POST request to the server with the JWT token and message
@@ -174,27 +272,41 @@ func TestChatHandlerIntegration(t *testing.T) {
 	if serverResp.Status == "fail" {
 		t.Errorf("Server responded with failure: %s", serverResp.Message)
 	}
-
 	if serverResp.Status != "success" {
 		t.Errorf("Expected successful response, got %+v", serverResp.Status)
 	}
 	if serverResp.Message == "" {
 		t.Errorf("Expected message in response, got %+v", serverResp.Message)
 	}
-	if serverResp.Data == `Given a question, try to answer it using the content `+
-		`of the file extracts below, and if you cannot answer, or find a relevant file, `+
-		`just output "I couldn't find the answer to that question in your files.".If the `+
-		`answer is not contained in the files or if there are no file extracts, respond `+
-		`with "I couldn't find the answer to that question in your files." If the `+
-		`question is not actually a question, respond with "That's not a valid question."`+
-		`In the cases where you can find the answer, first give the answer. Then explain `+
-		`how you found the answer from the source or sources, and use the exact filenames `+
-		`of the source files you mention. Do not make up the names of any other files `+
-		`other than those mentioned in the files context. Give the answer in markdown `+
-		`format.Use the following format:Question: Hello, how can I help you?Files: `+
-		`Answer: ` {
-		t.Errorf("Expected data in response, got %+v", serverResp)
+
+	// t.Fatalf("serverResp.Data: %+v", serverResp.Data)
+	data, ok := serverResp.Data.(string)
+	if !ok {
+		t.Fatalf("Expected serverResp.Data to be a string, got %T", serverResp.Data)
 	}
+
+	if !strings.Contains(data, `Dogs, often referred to as "man's best friend,"`) {
+		t.Errorf("Response data does not contain expected dog knowledge: %v", data)
+	}
+
+	if strings.Contains(data, "The purring of a cat is a sound that many find soothing") {
+		t.Errorf("Response data should not contain cat knowledge")
+	}
+
+	// if serverResp.Data != `Given a question, try to answer it using the content `+
+	// 	`of the file extracts below, and if you cannot answer, or find a relevant file, `+
+	// 	`just output "I couldn't find the answer to that question in your files.".If the `+
+	// 	`answer is not contained in the files or if there are no file extracts, respond `+
+	// 	`with "I couldn't find the answer to that question in your files." If the `+
+	// 	`question is not actually a question, respond with "That's not a valid question."`+
+	// 	`In the cases where you can find the answer, first give the answer. Then explain `+
+	// 	`how you found the answer from the source or sources, and use the exact filenames `+
+	// 	`of the source files you mention. Do not make up the names of any other files `+
+	// 	`other than those mentioned in the files context. Give the answer in markdown `+
+	// 	`format.Use the following format:Question: Hello, how can I help you?Files: `+
+	// 	`Answer: ` {
+	// 	t.Errorf("Expected data in response, got %+v", serverResp)
+	// }
 
 }
 
