@@ -5,6 +5,7 @@ package chatapi
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -151,13 +152,34 @@ func TestChatHandlerIntegration(t *testing.T) {
 		t.Errorf("Failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
+
+	// Check the response
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read response body: %v", err)
+	}
+
+	var serverResp ChatResponse
+	err = json.Unmarshal(respBody, &serverResp)
+	if err != nil {
+		t.Errorf("Failed to unmarshal response body: %v", err)
+		return
+	}
+
+	// Now you can use serverResp to make assertions or further logic
+	if serverResp.Status == "fail" {
+		t.Errorf("Server responded with failure: %s", serverResp.Message)
+	}
+
+	t.Logf("serverResp status: %v", serverResp.Status)
+	t.Logf("serverResp data: %v", serverResp.Data)
+	t.Logf("serverResp message: %v", serverResp.Message)
 }
 
-// 	//
-// 	// // Check the response
-// 	// if resp.StatusCode != http.StatusOK {
-// 	// 	t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-// 	// }
 // 	// // Read the response body
 // 	// respBody, err := io.ReadAll(resp.Body)
 // 	// if err != nil {
