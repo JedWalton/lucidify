@@ -87,24 +87,28 @@ func (c *ChatVectorServiceImpl) ConstructSystemMessage(question string, userID s
 	if err != nil {
 		return "", err
 	}
-	if results == nil {
+	if len(results) == 0 || results == nil {
 		return "", fmt.Errorf("SearchDocumentsByText returned nil results")
 	}
 
 	// Process the results and construct the files_string
 	filesString := ""
-	for _, result := range results {
-		document, err := c.documentService.GetDocumentByID(userID, result.DocumentID)
-		if err != nil {
-			return "", err
-		}
-		if document == nil {
-			return "", fmt.Errorf("GetDocumentByID returned a nil document for ID: %s", result.DocumentID)
-		}
+	if len(results) == 0 {
+		filesString = "I couldn't find the answer to that question in your files."
+	} else {
+		for _, result := range results {
+			document, err := c.documentService.GetDocumentByID(userID, result.DocumentID)
+			if err != nil {
+				return "", err
+			}
+			if document == nil {
+				return "", fmt.Errorf("GetDocumentByID returned a nil document for ID: %s", result.DocumentID)
+			}
 
-		if result.Certainty > 0.72 {
-			fileString := fmt.Sprintf("###\n\"%s\"\n%s\n", document.DocumentName, result.ChunkContent)
-			filesString += fileString
+			if result.Certainty > 0.72 {
+				fileString := fmt.Sprintf("###\n\"%s\"\n%s\n", document.DocumentName, result.ChunkContent)
+				filesString += fileString
+			}
 		}
 	}
 
