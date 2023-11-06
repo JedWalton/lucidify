@@ -293,79 +293,11 @@ func TestChatHandlerIntegration(t *testing.T) {
 		t.Errorf("Response data should not contain cat knowledge")
 	}
 
-	// if serverResp.Data != `Given a question, try to answer it using the content `+
-	// 	`of the file extracts below, and if you cannot answer, or find a relevant file, `+
-	// 	`just output "I couldn't find the answer to that question in your files.".If the `+
-	// 	`answer is not contained in the files or if there are no file extracts, respond `+
-	// 	`with "I couldn't find the answer to that question in your files." If the `+
-	// 	`question is not actually a question, respond with "That's not a valid question."`+
-	// 	`In the cases where you can find the answer, first give the answer. Then explain `+
-	// 	`how you found the answer from the source or sources, and use the exact filenames `+
-	// 	`of the source files you mention. Do not make up the names of any other files `+
-	// 	`other than those mentioned in the files context. Give the answer in markdown `+
-	// 	`format.Use the following format:Question: Hello, how can I help you?Files: `+
-	// 	`Answer: ` {
-	// 	t.Errorf("Expected data in response, got %+v", serverResp)
-	// }
-
+	t.Cleanup(func() {
+		userService, err := userservice.NewUserService(setup.PostgresqlDB, setup.Weaviate)
+		if err != nil {
+			log.Fatalf("Failed to create UserService: %v", err)
+		}
+		userService.DeleteUser(cfg.TestUserID)
+	})
 }
-
-// 	// // Read the response body
-// 	// respBody, err := io.ReadAll(resp.Body)
-// 	// if err != nil {
-// 	// 	t.Errorf("Failed to read response body: %v", err)
-// 	// }
-// 	//
-// 	// var serverResp ServerResponse
-// 	// err = json.Unmarshal(respBody, &serverResp)
-// 	// if err != nil {
-// 	// 	t.Errorf("Failed to unmarshal response body: %v", err)
-// 	// }
-// 	//
-// 	// if !serverResp.Success || serverResp.Message == "" || serverResp.Data == nil {
-// 	// 	t.Errorf("Expected successful response with data and message, got %+v", serverResp)
-// 	// }
-//
-// 	// Additional tests can be performed here, like checking the specific content of the systemPrompt
-// 	// and ensuring it matches expected values based on the input "messages".
-// 	//
-// 	// // Unauthenticated POST request
-// 	// req, _ = http.NewRequest(
-// 	// 	http.MethodPost,
-// 	// 	server.URL+"/api/chat/vector-search",
-// 	// 	bytes.NewBuffer(body))
-// 	//
-// 	// req.Header.Set("Authorization", "Bearer "+jwtToken+"invalid")
-// 	// client = &http.Client{}
-// 	// resp, err = client.Do(req)
-// 	// if err != nil {
-// 	// 	t.Errorf("Failed to send request: %v", err)
-// 	// }
-// 	// defer resp.Body.Close()
-// 	//
-// 	// // Check the response
-// 	// if resp.StatusCode != http.StatusUnauthorized {
-// 	// 	t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, resp.StatusCode)
-// 	// }
-// 	//
-// 	// // Read the response body
-// 	// respBody, err = io.ReadAll(resp.Body)
-// 	// if err != nil {
-// 	// 	t.Errorf("Failed to read response body: %v", err)
-// 	// }
-// 	//
-// 	// if string(respBody) != "Unauthorized" {
-// 	// 	t.Errorf("Expected response body %s, got %s", "Unauthorized", string(respBody))
-// 	// }
-// 	//
-// 	// // Cleanup if necessary
-// 	// t.Cleanup(func() {
-// 	// 	testconfig := config.NewServerConfig()
-// 	// 	UserID := testconfig.TestUserID
-// 	// 	postgresqlDB := setup.PostgresqlDB
-// 	// 	postgresqlDB.DeleteUserInUsersTable(UserID)
-// 	// })
-// }
-
-// SetupTestEnvironment is assumed to be the same as in the previous example, which prepares
-// the database and other services for integration testing.
