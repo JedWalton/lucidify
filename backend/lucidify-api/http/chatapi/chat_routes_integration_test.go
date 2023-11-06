@@ -3,6 +3,8 @@
 package chatapi
 
 import (
+	"bytes"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -124,34 +126,33 @@ func TestChatHandlerIntegration(t *testing.T) {
 	SetupRoutes(cfg, mux, chatVectorService, clerkInstance)
 	server := httptest.NewServer(mux)
 	defer server.Close()
+
+	// Obtain a JWT token from Clerk
+	jwtToken := cfg.TestJWTSessionToken
+
+	// Construct a message
+	messages := []Message{
+		{Role: RoleUser, Content: "Hello, how can I help you?"},
+	}
+
+	// Send a POST request to the server with the JWT token and message
+	body, _ := json.Marshal(map[string][]Message{"messages": messages})
+
+	// Authenticated request
+	req, _ := http.NewRequest(
+		http.MethodPost,
+		server.URL+"/api/chat/vector-search",
+		bytes.NewBuffer(body))
+
+	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to send request: %v", err)
+	}
+	// defer resp.Body.Close()
 }
 
-//
-// 	// Obtain a JWT token from Clerk
-// 	// jwtToken := cfg.TestJWTSessionToken
-//
-// 	// Construct a message
-// 	messages := []Message{
-// 		{Role: RoleUser, Content: "Hello, how can I help you?"},
-// 	}
-//
-// 	// Send a POST request to the server with the JWT token and message
-// 	// body, _ := json.Marshal(map[string][]Message{"messages": messages})
-// 	_, _ = json.Marshal(map[string][]Message{"messages": messages})
-//
-// 	// // Authenticated request
-// 	// req, _ := http.NewRequest(
-// 	// 	http.MethodPost,
-// 	// 	server.URL+"/api/chat/vector-search",
-// 	// 	bytes.NewBuffer(body))
-// 	//
-// 	// req.Header.Set("Authorization", "Bearer "+jwtToken)
-// 	// client := &http.Client{}
-// 	// resp, err := client.Do(req)
-// 	// if err != nil {
-// 	// 	t.Errorf("Failed to send request: %v", err)
-// 	// }
-// 	// defer resp.Body.Close()
 // 	//
 // 	// // Check the response
 // 	// if resp.StatusCode != http.StatusOK {
