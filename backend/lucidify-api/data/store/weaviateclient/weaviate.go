@@ -294,7 +294,7 @@ func (w *WeaviateClientImpl) SearchDocumentsByText(limit int, userID string, con
 		Do(ctx)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var chunks []storemodels.ChunkFromVectorSearch
