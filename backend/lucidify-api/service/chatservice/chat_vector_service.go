@@ -45,7 +45,7 @@ func (c *ChatVectorServiceImpl) ConstructSystemMessage(question string, userID s
 			return "", err
 		}
 		fileText := result.ChunkContent
-		if result.Certainty > 0.72 {
+		if result.Certainty > 0.5 {
 			fileString := fmt.Sprintf("###\n\"%s\"\n%s\n", filename, fileText)
 			filesString += fileString
 		}
