@@ -1,12 +1,9 @@
-module.exports = {
-  reactStrictMode: true,
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: [`@svgr/webpack`],
-    });
+const { withContentlayer } = require("next-contentlayer");
 
-    return config;
-  },
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
 };
 
+module.exports = withContentlayer(nextConfig);
