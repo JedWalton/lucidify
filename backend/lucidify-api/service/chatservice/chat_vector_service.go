@@ -2,6 +2,7 @@ package chatservice
 
 import (
 	"fmt"
+	"log"
 	"lucidify-api/data/store/weaviateclient"
 	"lucidify-api/service/documentservice"
 
@@ -45,10 +46,10 @@ func (c *ChatVectorServiceImpl) ConstructSystemMessage(question string, userID s
 			return "", err
 		}
 		fileText := result.ChunkContent
-		if result.Certainty > 0.5 {
-			fileString := fmt.Sprintf("###\n\"%s\"\n%s\n", filename, fileText)
-			filesString += fileString
-		}
+		// if result.Certainty > 0.5 {
+		fileString := fmt.Sprintf("###\n\"%s\"\n%s\n", filename, fileText)
+		filesString += fileString
+		// }
 	}
 
 	// Construct the system message
@@ -63,6 +64,7 @@ func (c *ChatVectorServiceImpl) ConstructSystemMessage(question string, userID s
 		`Question: %s`+
 		`Files: %s`+
 		`Answer:`, question, filesString)
+	log.Printf("systemMessage: %s", systemMessage)
 	return systemMessage, nil
 }
 
