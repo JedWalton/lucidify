@@ -57,16 +57,16 @@ const Header = () => {
         <h1
           className={tw(`font-sans font-bold text-4xl md:text-5xl lg:text-8xl text-center leading-snug text-gray-800`)}
         >
-          Lucidify your business.
+          Lucidify
         </h1>
         <div className={tw(`max-w-xl mx-auto`)}>
-          <p className={tw(`mt-10 text-gray-500 text-center text-xl lg:text-3xl`)}>Chat securely with your private ChatGPT.</p>
+          <p className={tw(`mt-10 text-gray-500 text-center text-xl lg:text-3xl`)}>File Q and A with ChatGPT.</p>
         </div>
 
         <div className={tw(`mt-10 flex justify-center items-center w-full mx-auto`)}>
           <Link href="/example">
             <Button primary type="submit">
-              Get Started.
+              Upload documents.
             </Button>
           </Link>
         </div>
