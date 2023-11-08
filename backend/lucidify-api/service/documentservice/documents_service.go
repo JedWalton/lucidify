@@ -39,7 +39,7 @@ func NewDocumentService(
 func splitContentIntoChunks(document storemodels.Document) ([]storemodels.Chunk, error) {
 	cfg := config.NewServerConfig()
 
-	url := cfg.AI_API_URL + "/split_text_to_chunks"
+	url := cfg.AI_API_URL + "/chunker/split_text_to_chunks"
 	payload := map[string]string{
 		"text": document.Content,
 	}

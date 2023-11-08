@@ -51,4 +51,3 @@ CREATE TRIGGER tr_prompts_update_timestamp
 BEFORE UPDATE ON prompts
 FOR EACH ROW
 EXECUTE FUNCTION update_timestamp();
-

@@ -63,17 +63,29 @@ func TestIntegration_clerk_handlers(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to update user in Clerk: %v", err)
 	}
-
-	var updated bool
-	for i := 0; i < 10; i++ {
-		user, err := userService.GetUser(userID)
-		if err == nil && user.FirstName == updatedFirstName && user.LastName == updatedLastName {
-			updated = true
-			break
+	// Use a channel to communicate the result of the async operation.
+	resultChan := make(chan bool)
+	go func() {
+		// This is now running in a separate goroutine.
+		for i := 0; i < 10; i++ {
+			user, err := userService.GetUser(userID)
+			if err == nil && user.FirstName == updatedFirstName && user.LastName == updatedLastName {
+				resultChan <- true
+				return
+			}
+			time.Sleep(1 * time.Second)
 		}
-		time.Sleep(time.Second) // Wait for 1 second before retrying
-	}
-	if !updated {
-		t.Errorf("User first name and last name not updated in users table")
+		// If the loop completes without returning, the update was not successful.
+		resultChan <- false
+	}()
+
+	// Use a select statement to wait for the async operation to complete or timeout.
+	select {
+	case success := <-resultChan:
+		if !success {
+			t.Errorf("User first name and last name not updated in users table")
+		}
+	case <-time.After(11 * time.Second): // Timeout a bit longer than the sleep * retries in the goroutine.
+		t.Errorf("Update check timed out")
 	}
 }
