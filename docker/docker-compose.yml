@@ -22,18 +22,6 @@ services:
     env_file:
       - ../.env
 
-  chatbot-ui:
-    image: lucidify
-    build:
-      context: ../frontend/chatbot-ui
-      dockerfile:  Dockerfile.dev
-    ports:
-      - '3002:3000'
-    volumes:
-      - ../frontend/chatbot-ui:/app
-    env_file:
-      - ../.env
-  
   lucidify-api:
     image: backend/lucidify-api 
     build:
